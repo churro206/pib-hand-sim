@@ -1,0 +1,39 @@
+services:
+
+  train:
+    build: .
+    image: pib-hand-sim
+    working_dir: /workspace
+    command: python training/train.py
+    volumes:
+      - .:/workspace          # Code live editierbar
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  export:
+    image: pib-hand-sim
+    working_dir: /workspace
+    command: python inference/export_onnx.py
+    volumes:
+      - .:/workspace
+
+  shell:
+    image: pib-hand-sim
+    working_dir: /workspace
+    command: bash
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
