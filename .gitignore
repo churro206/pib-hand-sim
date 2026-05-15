@@ -1,0 +1,21 @@
+# Trainingsdaten und Modellgewichte
+data/*.npz
+data/*.csv
+models/*.pt
+models/*.onnx
+models/*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+runs/
