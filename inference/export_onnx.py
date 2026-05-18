@@ -1,10 +1,8 @@
 """
-Exportiert das trainierte LSTM-Modell nach ONNX.
-Danach: STM32Cube.AI (X-CUBE-AI) in STM32CubeIDE nutzen um
-C-Code fuer den NUCLEO-H723ZG zu generieren.
+Exportiert das trainierte LSTM-Modell nach ONNX fuer den NUCLEO-H723ZG.
+Danach mit STM32Cube.AI (X-CUBE-AI) in C-Code konvertieren.
 
-Ausfuehren:
-    cd /home/leon/repos/pib-hand-sim
+Ausfuehren (vom Repo-Root):
     .venv/bin/python inference/export_onnx.py
 """
 import sys
@@ -76,6 +74,7 @@ def export():
         out, (h, c) = model(dummy_input, (dummy_h, dummy_c))
     print(f"\nOutput-Shape: {tuple(out.shape)}  (erwartet: [1, 1, 11])")
     print(f"Hidden-Shape: {tuple(h.shape)}")
+
     print("\nNaechster Schritt:")
     print("  1. STM32CubeIDE oeffnen")
     print("  2. X-CUBE-AI installieren (Help -> Manage Embedded Software Packages)")

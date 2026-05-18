@@ -113,6 +113,9 @@ async def collect():
     stage = omni.usd.get_context().get_stage()
     app   = omni.kit.app.get_app()
 
+    # Physics View braucht mind. einen Frame um bereit zu sein
+    await app.next_update_async()
+
     robot = Articulation(ROBOT_PATH)
     robot.initialize()
 

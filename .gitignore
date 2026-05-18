@@ -1,9 +1,11 @@
 # Trainingsdaten und Modellgewichte
 data/*.npz
 data/*.csv
+data/*.png
 models/*.pt
 models/*.onnx
 models/*.pth
+models/*.npz
 
 # Python
 __pycache__/
