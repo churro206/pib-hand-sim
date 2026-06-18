@@ -1,0 +1,218 @@
+
+============================================================
+PIB HAND INVENTORY
+============================================================
+
+Gefundene ArticulationRoots: ['/World/pib_upperbody_URDF/pib_upperbody_URDF']
+Verwende: /World/pib_upperbody_URDF/pib_upperbody_URDF
+
+Alle Revolute Joints im Stage
+Pfad                                                                   Min      Max
+-------------------------------------------------------------------------------------
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_head_vertical       -45.0     70.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_head_horizontal     -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_vertical_left    -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_horizontal_left    -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_upper_arm_left      -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_elbow_left          -45.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_forearm_left        -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_vertical_right    -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_horizontal_right    -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_upper_arm_right     -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_elbow_right         -45.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_forearm_right       -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_left            0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_tip        0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_tip       0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_tip         0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_tip        0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_rotator      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_right           0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_tip       0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_tip      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_tip        0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_tip       0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_rotator      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_proximal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_distal      0.0     90.0
+
+44 Joints total
+
+============================================================
+ARTICULATION DOF API
+============================================================
+
+Idx   DOF-Name                                           Min      Max
+---------------------------------------------------------------------------
+0     dof_head_horizontal                             -90.0    90.0
+1     dof_shoulder_vertical_left                      -90.0    90.0
+2     dof_shoulder_vertical_right                     -90.0    90.0
+3     dof_head_vertical                               -45.0    70.0
+4     dof_shoulder_horizontal_left                    -90.0    90.0
+5     dof_shoulder_horizontal_right                   -90.0    90.0
+6     dof_upper_arm_left                              -90.0    90.0
+7     dof_upper_arm_right                             -90.0    90.0
+8     dof_elbow_left                                  -45.0    90.0
+9     dof_elbow_right                                 -45.0    90.0
+10    dof_forearm_left                                -90.0    90.0
+11    dof_forearm_right                               -90.0    90.0
+12    dof_wrist_left                                    0.0    90.0
+13    dof_wrist_right                                   0.0    90.0
+14    dof_index_left_proximal                           0.0    90.0
+15    dof_middle_left_proximal                          0.0    90.0
+16    dof_ring_left_proximal                            0.0    90.0
+17    dof_pinky_left_proximal                           0.0    90.0
+18    dof_thumb_left_rotator                            0.0    90.0
+19    dof_index_right_proximal                          0.0    90.0
+20    dof_middle_right_proximal                         0.0    90.0
+21    dof_ring_right_proximal                           0.0    90.0
+22    dof_pinky_right_proximal                          0.0    90.0
+23    dof_thumb_right_rotator                           0.0    90.0
+24    dof_index_left_distal                             0.0    90.0
+25    dof_middle_left_distal                            0.0    90.0
+26    dof_ring_left_distal                              0.0    90.0
+27    dof_pinky_left_distal                             0.0    90.0
+28    dof_thumb_left_proximal                           0.0    90.0
+29    dof_index_right_distal                            0.0    90.0
+30    dof_middle_right_distal                           0.0    90.0
+31    dof_ring_right_distal                             0.0    90.0
+32    dof_pinky_right_distal                            0.0    90.0
+33    dof_thumb_right_proximal                          0.0    90.0
+34    dof_index_left_tip                                0.0    90.0
+35    dof_middle_left_tip                               0.0    90.0
+36    dof_ring_left_tip                                 0.0    90.0
+37    dof_pinky_left_tip                                0.0    90.0
+38    dof_thumb_left_distal                             0.0    90.0
+39    dof_index_right_tip                               0.0    90.0
+40    dof_middle_right_tip                              0.0    90.0
+41    dof_ring_right_tip                                0.0    90.0
+42    dof_pinky_right_tip                               0.0    90.0
+43    dof_thumb_right_distal                            0.0    90.0
+
+Left Hand DOFs (15): ['dof_index_left_proximal', 'dof_middle_left_proximal', 'dof_ring_left_proximal', 'dof_pinky_left_proximal', 'dof_thumb_left_rotator', 'dof_index_left_distal', 'dof_middle_left_distal', 'dof_ring_left_distal', 'dof_pinky_left_distal', 'dof_thumb_left_proximal', 'dof_index_left_tip', 'dof_middle_left_tip', 'dof_ring_left_tip', 'dof_pinky_left_tip', 'dof_thumb_left_distal']
+
+Right Hand DOFs (15): ['dof_index_right_proximal', 'dof_middle_right_proximal', 'dof_ring_right_proximal', 'dof_pinky_right_proximal', 'dof_thumb_right_rotator', 'dof_index_right_distal', 'dof_middle_right_distal', 'dof_ring_right_distal', 'dof_pinky_right_distal', 'dof_thumb_right_proximal', 'dof_index_right_tip', 'dof_middle_right_tip', 'dof_ring_right_tip', 'dof_pinky_right_tip', 'dof_thumb_right_distal']
+
+============================================================
+
+
+============================================================
+BLOCK FÜR pib_hand_config.py
+============================================================
+
+Hand-DOFs links:  15
+Hand-DOFs rechts: 15
+Erwartet für v4:  15 pro Hand
+
+# --- Auto-generiert: pib v4, beide Haende ---
+
+JOINT_SIGN = -1  # Onshape → Isaac Vorzeichen-Kompensation
+
+HAND_DOFS = {
+    "left": {
+        "names": [
+            "dof_thumb_left_rotator",
+            "dof_thumb_left_proximal",
+            "dof_thumb_left_distal",
+            "dof_index_left_proximal",
+            "dof_index_left_distal",
+            "dof_index_left_tip",
+            "dof_middle_left_proximal",
+            "dof_middle_left_distal",
+            "dof_middle_left_tip",
+            "dof_ring_left_proximal",
+            "dof_ring_left_distal",
+            "dof_ring_left_tip",
+            "dof_pinky_left_proximal",
+            "dof_pinky_left_distal",
+            "dof_pinky_left_tip",
+        ],
+        "indices": [
+            18,  # dof_thumb_left_rotator
+            28,  # dof_thumb_left_proximal
+            38,  # dof_thumb_left_distal
+            14,  # dof_index_left_proximal
+            24,  # dof_index_left_distal
+            34,  # dof_index_left_tip
+            15,  # dof_middle_left_proximal
+            25,  # dof_middle_left_distal
+            35,  # dof_middle_left_tip
+            16,  # dof_ring_left_proximal
+            26,  # dof_ring_left_distal
+            36,  # dof_ring_left_tip
+            17,  # dof_pinky_left_proximal
+            27,  # dof_pinky_left_distal
+            37,  # dof_pinky_left_tip
+        ],
+        "servos": {
+            "thumb_opp": [18],
+            "thumb": [28, 38],
+            "index": [14, 24, 34],
+            "middle": [15, 25, 35],
+            "ring": [16, 26, 36],
+            "pinky": [17, 27, 37],
+        },
+    },
+    "right": {
+        "names": [
+            "dof_thumb_right_rotator",
+            "dof_thumb_right_proximal",
+            "dof_thumb_right_distal",
+            "dof_index_right_proximal",
+            "dof_index_right_distal",
+            "dof_index_right_tip",
+            "dof_middle_right_proximal",
+            "dof_middle_right_distal",
+            "dof_middle_right_tip",
+            "dof_ring_right_proximal",
+            "dof_ring_right_distal",
+            "dof_ring_right_tip",
+            "dof_pinky_right_proximal",
+            "dof_pinky_right_distal",
+            "dof_pinky_right_tip",
+        ],
+        "indices": [
+            23,  # dof_thumb_right_rotator
+            33,  # dof_thumb_right_proximal
+            43,  # dof_thumb_right_distal
+            19,  # dof_index_right_proximal
+            29,  # dof_index_right_distal
+            39,  # dof_index_right_tip
+            20,  # dof_middle_right_proximal
+            30,  # dof_middle_right_distal
+            40,  # dof_middle_right_tip
+            21,  # dof_ring_right_proximal
+            31,  # dof_ring_right_distal
+            41,  # dof_ring_right_tip
+            22,  # dof_pinky_right_proximal
+            32,  # dof_pinky_right_distal
+            42,  # dof_pinky_right_tip
+        ],
+        "servos": {
+            "thumb_opp": [23],
+            "thumb": [33, 43],
+            "index": [19, 29, 39],
+            "middle": [20, 30, 40],
+            "ring": [21, 31, 41],
+            "pinky": [22, 32, 42],
+        },
+    },
+}
