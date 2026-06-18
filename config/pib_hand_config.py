@@ -6,7 +6,7 @@ ROBOT_PRIM_PATH = "/World/pib_upperbody_URDF/pib_upperbody_URDF"
 # ── Vorzeichen-Kompensation ───────────────────────────────────────────────────
 # Onshape-Import invertiert Gelenkachsen gegenüber Isaac Sim.
 # Alle Winkel werden vor dem Isaac-API-Call mit JOINT_SIGN multipliziert.
-JOINT_SIGN = +1  # positiv = Flexion; war -1, Inversion visuell verifiziert
+JOINT_SIGN = -1  # positive Isaac-Richtung = Extension; negativ = Flexion
 
 # ── DOF-Daten beider Hände (aus inventory_output.txt, 2026-06-18) ─────────────
 # Anatomisch sortiert: Daumen-Rotator → Daumen MCP → IP →

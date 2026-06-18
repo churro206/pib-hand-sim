@@ -22,37 +22,37 @@ Pfad                                                                   Min      
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_elbow_right         -45.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_forearm_right       -90.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_left            0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_tip        0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_tip       0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_tip         0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_tip        0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_rotator      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_tip      -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_left_tip     -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_left_tip       -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_left_tip      -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_rotator    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_distal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_right           0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_tip       0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_tip      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_tip        0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_distal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_tip       0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_rotator      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_proximal      0.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_distal      0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_tip     -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_middle_right_tip    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_ring_right_tip      -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_distal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_pinky_right_tip     -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_rotator    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_proximal    -90.0     -0.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_right_distal    -90.0     -0.0
 
 44 Joints total
 
@@ -76,36 +76,36 @@ Idx   DOF-Name                                           Min      Max
 11    dof_forearm_right                               -90.0    90.0
 12    dof_wrist_left                                    0.0    90.0
 13    dof_wrist_right                                   0.0    90.0
-14    dof_index_left_proximal                           0.0    90.0
-15    dof_middle_left_proximal                          0.0    90.0
-16    dof_ring_left_proximal                            0.0    90.0
-17    dof_pinky_left_proximal                           0.0    90.0
-18    dof_thumb_left_rotator                            0.0    90.0
-19    dof_index_right_proximal                          0.0    90.0
-20    dof_middle_right_proximal                         0.0    90.0
-21    dof_ring_right_proximal                           0.0    90.0
-22    dof_pinky_right_proximal                          0.0    90.0
-23    dof_thumb_right_rotator                           0.0    90.0
-24    dof_index_left_distal                             0.0    90.0
-25    dof_middle_left_distal                            0.0    90.0
-26    dof_ring_left_distal                              0.0    90.0
-27    dof_pinky_left_distal                             0.0    90.0
-28    dof_thumb_left_proximal                           0.0    90.0
-29    dof_index_right_distal                            0.0    90.0
-30    dof_middle_right_distal                           0.0    90.0
-31    dof_ring_right_distal                             0.0    90.0
-32    dof_pinky_right_distal                            0.0    90.0
-33    dof_thumb_right_proximal                          0.0    90.0
-34    dof_index_left_tip                                0.0    90.0
-35    dof_middle_left_tip                               0.0    90.0
-36    dof_ring_left_tip                                 0.0    90.0
-37    dof_pinky_left_tip                                0.0    90.0
-38    dof_thumb_left_distal                             0.0    90.0
-39    dof_index_right_tip                               0.0    90.0
-40    dof_middle_right_tip                              0.0    90.0
-41    dof_ring_right_tip                                0.0    90.0
-42    dof_pinky_right_tip                               0.0    90.0
-43    dof_thumb_right_distal                            0.0    90.0
+14    dof_index_left_proximal                         -90.0    -0.0
+15    dof_middle_left_proximal                        -90.0    -0.0
+16    dof_ring_left_proximal                          -90.0    -0.0
+17    dof_pinky_left_proximal                         -90.0    -0.0
+18    dof_thumb_left_rotator                          -90.0    -0.0
+19    dof_index_right_proximal                        -90.0    -0.0
+20    dof_middle_right_proximal                       -90.0    -0.0
+21    dof_ring_right_proximal                         -90.0    -0.0
+22    dof_pinky_right_proximal                        -90.0    -0.0
+23    dof_thumb_right_rotator                         -90.0    -0.0
+24    dof_index_left_distal                           -90.0    -0.0
+25    dof_middle_left_distal                          -90.0    -0.0
+26    dof_ring_left_distal                            -90.0    -0.0
+27    dof_pinky_left_distal                           -90.0    -0.0
+28    dof_thumb_left_proximal                         -90.0    -0.0
+29    dof_index_right_distal                          -90.0    -0.0
+30    dof_middle_right_distal                         -90.0    -0.0
+31    dof_ring_right_distal                           -90.0    -0.0
+32    dof_pinky_right_distal                          -90.0    -0.0
+33    dof_thumb_right_proximal                        -90.0    -0.0
+34    dof_index_left_tip                              -90.0    -0.0
+35    dof_middle_left_tip                             -90.0    -0.0
+36    dof_ring_left_tip                               -90.0    -0.0
+37    dof_pinky_left_tip                              -90.0    -0.0
+38    dof_thumb_left_distal                           -90.0    -0.0
+39    dof_index_right_tip                             -90.0    -0.0
+40    dof_middle_right_tip                            -90.0    -0.0
+41    dof_ring_right_tip                              -90.0    -0.0
+42    dof_pinky_right_tip                             -90.0    -0.0
+43    dof_thumb_right_distal                          -90.0    -0.0
 
 Left Hand DOFs (15): ['dof_index_left_proximal', 'dof_middle_left_proximal', 'dof_ring_left_proximal', 'dof_pinky_left_proximal', 'dof_thumb_left_rotator', 'dof_index_left_distal', 'dof_middle_left_distal', 'dof_ring_left_distal', 'dof_pinky_left_distal', 'dof_thumb_left_proximal', 'dof_index_left_tip', 'dof_middle_left_tip', 'dof_ring_left_tip', 'dof_pinky_left_tip', 'dof_thumb_left_distal']
 

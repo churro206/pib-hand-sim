@@ -19,6 +19,15 @@ import numpy as np
 def _find_project_root() -> str:
     if "PIB_HAND_SIM_ROOT" in os.environ:
         return os.environ["PIB_HAND_SIM_ROOT"]
+    try:
+        import omni.usd  # type: ignore
+        from pathlib import Path
+        stage_file = Path(omni.usd.get_context().get_stage().GetRootLayer().realPath)
+        for ancestor in [stage_file.parent, stage_file.parent.parent]:
+            if (ancestor / "config" / "pib_hand_config.py").is_file():
+                return str(ancestor)
+    except Exception:
+        pass
     for candidate in [
         os.path.expanduser("~/repos/pib-hand-sim"),
         os.path.expanduser("~/pib-hand-sim"),
@@ -27,8 +36,8 @@ def _find_project_root() -> str:
         if os.path.isfile(os.path.join(candidate, "config", "pib_hand_config.py")):
             return candidate
     raise FileNotFoundError(
-        "pib-hand-sim Projektverzeichnis nicht gefunden. "
-        "Env-Variable PIB_HAND_SIM_ROOT=<Pfad> setzen."
+        "pib-hand-sim Projektverzeichnis nicht gefunden.\n"
+        "Entweder PIB_HAND_SIM_ROOT setzen oder USD aus dem Repo laden."
     )
 
 _cfg_path = os.path.join(_find_project_root(), "config", "pib_hand_config.py")
@@ -66,10 +75,13 @@ def get_robot() -> _ArticulationCls:
 
 # ── Interne Konvertierung ─────────────────────────────────────────────────────
 
-def _to_rad(angle_deg: float) -> float:
-    """Nutzerwinkel → Isaac-Radiant mit JOINT_SIGN-Kompensation."""
-    clamped = float(np.clip(angle_deg, 0.0, 90.0))
-    return JOINT_SIGN * clamped * math.pi / 180.0
+def _to_isaac_rad(angle_deg: float) -> float:
+    """Nutzerwinkel [0°, 90°] → Isaac-Radiant. Einzige Stelle mit JOINT_SIGN."""
+    return JOINT_SIGN * float(np.clip(angle_deg, 0.0, 90.0)) * math.pi / 180.0
+
+def _from_isaac_rad(rad: float) -> float:
+    """Isaac-Radiant → Nutzerwinkel in Grad (Inverse von _to_isaac_rad)."""
+    return JOINT_SIGN * float(rad) * 180.0 / math.pi
 
 
 def _joint_dict_to_arrays(joint_dict: dict, side: str) -> tuple[np.ndarray, np.ndarray]:
@@ -95,7 +107,7 @@ def _joint_dict_to_arrays(joint_dict: dict, side: str) -> tuple[np.ndarray, np.n
         if name not in names:
             continue
         i = names.index(name)
-        positions.append(_to_rad(angle))
+        positions.append(_to_isaac_rad(angle))
         idx_list.append(indices[i])
 
     return np.array(positions, dtype=np.float32), np.array(idx_list, dtype=np.int32)
@@ -117,7 +129,7 @@ def _full_pose_arrays(joint_dict: dict, side: str, robot: _ArticulationCls) -> t
         if name not in names:
             continue
         i = names.index(name)
-        target[i] = _to_rad(angle)
+        target[i] = _to_isaac_rad(angle)
 
     return target, usd_idx
 
@@ -149,7 +161,7 @@ def set_joint(name: str, angle_deg: float, side: str = "left", robot: _Articulat
 
     i = hand["names"].index(name)
     robot.set_joint_positions(
-        positions=np.array([_to_rad(angle_deg)], dtype=np.float32),
+        positions=np.array([_to_isaac_rad(angle_deg)], dtype=np.float32),
         joint_indices=np.array([hand["indices"][i]], dtype=np.int32),
     )
 
@@ -247,6 +259,7 @@ async def apply_grasp(
 
 # ── Drive-Steuerung (physikbasiertes Halten) ─────────────────────────────────
 
+
 def setup_drives(
     side: str = "left",
     stiffness: float = 200.0,
@@ -255,6 +268,9 @@ def setup_drives(
     """
     Setzt Steifigkeit und Dämpfung der USD-Drives für alle Handgelenke.
     Muss einmal aufgerufen werden bevor set_drive_targets funktioniert.
+
+    Voraussetzung: setup_stage.py muss VOR Play ausgeführt worden sein,
+    damit die Gelenkgrenzen korrekt auf [-90°, 0°] gesetzt sind.
 
     Werte für "steif aber nicht fixiert": stiffness=200, damping=20.
     Für Training/Datengenerierung niedrigere Werte (50–200) verwenden.
@@ -306,9 +322,7 @@ def set_drive_targets(joint_dict: dict, side: str = "left") -> None:
         drive = UsdPhysics.DriveAPI.Get(prim, "angular")
         if not drive:
             continue
-        # USD DriveAPI nimmt Grad (nicht Radiant), mit JOINT_SIGN-Kompensation
-        target = JOINT_SIGN * float(np.clip(angle_deg, 0.0, 90.0))
-        drive.GetTargetPositionAttr().Set(target)
+        drive.GetTargetPositionAttr().Set(math.degrees(_to_isaac_rad(angle_deg)))
 
 
 # ── Debug-Ausgabe ─────────────────────────────────────────────────────────────
@@ -324,8 +338,7 @@ def print_joint_state(side: str = "left", robot: _ArticulationCls | None = None)
 
     print(f"\n── Hand {side.upper()} — aktueller Zustand ───────────────────────────")
     for i, name in enumerate(hand["names"]):
-        # Nutzerwinkel zurückrechnen: Vorzeichen umkehren
-        deg = JOINT_SIGN * float(pos_rad[i]) * 180.0 / math.pi
+        deg = _from_isaac_rad(pos_rad[i])
         bar = "█" * int(abs(deg) / 4.5)
         print(f"  {name:<32s} {deg:6.1f}°  {bar}")
     print()

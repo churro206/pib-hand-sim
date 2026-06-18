@@ -163,8 +163,22 @@ output_text = output_buffer.getvalue()
 # Auf Konsole zeigen (wie gewohnt)
 print(output_text)
 
-# Zusätzlich in Datei schreiben
-output_path = "/home/athome/repos/pib-hand-sim/isaac_sim/inventory_output.txt"
+# Ausgabepfad: Repo-Root über Stage-Pfad ableiten, dann PIB_HAND_SIM_ROOT, dann cwd
+import os as _os
+def _find_isaac_sim_dir() -> str:
+    if "PIB_HAND_SIM_ROOT" in _os.environ:
+        return _os.path.join(_os.environ["PIB_HAND_SIM_ROOT"], "isaac_sim")
+    try:
+        from pathlib import Path as _Path
+        stage_file = _Path(omni.usd.get_context().get_stage().GetRootLayer().realPath)
+        for ancestor in [stage_file.parent, stage_file.parent.parent]:
+            if (ancestor / "config" / "pib_hand_config.py").is_file():
+                return str(ancestor / "isaac_sim")
+    except Exception:
+        pass
+    return _os.getcwd()
+
+output_path = _os.path.join(_find_isaac_sim_dir(), "inventory_output.txt")
 with open(output_path, "w") as f:
     f.write(output_text)
 print(f"\n>>> Output gespeichert in: {output_path}")
