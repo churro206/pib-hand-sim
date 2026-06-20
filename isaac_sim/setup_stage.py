@@ -141,6 +141,47 @@ def configure_drives(stg) -> int:
     return count
 
 
+def fix_joint_limits(stg) -> int:
+    """
+    Invertiert die Limits aller PhysicsRevoluteJoints: new_lower=-old_upper, new_upper=-old_lower.
+
+    Systematischer Fehler beim Onshape-Import: Isaac interpretiert die Drehachse
+    aller Gelenke entgegengesetzt zu Onshape. Die Limits aus Onshape gelten in
+    Onshape-Konvention — nach der Invertierung stimmen sie mit den tatsächlichen
+    Isaac-Targets überein.
+
+    Beispiel: Onshape [0°, 90°]   →  Isaac [-90°, 0°]
+              Onshape [-45°, 90°]  →  Isaac [-90°, 45°]
+              Onshape [-90°, 90°]  →  Isaac [-90°, 90°]  (symmetrisch → unverändert)
+
+    Idempotenz: Custom-Data-Flag "pib_limits_inverted" wird pro Prim gesetzt und
+    beim nächsten Aufruf geprüft. Bleibt nach Ctrl+S im USD erhalten.
+    Wert-basierte Guards versagen bei asymmetrischen Limits (z.B. [-90°, 45°]).
+    """
+    _FLAG = "pib_limits_inverted"
+    count = 0
+    for prim in stg.Traverse():
+        if prim.GetTypeName() != "PhysicsRevoluteJoint":
+            continue
+        cd = prim.GetCustomData()
+        if cd and cd.get(_FLAG):
+            continue  # Bereits invertiert (Flag gesetzt)
+        lower_attr = prim.GetAttribute("physics:lowerLimit")
+        upper_attr = prim.GetAttribute("physics:upperLimit")
+        if not (lower_attr and upper_attr):
+            continue
+        old_lower = lower_attr.Get()
+        old_upper = upper_attr.Get()
+        lower_attr.Set(-old_upper)
+        upper_attr.Set(-old_lower)
+        new_cd = dict(cd) if cd else {}
+        new_cd[_FLAG] = True
+        prim.SetCustomData(new_cd)
+        count += 1
+    print(f"fix_joint_limits: {count} Gelenke invertiert")
+    return count
+
+
 def set_initial_pose(stg) -> None:
     """
     Setzt initiale Drive-Targets (in Grad, USD-Konvention ohne JOINT_SIGN):
@@ -177,6 +218,7 @@ def setup_all(stg) -> None:
     configure_ground(stg)
     configure_lights(stg)
     configure_drives(stg)
+    fix_joint_limits(stg)
     set_initial_pose(stg)
 
 

@@ -1,13 +1,14 @@
 """
-isaac_sim/test_hand_poses.py — Greifposen-Test (Phase 1, direkte Gelenksteuerung).
+isaac_sim/test_hand_poses.py — Ganzkörper-Posen-Test (alle 44 DOFs).
 
 Läuft in beiden Umgebungen:
-
-  SCRIPT EDITOR: Datei öffnen → Run (Ctrl+Enter). Simulation muss laufen (Play).
-
+  SCRIPT EDITOR: setup_stage.py ausführen → Ctrl+S → Play → diese Datei ausführen.
   STANDALONE:    ~/isaacsim/python.sh isaac_sim/_launch_helper.py test_hand_poses
 
-Ablauf: open → closed_fist → pointing → open
+Sequenz: Winken → Doppelbizeps → Peace
+
+Winkelkonvention: positiv = Onshape-Flexionsrichtung.
+JOINT_SIGN=-1 in robot_io.py kompensiert die Isaac-Invertierung automatisch.
 """
 import sys
 import os
@@ -52,7 +53,8 @@ _log(f"[test] Projekt-Root: {_root}")
 
 
 def _load_mod(name: str, path: str, **pre_attrs):
-    """Lädt Modul via importlib; pre_attrs werden VOR exec_module gesetzt."""
+    sys.modules.pop(name, None)   # stale Cache entfernen
+    importlib.invalidate_caches() # Isaac-Python neu-scannt Filesystem
     spec = importlib.util.spec_from_file_location(name, path)
     mod  = importlib.util.module_from_spec(spec)
     for k, v in pre_attrs.items():
@@ -61,11 +63,11 @@ def _load_mod(name: str, path: str, **pre_attrs):
     return mod
 
 
-# ── hand_io laden und Robot-Handle setzen ─────────────────────────────────────
+# ── robot_io laden ────────────────────────────────────────────────────────────
 if _STANDALONE:
-    import hand_io as _io  # type: ignore  — bereits von _launch_helper initialisiert
+    import robot_io as _io  # type: ignore
 else:
-    _io = _load_mod("hand_io", os.path.join(_root, "isaac_sim", "hand_io.py"))
+    _io = _load_mod("robot_io", os.path.join(_root, "isaac_sim", "robot_io.py"))
     try:
         from isaacsim.core.prims import SingleArticulation as _ArtCls  # type: ignore
     except ImportError:
@@ -75,138 +77,172 @@ else:
     _io._set_robot(_robot)
     _log(f"[test] Robot initialisiert: {_io.ROBOT_PRIM_PATH}")
 
-# ── phase1_direct laden ───────────────────────────────────────────────────────
-if _STANDALONE:
-    from phases.phase1_direct import compute_joint_targets  # type: ignore
-else:
-    _ph = _load_mod("phase1_direct", os.path.join(_root, "phases", "phase1_direct.py"))
-    compute_joint_targets = _ph.compute_joint_targets
-
-set_hand_targets = _io.set_hand_targets
-print_hand_state = _io.print_hand_state
-HAND_DOFS        = _io.HAND_DOFS
-
-# ── Drives konfigurieren (Script Editor) ──────────────────────────────────────
-# Nötig wenn setup_stage.py noch nicht mit den neuen Drive-Werten ausgeführt
-# wurde (alter Stand hatte stiffness=0 für Handgelenke → keine Bewegung).
+# ── Setup (Script Editor): Drives + Limits ────────────────────────────────────
 if not _STANDALONE:
     try:
         import omni.usd  # type: ignore
-        _ss = _load_mod(
-            "_setup_fns",
-            os.path.join(_root, "isaac_sim", "setup_stage.py"),
-            _SKIP_AUTO_SETUP=True,
-        )
-        _n = _ss.configure_drives(omni.usd.get_context().get_stage())
-        _log(f"[test] Drives konfiguriert: {_n} Joints")
+        _ss  = _load_mod("_setup_fns", os.path.join(_root, "isaac_sim", "setup_stage.py"),
+                         _SKIP_AUTO_SETUP=True)
+        _stg = omni.usd.get_context().get_stage()
+        _log(f"[test] Drives: {_ss.configure_drives(_stg)} Joints")
+        # fix_joint_limits hier NICHT aufrufen — ist einmalige Setup-Funktion.
+        # setup_stage.py ausführen → Ctrl+S → Play → dann diese Datei starten.
     except Exception as _e:
-        _log(f"[test] configure_drives fehlgeschlagen (ignoriert): {_e}")
+        _log(f"[test] Setup fehlgeschlagen (ignoriert): {_e}")
 
-# ── Parameter ─────────────────────────────────────────────────────────────────
-SIDE    = "right"   # "left" oder "right"
-PAUSE_S = 3.0       # Wartezeit zwischen Posen in Sekunden
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Referenzen ────────────────────────────────────────────────────────────────
+set_all_targets = _io.set_all_targets
+HAND_DOFS       = _io.HAND_DOFS
 
-_N = HAND_DOFS[SIDE]["names"]
+# ── Hilfs-Lambdas ─────────────────────────────────────────────────────────────
+def _open(side):
+    return {n: 0.0 for n in HAND_DOFS[side]["names"]}
 
-DIRECT_POSES = {
-    "open": {name: 0.0 for name in _N},
+def _fist(side):
+    s = side
+    return {
+        f"dof_thumb_{s}_rotator":   30.0,
+        f"dof_thumb_{s}_proximal":  80.0, f"dof_thumb_{s}_distal":    80.0,
+        f"dof_index_{s}_proximal":  85.0, f"dof_index_{s}_distal":    68.0, f"dof_index_{s}_tip":   51.0,
+        f"dof_middle_{s}_proximal": 85.0, f"dof_middle_{s}_distal":   68.0, f"dof_middle_{s}_tip":  51.0,
+        f"dof_ring_{s}_proximal":   85.0, f"dof_ring_{s}_distal":     68.0, f"dof_ring_{s}_tip":    51.0,
+        f"dof_pinky_{s}_proximal":  85.0, f"dof_pinky_{s}_distal":    68.0, f"dof_pinky_{s}_tip":   51.0,
+    }
 
-    "closed_fist": {
-        "dof_thumb_right_rotator":   30.0,
-        "dof_thumb_right_proximal":  80.0,
-        "dof_thumb_right_distal":    80.0,
-        "dof_index_right_proximal":  85.0,
-        "dof_index_right_distal":    68.0,   # 85 × 0.8
-        "dof_index_right_tip":       51.0,   # 85 × 0.6
-        "dof_middle_right_proximal": 85.0,
-        "dof_middle_right_distal":   68.0,
-        "dof_middle_right_tip":      51.0,
-        "dof_ring_right_proximal":   85.0,
-        "dof_ring_right_distal":     68.0,
-        "dof_ring_right_tip":        51.0,
-        "dof_pinky_right_proximal":  85.0,
-        "dof_pinky_right_distal":    68.0,
-        "dof_pinky_right_tip":       51.0,
+# ── Posen ─────────────────────────────────────────────────────────────────────
+# Winkelangaben in Grad, Onshape-Konvention (positiv = gewünschte Flexionsrichtung).
+# Körpergelenk-Vorzeichen: visuell verifizieren, ggf. umdrehen.
+
+# Geteilte Arm-Konfiguration für alle Wink-Posen.
+# Ziel: Unterarm zeigt senkrecht nach oben.
+#   → Schulter in T-Pose-Ebene (shoulder_vertical ≈ 0°, shoulder_horizontal leicht
+#     nach vorne), Ellbogen auf 90° gebeugt → Unterarm zeigt nach oben.
+# Winken: dof_elbow_right zwischen WINK_ELBOW_A und WINK_ELBOW_B hin und her.
+WINK_ELBOW_A = 65.0   # Ellbogen etwas weniger gebeugt (Unterarm leicht gekippt)
+WINK_ELBOW_B = 90.0   # Ellbogen voll gebeugt (Unterarm senkrecht oben)
+
+_WINK_ARM = {
+    "dof_head_horizontal":           25.0,  # Kopf leicht zum Gegenüber
+    "dof_head_vertical":              0.0,
+    "dof_shoulder_vertical_left":   -30.0,  # linker Arm leicht hängend
+    "dof_shoulder_horizontal_left":   0.0,
+    "dof_upper_arm_left":             0.0,
+    "dof_elbow_left":                15.0,
+    "dof_forearm_left":               0.0,
+    "dof_wrist_left":                 0.0,
+    "dof_shoulder_vertical_right":    0.0,  # Schulter T-Pose-Ebene
+    "dof_shoulder_horizontal_right": 20.0,  # Arm leicht nach vorne
+    "dof_upper_arm_right":            0.0,
+    "dof_forearm_right":              0.0,
+    "dof_wrist_right":                0.0,
+}
+
+POSES = {
+    # ── Neutral — T-Pose ─────────────────────────────────────────────────────
+    "neutral": {
+        "dof_head_horizontal": 0.0, "dof_head_vertical": 0.0,
+        "dof_shoulder_vertical_left": 0.0,   "dof_shoulder_horizontal_left": 0.0,
+        "dof_upper_arm_left": 0.0,            "dof_elbow_left": 0.0,
+        "dof_forearm_left": 0.0,              "dof_wrist_left": 0.0,
+        "dof_shoulder_vertical_right": 0.0,  "dof_shoulder_horizontal_right": 0.0,
+        "dof_upper_arm_right": 0.0,           "dof_elbow_right": 0.0,
+        "dof_forearm_right": 0.0,             "dof_wrist_right": 0.0,
+        **_open("left"), **_open("right"),
     },
 
-    "pointing": {
+    # ── Winken A/B — Ellbogen schwingt hin und her ───────────────────────────
+    "wink_a": {**_WINK_ARM, "dof_elbow_right": WINK_ELBOW_A,
+               **_open("left"), **_open("right")},
+    "wink_b": {**_WINK_ARM, "dof_elbow_right": WINK_ELBOW_B,
+               **_open("left"), **_open("right")},
+
+    # ── Doppelbizeps — beide Arme T-Pose, Ellbogen 90°, Fäuste ──────────────
+    "doppelbizeps": {
+        "dof_head_horizontal":           0.0,  "dof_head_vertical":             0.0,
+        "dof_shoulder_vertical_left":    0.0,  "dof_shoulder_horizontal_left":  0.0,
+        "dof_upper_arm_left":            0.0,  "dof_elbow_left":               90.0,
+        "dof_forearm_left":             90.0,  "dof_wrist_left":                0.0,
+        "dof_shoulder_vertical_right":   0.0,  "dof_shoulder_horizontal_right": 0.0,
+        "dof_upper_arm_right":           0.0,  "dof_elbow_right":              90.0,
+        "dof_forearm_right":            90.0,  "dof_wrist_right":               0.0,
+        "dof_wrist_left":               90.0,  "dof_wrist_right":              90.0,
+        **_fist("left"), **_fist("right"),
+    },
+
+    # ── Peace — rechte Hand V-Zeichen ────────────────────────────────────────
+    "peace": {
+        "dof_head_horizontal":          -15.0,
+        "dof_head_vertical":              0.0,
+        "dof_shoulder_vertical_left":   -30.0,
+        "dof_shoulder_horizontal_left":   0.0,
+        "dof_upper_arm_left":             0.0,
+        "dof_elbow_left":                20.0,
+        "dof_forearm_left":               0.0,
+        "dof_wrist_left":                 0.0,
+        "dof_shoulder_vertical_right":   30.0,
+        "dof_shoulder_horizontal_right": 25.0,
+        "dof_upper_arm_right":            0.0,
+        "dof_elbow_right":               40.0,
+        "dof_forearm_right":              0.0,
+        "dof_wrist_right":                0.0,
+        **_open("left"),
         "dof_thumb_right_rotator":   30.0,
-        "dof_thumb_right_proximal":  80.0,
-        "dof_thumb_right_distal":    80.0,
-        "dof_index_right_proximal":   0.0,
-        "dof_index_right_distal":     0.0,
-        "dof_index_right_tip":        0.0,
-        "dof_middle_right_proximal": 85.0,
-        "dof_middle_right_distal":   68.0,
-        "dof_middle_right_tip":      51.0,
-        "dof_ring_right_proximal":   85.0,
-        "dof_ring_right_distal":     68.0,
-        "dof_ring_right_tip":        51.0,
-        "dof_pinky_right_proximal":  85.0,
-        "dof_pinky_right_distal":    68.0,
-        "dof_pinky_right_tip":       51.0,
+        "dof_thumb_right_proximal":  60.0,  "dof_thumb_right_distal":   60.0,
+        "dof_index_right_proximal":   0.0,  "dof_index_right_distal":    0.0,  "dof_index_right_tip":   0.0,
+        "dof_middle_right_proximal":  0.0,  "dof_middle_right_distal":   0.0,  "dof_middle_right_tip":  0.0,
+        "dof_ring_right_proximal":   85.0,  "dof_ring_right_distal":    68.0,  "dof_ring_right_tip":   51.0,
+        "dof_pinky_right_proximal":  85.0,  "dof_pinky_right_distal":   68.0,  "dof_pinky_right_tip":  51.0,
     },
 }
 
-
-def _adapt_pose(pose: dict) -> dict:
-    if SIDE == "right":
-        return pose
-    return {k.replace("_right_", f"_{SIDE}_"): v for k, v in pose.items()}
+# Sequenz: (pose_name, dauer_in_sekunden)
+_SEQUENCE = [
+    # Winken
+    ("wink_a", 0.2),     ("wink_b", 0.2),
+    ("wink_a", 0.2),     ("wink_b", 0.2),
+    ("wink_a", 0.2),     ("wink_b", 0.2),
+    ("wink_a", 0.2),     ("wink_b", 0.2),
+    ("wink_a", 0.2),     ("wink_b", 0.2),
+    # Doppelbizeps
+    ("doppelbizeps", 4.0),
+    # Peace
+    ("peace",        4.0),
+    ("neutral",      2.0),
+]
 
 
 # ── Test-Logik ────────────────────────────────────────────────────────────────
 
-_SEQUENCE = ["open", "closed_fist", "pointing", "open"]
-
-
 async def _run_editor() -> None:
-    """Script-Editor-Variante: wartet mit app.next_update_async()."""
     try:
         import omni.kit.app  # type: ignore
-        app    = omni.kit.app.get_app()
-        frames = max(1, int(PAUSE_S * 60))
-
-        _log(f"[test] Hand-Pose-Test  Seite={SIDE}  Pause={PAUSE_S}s")
-
-        for pose_name in _SEQUENCE:
-            targets = compute_joint_targets(_adapt_pose(DIRECT_POSES[pose_name]), SIDE)
-
-            _log(f"[test] ► {pose_name.upper()}")
-            for name, deg in targets.items():
-                _log(f"[test]   {name:<32s} {deg:5.1f}°")
-
-            set_hand_targets(targets, SIDE)
-
+        app = omni.kit.app.get_app()
+        _log("[test] Ganzkörper-Test mit Winken")
+        for pose_name, duration in _SEQUENCE:
+            _log(f"[test] ► {pose_name.upper()}  ({duration}s)")
+            set_all_targets(POSES[pose_name])
+            frames = max(1, int(duration * 60))
             for _ in range(frames):
                 await app.next_update_async()
-
         _log("[test] Abgeschlossen.")
-
     except Exception as _exc:
         import traceback
-        _log(f"[test] FEHLER in _run_editor: {_exc}")
+        _log(f"[test] FEHLER: {_exc}")
         _log(traceback.format_exc())
 
 
 def run() -> None:
-    """Standalone-Variante: wartet mit sim_app.update()."""
-    frames = max(1, int(PAUSE_S * 60))
-
-    _log(f"[test] Hand-Pose-Test  Seite={SIDE}  Pause={PAUSE_S}s  (Standalone)")
-    for pose_name in _SEQUENCE:
-        targets = compute_joint_targets(_adapt_pose(DIRECT_POSES[pose_name]), SIDE)
-        set_hand_targets(targets, SIDE)
-        _log(f"[test] ► {pose_name.upper()}")
-        print_hand_state(SIDE)
+    _log("[test] Ganzkörper-Test mit Winken  (Standalone)")
+    for pose_name, duration in _SEQUENCE:
+        _log(f"[test] ► {pose_name.upper()}  ({duration}s)")
+        set_all_targets(POSES[pose_name])
+        frames = max(1, int(duration * 60))
         for _ in range(frames):
             _lh.sim_app.update()
-    _log("[test] Abgeschlossen. Simulation läuft weiter (Fenster schließen zum Beenden).")
+    _log("[test] Abgeschlossen.")
 
 
 # ── Einstieg ──────────────────────────────────────────────────────────────────
 if not _STANDALONE:
-    _log(f"[test] Starte Coroutine (Script Editor Modus)")
+    _log("[test] Starte Coroutine (Script Editor Modus)")
     asyncio.ensure_future(_run_editor())
-# Standalone: run() wird von _launch_helper.py aufgerufen

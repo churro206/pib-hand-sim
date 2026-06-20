@@ -41,7 +41,12 @@ sim_app = SimulationApp({"headless": False, "renderer": "RayTracedLighting"})
 # ── Pfade ─────────────────────────────────────────────────────────────────────
 _HERE = Path(__file__).parent       # isaac_sim/
 _ROOT = _HERE.parent                # Repo-Root
-_USD  = _HERE / "pib_upperbody_5_flattened.usd"
+_USD_DIR = _HERE / "usd"
+_candidates = sorted(_USD_DIR.glob("pib_upperbody_*_flattened.usd"))
+if not _candidates:
+    raise FileNotFoundError(f"Keine pib_upperbody_*_flattened.usd in {_USD_DIR}")
+_USD = _candidates[-1]              # höchste Versionsnummer
+print(f"[launcher] Neueste USD: {_USD.name}")
 
 for _p in [str(_HERE), str(_ROOT)]:
     if _p not in sys.path:
@@ -84,6 +89,8 @@ try:
     _stage = omni.usd.get_context().get_stage()
     if hasattr(_ss_mod, "configure_drives"):
         _ss_mod.configure_drives(_stage)
+    if hasattr(_ss_mod, "fix_joint_limits"):
+        _ss_mod.fix_joint_limits(_stage)
     if hasattr(_ss_mod, "set_initial_pose"):
         _ss_mod.set_initial_pose(_stage)
     print("[launcher] Drives konfiguriert via setup_stage")
@@ -101,13 +108,13 @@ robot = _ArtCls(prim_path=ROBOT_PRIM_PATH)
 robot.initialize()
 print(f"[launcher] Robot initialisiert: {ROBOT_PRIM_PATH}")
 
-# ── hand_io mit Robot-Handle versorgen und als Modul registrieren ─────────────
-_io_spec = _ilu.spec_from_file_location("hand_io", _HERE / "hand_io.py")
-_hand_io = _ilu.module_from_spec(_io_spec)
-_io_spec.loader.exec_module(_hand_io)
-_hand_io._set_robot(robot)
-sys.modules["hand_io"] = _hand_io
-print("[launcher] hand_io bereit")
+# ── robot_io mit Robot-Handle versorgen und als Modul registrieren ────────────
+_io_spec = _ilu.spec_from_file_location("robot_io", _HERE / "robot_io.py")
+_robot_io = _ilu.module_from_spec(_io_spec)
+_io_spec.loader.exec_module(_robot_io)
+_robot_io._set_robot(robot)
+sys.modules["robot_io"] = _robot_io
+print("[launcher] robot_io bereit")
 
 # Selbst als Modul registrieren damit Ziel-Skripte importieren können:
 #   import _launch_helper as lh → lh.sim_app, lh.robot

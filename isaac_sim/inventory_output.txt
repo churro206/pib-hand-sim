@@ -13,15 +13,15 @@ Pfad                                                                   Min      
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_head_horizontal     -90.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_vertical_left    -90.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_horizontal_left    -90.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_upper_arm_left      -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_upper_arm_left      -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_elbow_left          -45.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_forearm_left        -90.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_vertical_right    -90.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_horizontal_right    -90.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_shoulder_horizontal_right    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_upper_arm_right     -90.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_elbow_right         -45.0     90.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_forearm_right       -90.0     90.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_left            0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_left          -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_proximal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_distal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_left_tip      -90.0     -0.0
@@ -37,7 +37,7 @@ Pfad                                                                   Min      
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_rotator    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_proximal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_thumb_left_distal    -90.0     -0.0
-/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_right           0.0     90.0
+/World/pib_upperbody_URDF/pib_upperbody_URDF/dof_wrist_right         -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_proximal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_distal    -90.0     -0.0
 /World/pib_upperbody_URDF/pib_upperbody_URDF/dof_index_right_tip     -90.0     -0.0
@@ -67,15 +67,15 @@ Idx   DOF-Name                                           Min      Max
 2     dof_shoulder_vertical_right                     -90.0    90.0
 3     dof_head_vertical                               -45.0    70.0
 4     dof_shoulder_horizontal_left                    -90.0    90.0
-5     dof_shoulder_horizontal_right                   -90.0    90.0
-6     dof_upper_arm_left                              -90.0    90.0
+5     dof_shoulder_horizontal_right                   -90.0    -0.0
+6     dof_upper_arm_left                              -90.0    -0.0
 7     dof_upper_arm_right                             -90.0    90.0
 8     dof_elbow_left                                  -45.0    90.0
 9     dof_elbow_right                                 -45.0    90.0
 10    dof_forearm_left                                -90.0    90.0
 11    dof_forearm_right                               -90.0    90.0
-12    dof_wrist_left                                    0.0    90.0
-13    dof_wrist_right                                   0.0    90.0
+12    dof_wrist_left                                  -90.0    -0.0
+13    dof_wrist_right                                 -90.0    -0.0
 14    dof_index_left_proximal                         -90.0    -0.0
 15    dof_middle_left_proximal                        -90.0    -0.0
 16    dof_ring_left_proximal                          -90.0    -0.0

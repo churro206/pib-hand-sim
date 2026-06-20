@@ -4,9 +4,39 @@ import numpy as np
 ROBOT_PRIM_PATH = "/World/pib_upperbody_URDF/pib_upperbody_URDF"
 
 # ── Vorzeichen-Kompensation ───────────────────────────────────────────────────
-# Onshape-Import invertiert Gelenkachsen gegenüber Isaac Sim.
-# Alle Winkel werden vor dem Isaac-API-Call mit JOINT_SIGN multipliziert.
-JOINT_SIGN = -1  # positive Isaac-Richtung = Extension; negativ = Flexion
+# Onshape und Isaac sind vorzeichen-invertiert: positiv in Onshape = Flexion,
+# positiv in Isaac = Extension. JOINT_SIGN=-1 kompensiert das.
+# Die Limits in Onshape sind [0°, 90°] (Flexion positiv). Da wir in Isaac
+# negative Werte schicken, müssen die USD-Limits auf [-90°, 0°] gesetzt werden
+# (→ fix_hand_joint_limits in setup_stage.py).
+JOINT_SIGN = -1  # Onshape-positiv = Flexion; Isaac-positiv = Extension
+
+# ── Körper-DOFs (Kopf, Schultern, Arme, Handgelenke) ─────────────────────────
+# Kein JOINT_SIGN für Körpergelenke — direkte Grad-Werte passend zu den
+# USD-Limits. Vorzeichen ggf. visuell verifizieren.
+# Limits aus inventory_output.txt (2026-06-18).
+BODY_DOFS = {
+    "names": [
+        # Kopf
+        "dof_head_horizontal",           # idx  0  — Drehen l/r         [-90, 90]
+        "dof_head_vertical",             # idx  3  — Nicken             [-45, 70]
+        # Linke Seite
+        "dof_shoulder_vertical_left",    # idx  1  — Heben/Senken       [-90, 90]
+        "dof_shoulder_horizontal_left",  # idx  4  — Vor/Zurück         [-90, 90]
+        "dof_upper_arm_left",            # idx  6  — Rotation           [-90, 90]
+        "dof_elbow_left",                # idx  8  — Flexion (pos=biegen)[-45,90]
+        "dof_forearm_left",              # idx 10  — Pronation          [-90, 90]
+        "dof_wrist_left",                # idx 12  — Beugung            [  0, 90]
+        # Rechte Seite
+        "dof_shoulder_vertical_right",   # idx  2  — Heben/Senken       [-90, 90]
+        "dof_shoulder_horizontal_right", # idx  5  — Vor/Zurück         [-90, 90]
+        "dof_upper_arm_right",           # idx  7  — Rotation           [-90, 90]
+        "dof_elbow_right",               # idx  9  — Flexion (pos=biegen)[-45,90]
+        "dof_forearm_right",             # idx 11  — Pronation          [-90, 90]
+        "dof_wrist_right",               # idx 13  — Beugung            [  0, 90]
+    ],
+    "indices": [0, 3, 1, 4, 6, 8, 10, 12, 2, 5, 7, 9, 11, 13],
+}
 
 # ── DOF-Daten beider Hände (aus inventory_output.txt, 2026-06-18) ─────────────
 # Anatomisch sortiert: Daumen-Rotator → Daumen MCP → IP →
