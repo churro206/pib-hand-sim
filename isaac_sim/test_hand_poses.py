@@ -204,9 +204,9 @@ _SEQUENCE = [
     ("wink_a", 0.2),     ("wink_b", 0.2),
     ("wink_a", 0.2),     ("wink_b", 0.2),
     # Doppelbizeps
-    ("doppelbizeps", 4.0),
+    ("doppelbizeps", 2.0),
     # Peace
-    ("peace",        4.0),
+    ("peace",        2.0),
     ("neutral",      2.0),
 ]
 

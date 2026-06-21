@@ -195,6 +195,19 @@ def set_body_targets(joint_angles_deg: dict) -> None:
         print(f"[robot_io] set_body_targets fehlgeschlagen: {e}")
 
 
+def apply_full_pose(joint_dict: dict) -> None:
+    """
+    Setzt Drive-Targets aus einem Isaac-Konvention Pose-Dict (Physics Inspector).
+
+    Konvention: Werte direkt aus dem Inspector — negativ = Flexion/Vorne/Heben.
+    Intern wird negiert (Onshape = -Isaac) und dann set_all_targets aufgerufen,
+    das JOINT_SIGN anwendet.
+
+    Geeignet für pickup_keyframes.py und jeden Code der Inspector-Werte trägt.
+    """
+    set_all_targets({name: -val for name, val in joint_dict.items()})
+
+
 def set_all_targets(joint_angles_deg: dict) -> None:
     """
     Unified Setter für alle 44 DOFs (14 Körper + 15 linke + 15 rechte Hand).

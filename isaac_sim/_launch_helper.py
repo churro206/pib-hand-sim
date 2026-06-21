@@ -89,8 +89,8 @@ try:
     _stage = omni.usd.get_context().get_stage()
     if hasattr(_ss_mod, "configure_drives"):
         _ss_mod.configure_drives(_stage)
-    if hasattr(_ss_mod, "fix_joint_limits"):
-        _ss_mod.fix_joint_limits(_stage)
+    if hasattr(_ss_mod, "set_joint_limits"):
+        _ss_mod.set_joint_limits(_stage)
     if hasattr(_ss_mod, "set_initial_pose"):
         _ss_mod.set_initial_pose(_stage)
     print("[launcher] Drives konfiguriert via setup_stage")

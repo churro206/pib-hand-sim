@@ -141,44 +141,63 @@ def configure_drives(stg) -> int:
     return count
 
 
-def fix_joint_limits(stg) -> int:
+# ── Gelenk-Limits in Isaac-Konvention ────────────────────────────────────────
+# JOINT_SIGN=-1: Onshape-positive Winkel (Flexion) landen als negative Isaac-Targets.
+# Daher müssen die Limits gespiegelt werden: Onshape [lo, hi] → Isaac [-hi, -lo].
+#
+# Onshape-Konvention  → Isaac-Konvention
+#   [  0°,  90°]      →   [-90°,   0°]   Fingergelenke + Handgelenk
+#   [-45°,  90°]      →   [-90°,  45°]   Ellbogen
+#   [-45°,  70°]      →   [-70°,  45°]   Kopf vertikal
+#   [-90°,  90°]      →   [-90°,  90°]   symmetrisch → unverändert
+
+_HAND_KEYWORDS = ("proximal", "distal", "tip", "rotator")
+
+_BODY_LIMITS_ISAAC = {
+    "dof_head_horizontal":           (-90.0,  90.0),
+    "dof_head_vertical":             (-70.0,  45.0),
+    "dof_shoulder_vertical_left":    (-90.0,  90.0),
+    "dof_shoulder_horizontal_left":  (-90.0,  90.0),
+    "dof_upper_arm_left":            (-90.0,  90.0),
+    "dof_elbow_left":                (-90.0,  45.0),
+    "dof_forearm_left":              (-90.0,  90.0),
+    "dof_wrist_left":                (-90.0,   0.0),
+    "dof_shoulder_vertical_right":   (-90.0,  90.0),
+    "dof_shoulder_horizontal_right": (-90.0,  90.0),
+    "dof_upper_arm_right":           (-90.0,  90.0),
+    "dof_elbow_right":               (-90.0,  45.0),
+    "dof_forearm_right":             (-90.0,  90.0),
+    "dof_wrist_right":               (-90.0,   0.0),
+}
+
+
+def set_joint_limits(stg) -> int:
     """
-    Invertiert die Limits aller PhysicsRevoluteJoints: new_lower=-old_upper, new_upper=-old_lower.
+    Setzt Gelenk-Limits direkt auf Isaac-Konvention (JOINT_SIGN=-1 berücksichtigt).
+    Idempotent: setzt immer denselben Zielwert, kein Toggle, kein Flag.
 
-    Systematischer Fehler beim Onshape-Import: Isaac interpretiert die Drehachse
-    aller Gelenke entgegengesetzt zu Onshape. Die Limits aus Onshape gelten in
-    Onshape-Konvention — nach der Invertierung stimmen sie mit den tatsächlichen
-    Isaac-Targets überein.
-
-    Beispiel: Onshape [0°, 90°]   →  Isaac [-90°, 0°]
-              Onshape [-45°, 90°]  →  Isaac [-90°, 45°]
-              Onshape [-90°, 90°]  →  Isaac [-90°, 90°]  (symmetrisch → unverändert)
-
-    Idempotenz: Custom-Data-Flag "pib_limits_inverted" wird pro Prim gesetzt und
-    beim nächsten Aufruf geprüft. Bleibt nach Ctrl+S im USD erhalten.
-    Wert-basierte Guards versagen bei asymmetrischen Limits (z.B. [-90°, 45°]).
+    Hand/Fingergelenke (proximal/distal/tip/rotator): [-90°, 0°]
+    Körpergelenke: aus _BODY_LIMITS_ISAAC
     """
-    _FLAG = "pib_limits_inverted"
     count = 0
     for prim in stg.Traverse():
         if prim.GetTypeName() != "PhysicsRevoluteJoint":
             continue
-        cd = prim.GetCustomData()
-        if cd and cd.get(_FLAG):
-            continue  # Bereits invertiert (Flag gesetzt)
+        name = prim.GetPath().name
         lower_attr = prim.GetAttribute("physics:lowerLimit")
         upper_attr = prim.GetAttribute("physics:upperLimit")
         if not (lower_attr and upper_attr):
             continue
-        old_lower = lower_attr.Get()
-        old_upper = upper_attr.Get()
-        lower_attr.Set(-old_upper)
-        upper_attr.Set(-old_lower)
-        new_cd = dict(cd) if cd else {}
-        new_cd[_FLAG] = True
-        prim.SetCustomData(new_cd)
-        count += 1
-    print(f"fix_joint_limits: {count} Gelenke invertiert")
+        if any(k in name for k in _HAND_KEYWORDS):
+            lower_attr.Set(-90.0)
+            upper_attr.Set(0.0)
+            count += 1
+        elif name in _BODY_LIMITS_ISAAC:
+            lower, upper = _BODY_LIMITS_ISAAC[name]
+            lower_attr.Set(lower)
+            upper_attr.Set(upper)
+            count += 1
+    print(f"set_joint_limits: {count} Gelenke konfiguriert")
     return count
 
 
@@ -192,8 +211,8 @@ def set_initial_pose(stg) -> None:
       - Alles andere: 0° (T-Pose / neutral)
     """
     initial_targets: dict = {
-        "dof_elbow_left":  30.0,
-        "dof_elbow_right": 30.0,
+        "dof_elbow_left":  -30.0,  # Isaac-Konvention: neg = leichte Beugung (JOINT_SIGN=-1)
+        "dof_elbow_right": -30.0,
     }
     count = 0
     for prim in stg.Traverse():
@@ -218,7 +237,7 @@ def setup_all(stg) -> None:
     configure_ground(stg)
     configure_lights(stg)
     configure_drives(stg)
-    fix_joint_limits(stg)
+    set_joint_limits(stg)
     set_initial_pose(stg)
 
 
