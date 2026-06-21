@@ -156,12 +156,12 @@ GRASP_POSES = {
         "pinky":     0,
     },
     "closed_fist": {
-        "thumb_opp": 30,
-        "thumb":     80,
-        "index":     85,
-        "middle":    85,
-        "ring":      85,
-        "pinky":     85,
+        "thumb_opp": 30,   # CMC-Opposition, kein Beugegelenk → bleibt bei 30°
+        "thumb":     90,
+        "index":     90,
+        "middle":    90,
+        "ring":      90,
+        "pinky":     90,
     },
     "pinch": {
         "thumb_opp": 60,
@@ -190,15 +190,16 @@ GRASP_POSES = {
 }
 
 # ── Lineare Approximations-Faktoren pro Gelenk-Typ ───────────────────────────
-# Sehnen-Mechanismus: distal/tip folgen dem proximalen Gelenk.
-# thumb_opp und thumb_prox sind 1:1, kein Tip-Gelenk am Daumen.
+# Vereinfachung: alle Gelenke eines Fingers folgen dem Servo 1:1 (factor=1.0).
+# Bei Vollanschlag (90°) nehmen alle Gelenke 90° ein.
+# Später mit AS5600-Messdaten kalibrierbar.
 _SERVO_FACTORS = {
-    "thumb_opp": [1.0],           # 1 Gelenk: CMC
-    "thumb":     [1.0, 0.8],      # 2 Gelenke: MCP, IP
-    "index":     [1.0, 0.8, 0.6], # 3 Gelenke: MCP, PIP, DIP
-    "middle":    [1.0, 0.8, 0.6],
-    "ring":      [1.0, 0.8, 0.6],
-    "pinky":     [1.0, 0.8, 0.6],
+    "thumb_opp": [1.0],
+    "thumb":     [1.0, 1.0],
+    "index":     [1.0, 1.0, 1.0],
+    "middle":    [1.0, 1.0, 1.0],
+    "ring":      [1.0, 1.0, 1.0],
+    "pinky":     [1.0, 1.0, 1.0],
 }
 
 
@@ -206,9 +207,7 @@ def servo_pose_to_joints(servo_pose: dict, side: str) -> dict:
     """
     Rechnet ein Servo-Dictionary in ein vollständiges 15-DOF-Dictionary um.
 
-    Lineare Näherung: proximal = servo_wert * 1.0,
-                      distal   = servo_wert * 0.8,
-                      tip      = servo_wert * 0.6.
+    Lineare Näherung: alle Gelenke eines Fingers folgen dem Servo 1:1 (factor=1.0).
 
     Parameters
     ----------
