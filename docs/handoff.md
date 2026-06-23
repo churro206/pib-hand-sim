@@ -4,31 +4,25 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-06-22
+## Stand 2026-06-23
 
 ### Zuletzt gearbeitet an
-1. **Limit-Fix**: `fix_joint_limits` (Toggle, unzuverlässig wegen USD Custom-Data) → `set_joint_limits` (direkte Zielwerte, idempotent) in `setup_stage.py`
-2. **Vorzeichen-Fix** in `poses_pickup.py`: `dof_head_vertical` (neg→pos), `dof_shoulder_horizontal_left` (pos→neg, gespiegelte Achse)
-3. **Neue Demo-Architektur**: `config/pickup_keyframes.py` (Isaac-Konvention, 4 Keyframes vom User validiert), `robot_io.apply_full_pose()`, `demo_pickup.py` neugeschrieben
-4. **✅ Demo erfolgreich**: Roboter hat die Dose vom Tisch ausgehoben — Pickup-Sequenz funktioniert
-5. **Context-Management-System**: CLAUDE.md (54 Zeilen), docs/ (5 Dateien), .claude/commands/ (3 Slash-Commands)
-6. **Timing-Anpassung**: `pickup_keyframes.py` — lift-Step `transition_s` von 2.0 → 0.5 (vom User direkt bearbeitet)
+1. **`runner.py` Bug fixes** — `MODE_NAME = "servo"` für `tendon`-Sequenz (war `"direct"` → unbekannte DOF-Keys); Robot-Re-Initialisierungs-Bug: `_robot.initialize()` wurde bei jedem Script-Editor-Run aufgerufen → Fix via `sys.modules["_runner_robot_initialized"]`-Flag, läuft jetzt nur beim ersten Run
+2. **Hot-Reload bestätigt** — nach dem Fix lädt runner.py `sequences.py` bei jedem Re-Run frisch (kein Isaac-Neustart nötig); `_load_mod` + sys.modules-Flag ermöglicht das
+3. **`manual_control_hand.py` gelöscht** — kein Importeur, vollständig durch robot_io + control/ + runner ersetzt
+4. **Alle Docs aktualisiert** — `CLAUDE.md` Schlüsseldateien + Phasen, `architecture.md` Layer-Status + Datenfluss + Modul-Tabelle, `decisions.md` ADR-003 neu geschrieben (Einweg-Modell), `conventions.md` pickup_keyframes-Referenzen entfernt, `current-sprint.md` Sprint 2 als ✓ abgeschlossen
 
 ### Offene Punkte
-- Uncommitted: `config/pickup_keyframes.py`, `isaac_sim/build_scene.py`, `isaac_sim/demo_pickup.py`, `isaac_sim/setup_stage.py`
-- `poses_pickup.py` veraltet — durch `pickup_keyframes.py` ersetzt, noch nicht gelöscht
-- Keine Startroutine vorhanden (Sprint-2-Task)
-- `isaac_sim/_deprecated/` noch nicht aufgeräumt
+- Commit steht noch aus — alle Änderungen (control/, sequences.py, runner.py, start.py, gelöschte Dateien, Docs) sind uncommitted
+- Pickup-Lift-Step noch nicht visuell in Isaac verifiziert: `dof_elbow_right: 55.4` (Isaac-Inspector war `-55.4` → nach `_isaac()`-Negierung = `+55.4` Onshape)
+- P3 (collect_data.py vs. data/collect_real.py Zuständigkeiten) noch offen, kein Blocker für Sprint 3
 
 ### Nächste Schritte (in Reihenfolge)
-1. Commit der funktionierenden Demo (`pickup_keyframes.py`, `build_scene.py`, `demo_pickup.py`, `setup_stage.py`)
-2. `poses_pickup.py` entfernen + `isaac_sim/_deprecated/` aufräumen
-3. `isaac_sim/start.py` schreiben — bündelt `configure_physics_scene`, `configure_drives`, `set_joint_limits`, `set_initial_pose`
-4. Control-Architektur: `control/base.py` ABC, `control/direct.py` pass-through, `control/servo.py` Interface anpassen
+1. Commit: `git add config/sequences.py control/ isaac_sim/runner.py isaac_sim/start.py` + deletions + docs, dann pushen
+2. Pickup-Sequenz in Isaac abspielen, Lift-Step visuell prüfen (`SEQUENCE_NAME = "pickup"`, `MODE_NAME = "direct"`)
+3. Sprint 3 beginnen: `get_robot_state()` in robot_io, dann Observation API
 
 ### Wichtige Kontextdetails
-- Keyframes in `pickup_keyframes.py`: **Isaac-Konvention** — `apply_full_pose()` negiert intern vor `set_all_targets()`
-- `set_all_targets()` erwartet **Onshape-Konvention** (positiv = Flexion/Heben/Vorne), wie `test_hand_poses.py`
-- Linke Schulter horizontal: **negativ = nach vorne** (gespiegelte Achse zur rechten Seite — verifiziert)
-- Greifwinkel der Demo: `_G = -33.3°` Isaac-Konvention für alle Finger → funktioniert für Dose
-- LSTM in `models/` hat nur synthetische Daten — nicht produktionsreif, Phase 3
+- **Hot-Reload-Pattern:** `sys.modules["_runner_robot_initialized"]` überlebt zwischen Script-Editor-Runs innerhalb einer Isaac-Session — wird als einmaliger Init-Flag verwendet. Bei Isaac-Neustart wird er automatisch geleert.
+- **Sequenz-Kompatibilität:** `hand_poses` → `direct`; `tendon` → `servo` + `SIDE="right"`; `pickup` → `direct`. Falsche Kombination gibt DOF-Fehler.
+- **`_load_mod` + control/ als synthetisches Paket:** `sys.modules["control"]` wird in runner.py als `types.ModuleType` angelegt, damit `from control.base import ControlMode` in servo.py etc. funktioniert — nicht über normales `import control` erreichbar in Isaac.

@@ -1,8 +1,10 @@
-# control/ — Steuerlogik zwischen Eingabe und robot_io
+# control/ — ControlMode-Architektur (Sprint 2)
 #
-# direct.py: Direktsteuerung — Gelenkwinkel 1:1 weitergeben         [vorhanden]
-# servo.py:  Virtueller Servo → DOF-Winkel (lineare Näherung, 1:1)  [vorhanden]
-# neural.py: LSTM-Inferenz — Servo-Werte + Sensorik → präzise Winkel [ausstehend]
-#
-# Alle Module teilen dieselbe Signatur:
-#   compute_joint_targets(input_dict: dict, side: str) -> dict
+# base.py:   ControlMode ABC — to_joint_targets(command) -> dict
+# direct.py: DirectMode   — {dof_name: deg} pass-through
+# servo.py:  ServoMode    — {servo_name: deg} → DOF-Winkel via Sehnenkopplung
+# nn.py:     NNMode       — LSTM-Inferenz (Phase 5, Stub)
+from control.base   import ControlMode
+from control.direct import DirectMode
+from control.servo  import ServoMode
+from control.nn     import NNMode

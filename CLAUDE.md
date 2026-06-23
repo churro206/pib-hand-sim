@@ -15,8 +15,8 @@ Onshape und Isaac sind vorzeicheninvertiert. Kompensation **ausschließlich** in
 
 | Funktion | Erwartet | Anwendung |
 |---|---|---|
-| `set_all_targets(d)` | Onshape-Konvention (positiv = Flexion/Heben/Vorne) | test_hand_poses, direct, servo |
-| `apply_full_pose(d)` | Isaac-Konvention (Physics Inspector Werte) | pickup_keyframes |
+| `set_all_targets(d)` | Onshape-Konvention (positiv = Flexion/Heben/Vorne) | runner, sequences, direct, servo |
+| `apply_full_pose(d)` | Isaac-Konvention (Physics Inspector Werte) | manuelle Inspector-Tests im Script Editor |
 
 - Winkel intern immer in **Grad**; Isaac API in Radiant → `_to_isaac_rad()` in robot_io
 - Hand-Clip: `[0°, 90°]` vor JOINT_SIGN; Body: kein Clip
@@ -42,8 +42,8 @@ Extern (ROS2) → ControlMode(direct|servo|nn) → robot_io.set_all_targets() �
 4-Schichten-Modell (IO → Control → Server → Team): @docs/architecture.md
 
 ## Phasen
-- **Phase 1** ✓ Direktsteuerung (`robot_io`, `test_hand_poses`, `demo_pickup` stabil)
-- **Phase 2** ← Codebase streamlinen, Control-Architektur, Startroutine
+- **Phase 1** ✓ Direktsteuerung (`robot_io`, `setup_stage`, Pickup-Demo physikalisch verifiziert)
+- **Phase 2** ✓ Control-Architektur (`ControlMode` ABC, `DirectMode`/`ServoMode`/`NNMode`, `sequences.py`, `runner.py`)
 - **Phase 3** Simulation Server (Observation API, Scene API, ROS2-Bridge)
 - **Phase 4** Team-Integration (IK, Greifpunkt, Koordinatenrahmen)
 - **Phase 5** AS5600-Sensordaten, LSTM mit echten Daten trainieren
@@ -51,9 +51,15 @@ Extern (ROS2) → ControlMode(direct|servo|nn) → robot_io.set_all_targets() �
 ## Schlüsseldateien
 ```
 config/pib_hand_config.py      DOF-Namen, Indizes, JOINT_SIGN, Servo-Faktoren
-config/pickup_keyframes.py     validierte Keyframes (Isaac-Konvention)
+config/sequences.py            Pose-Sequenzen (Onshape-Konvention); _isaac() für Inspector-Werte
+control/base.py                ControlMode ABC
+control/direct.py              DirectMode — pass-through
+control/servo.py               ServoMode — Sehnen-Mapping, partial expansion
+control/nn.py                  NNMode — Stub (Phase 5)
+isaac_sim/runner.py            Sequenz-Executor: SEQUENCE_NAME / MODE_NAME / SIDE oben anpassen
 isaac_sim/robot_io.py          einzige Isaac-IO-Schicht (hier kein Refactor ohne Grund)
 isaac_sim/setup_stage.py       Drives + Limits (einmalig pro Session vor Play)
+isaac_sim/start.py             Startroutine: configure_physics + drives + limits + initial pose
 isaac_sim/_launch_helper.py    Standalone-Launcher (legt robot + robot_io an)
 ```
 

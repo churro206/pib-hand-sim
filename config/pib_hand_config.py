@@ -145,7 +145,7 @@ HAND_DOFS = {
 
 # ── Greifposen als Servo-Werte (0–90°) ───────────────────────────────────────
 # Seitenneutral — servo_pose_to_joints() rechnet auf 15 DOF-Winkel um.
-# Alle Werte sind Richtwerte; beim Test mit test_hand_poses.py anpassen.
+# Alle Werte sind Richtwerte; beim Test über config/sequences.py (TENDON) anpassen.
 GRASP_POSES = {
     "open": {
         "thumb_opp": 0,

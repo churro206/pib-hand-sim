@@ -1,30 +1,16 @@
-# Sprint 2 — Codebase Streamlining & Control-Architektur
+# Sprint 2 — Codebase Streamlining & Control-Architektur ✓
 
-## Ziel
-Parallele Strukturen bereinigen, einheitliche Control-Architektur einführen,
-Startroutine implementieren. Phase-1-Demo (Dose greifen) ist abgeschlossen.
+## Ergebnis
+- [x] P0: `test_hand_poses.py`, `test_tendon.py`, `demo_pickup.py`, `pickup_keyframes.py`, `run_sequence.py` gelöscht
+- [x] P1: `isaac_sim/start.py` — Startroutine (configure_physics + drives + limits + initial pose)
+- [x] P2: `control/base.py`, `direct.py`, `servo.py`, `nn.py` — ControlMode-Architektur fertig
+- [x] P2: `config/sequences.py` — alle Posen migriert (HAND_POSES, TENDON, PICKUP)
+- [x] P2: `isaac_sim/runner.py` — Sequenz-Executor mit Smoothstep, hot-reload ohne Isaac-Neustart
+- [ ] P3: `isaac_sim/collect_data.py` vs. `data/collect_real.py` — offen (kein Blocker für Sprint 3)
 
-## Tasks (Priorität)
-
-### P0 — Commit & Cleanup
-- [ ] Commit der funktionierenden Demo: `pickup_keyframes.py`, `build_scene.py`, `demo_pickup.py`, `setup_stage.py`
-- [ ] `poses_pickup.py` entfernen (durch `pickup_keyframes.py` ersetzt)
-- [ ] `isaac_sim/_deprecated/` entfernen (`fix_joints.py`, `unfix_joints.py` — durch `setup_stage.set_joint_limits()` ersetzt)
-
-### P1 — Startroutine
-- [ ] `isaac_sim/start.py` schreiben: bündelt `configure_physics_scene`, `configure_drives`, `set_joint_limits`, `set_initial_pose`
-- [ ] Sowohl Script Editor als auch `_launch_helper` nutzen dieses Modul
-- [ ] `_launch_helper.py` refactoren um `start.py` zu verwenden
-
-### P2 — Control-Architektur
-- [ ] `control/base.py`: `ControlMode` ABC mit `to_joint_targets(command) -> dict`
-- [ ] `control/direct.py`: Klasse `DirectMode(ControlMode)` — pass-through
-- [ ] `control/servo.py`: Klasse `ServoMode(ControlMode)` — Sehnen-Mapping, Interface anpassen
-- [ ] `control/nn.py`: `NNMode` Stub (Phase 5)
-- [ ] Demo-Skript das Control-Mode als Argument nimmt
-
-### P3 — Datenpipeline klären
-- [ ] `isaac_sim/collect_data.py` vs. `data/collect_real.py` — Zuständigkeiten trennen und dokumentieren
+## Offenes vor Sprint 3
+- [ ] Commit ausstehender Änderungen (sequences.py, runner.py, control/, start.py, gelöschte Dateien)
+- [ ] Pickup-Lift-Step visuell verifizieren: `dof_elbow_right: 55.4` (war Isaac `-55.4`)
 
 ## Nicht in diesem Sprint
 - ROS2-Bridge (Sprint 3)

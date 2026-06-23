@@ -17,11 +17,11 @@ Alle Teams nutzen **ROS2**.
 Layer 4: Team-Integration          Sprint 4
          ROS2-Protokoll, Koordinatenrahmen, IK-Interface
 
-Layer 3: Simulation Server         Sprint 3
+Layer 3: Simulation Server         Sprint 3 ←
          Observation API, Scene API, ROS2-Bridge
 
-Layer 2: Control-Architektur       Sprint 2 ←
-         ControlMode ABC (direct | servo | nn)
+Layer 2: Control-Architektur       fertig
+         ControlMode ABC (direct | servo | nn), sequences, runner
 
 Layer 1: Isaac IO-Schicht          fertig
          robot_io, setup_stage, Physik-Simulation
@@ -36,16 +36,25 @@ Layer 1: Isaac IO-Schicht          fertig
 | Modul | Verantwortung |
 |---|---|
 | `config/pib_hand_config.py` | Einzige Quelle für DOF-Namen, Indizes, JOINT_SIGN, Servo-Faktoren |
+| `config/sequences.py` | Pose-Sequenzen in Onshape-Konvention; `_isaac()` konvertiert Inspector-Werte einmalig beim Laden |
+| `control/base.py` | `ControlMode` ABC |
+| `control/direct.py` | `DirectMode` — pass-through |
+| `control/servo.py` | `ServoMode` — Sehnen-Mapping, partial expansion |
+| `control/nn.py` | `NNMode` — Stub (Phase 5) |
+| `isaac_sim/runner.py` | Sequenz-Executor: lädt Sequenz + ControlMode, Smoothstep-Interpolation, `set_all_targets` |
 | `isaac_sim/robot_io.py` | **Einzige Isaac-IO-Schicht.** Kapselt JOINT_SIGN, Grad→Rad, DriveAPI vs. Articulation API |
 | `isaac_sim/setup_stage.py` | Einmalig-Setup: PhysicsScene, Drives, Limits, Initialpose |
+| `isaac_sim/start.py` | Startroutine: bündelt configure_physics + drives + limits + initial pose |
 | `isaac_sim/_launch_helper.py` | Standalone-Launcher: SimApp starten, USD laden, robot_io initialisieren |
-| `config/pickup_keyframes.py` | Validierte Demo-Keyframes in Isaac-Konvention (Physics Inspector) |
 
 ### Datenfluss (aktuell)
 ```
-Keyframe (Isaac-Konvention)
-  → apply_full_pose()        negiert alle Werte (Isaac→Onshape)
-  → set_all_targets()        Dispatcher
+sequences.py (Onshape-Konvention)
+  → runner._build_frames()   Smoothstep-Interpolation, persistenter State
+  → ControlMode.to_joint_targets()
+      ├─ DirectMode:   pass-through
+      └─ ServoMode:    Servo-Namen → DOF-Winkel (Sehnen-Mapping)
+  → robot_io.set_all_targets()   Dispatcher
       ├─ set_hand_targets()  clip [0°,90°] → ×JOINT_SIGN → ×π/180 → ArticulationController
       └─ set_body_targets()  ×JOINT_SIGN → DriveAPI
 ```
@@ -56,11 +65,11 @@ funktionieren. Kollisionsgeometrie und Materialien sind korrekt.
 
 ---
 
-## Layer 2 — Control-Architektur (Sprint 2)
+## Layer 2 — Control-Architektur (fertig)
 
 ### ControlMode-Interface
 ```python
-# control/base.py (neu)
+# control/base.py
 from abc import ABC, abstractmethod
 
 class ControlMode(ABC):
@@ -69,17 +78,17 @@ class ControlMode(ABC):
         """command → {dof_name: winkel_deg} (Onshape-Konvention)"""
 
 # DirectMode:  command = {dof_name: deg}     → pass-through
-# ServoMode:   command = {finger: servo_deg} → Sehnen-Mapping
-# NNMode:      command = {finger: servo_deg} → LSTM-Inference (Phase 5)
+# ServoMode:   command = {finger: servo_deg} → Sehnen-Mapping (partial)
+# NNMode:      command = {finger: servo_deg} → LSTM-Inference (Phase 5, Stub)
 ```
 
-### Datenfluss (nach Sprint 2)
+### runner.py — Workflow
 ```
-Eingabe (extern oder intern)
-  → ControlMode.to_joint_targets()
-  → {dof_name: angle_deg}  Onshape-Konvention
-  → robot_io.set_all_targets()
-  → Isaac Sim
+SEQUENCE_NAME / MODE_NAME / SIDE oben in runner.py setzen
+  → start.py ausführen (vor Play)
+  → Play drücken
+  → runner.py im Script Editor ausführen
+  → erneut ausführen nach Änderungen (kein Isaac-Neustart nötig, _load_mod cacht nicht)
 ```
 
 ---

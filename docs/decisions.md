@@ -28,15 +28,15 @@ Format: Problem → Entscheidung → Begründung → Konsequenzen
 
 ---
 
-## ADR-003: Zwei Pose-Konventionen (pickup_keyframes vs. set_all_targets)
+## ADR-003: Einheitlicher Einweg nach set_all_targets via _isaac()-Helper
 
-**Problem**: Physics-Inspector-Werte (Isaac-Konvention) vs. Code-Konvention (Onshape). Keyframes kommen direkt aus dem Inspector.
+**Problem**: Früher zwei Eingabewege nach robot_io (`apply_full_pose` für Inspector-Werte, `set_all_targets` für Onshape-Werte). Erhöhte kognitive Last; `pickup_keyframes.py` war nur für `apply_full_pose` zugänglich.
 
-**Entscheidung**: `pickup_keyframes.py` speichert Isaac-Konvention. `apply_full_pose()` negiert intern bevor es `set_all_targets()` aufruft.
+**Entscheidung**: `pickup_keyframes.py` gelöscht. Inspector-Werte werden einmalig beim Laden mit `_isaac(d)` negiert und in `config/sequences.py` als Onshape-Konvention gespeichert. Alle Sequenzen laufen über `set_all_targets()`. `apply_full_pose()` bleibt in robot_io als Hilfsfunktion für manuelle Script-Editor-Tests.
 
-**Begründung**: Validierte Inspector-Werte nicht umrechnen müssen. Kein Risiko von Tippfehlern bei der manuellen Negierung.
+**Begründung**: Ein einziger Weg nach Isaac ist wartbarer. `_load_mod` in runner.py lädt sequences.py bei jedem Run neu — Sequenzänderungen ohne Isaac-Neustart möglich.
 
-**Konsequenzen**: Zwei "Eingabe-Wege" nach robot_io. Neue Posen in pickup_keyframes: Inspector-Werte direkt. Neue Posen via Code: Onshape-Konvention für set_all_targets.
+**Konsequenzen**: Neue Sequenzen immer in Onshape-Konvention schreiben. Inspector-Werte beim Einfügen mit `_isaac({...})` wrappen.
 
 ---
 

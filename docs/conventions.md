@@ -10,7 +10,7 @@
 ### Isaac-Konvention (Physics Inspector)
 - Entgegengesetzt zu Onshape (JOINT_SIGN = -1)
 - Gelenk-Limits nach `set_joint_limits()`: Hand [-90°, 0°], Ellbogen [-90°, 45°], Handgelenk [-90°, 0°]
-- Nur in `pickup_keyframes.py` und beim direkten Inspector-Ablesen
+- Nur beim direkten Inspector-Ablesen; in `sequences.py` mit `_isaac()` sofort in Onshape umrechnen
 
 ### Konvertierung
 ```python
@@ -23,7 +23,7 @@ onshape = -isaac_deg    # für alle Gelenke
 ```
 
 ### Verifizierte Vorzeichen-Referenzen
-Aus `test_hand_poses.py` (stabil, getestet):
+Aus `config/sequences.py` (HAND_POSES, visuell in Isaac bestätigt):
 - `dof_shoulder_horizontal_right: +20` → Arm leicht nach vorne
 - `dof_shoulder_vertical_left: -30` → Arm leicht hängend (unter T-Pose)
 - `dof_elbow_right: +90` → Ellbogen voll gebeugt
@@ -80,4 +80,3 @@ _STANDALONE = _lh is not None
 
 ## Commit-Konventionen
 - Keine automatischen Commits — Leon schaut erst drüber
-- Uncommitted: `config/pickup_keyframes.py`, `isaac_sim/build_scene.py`, `isaac_sim/demo_pickup.py` (seit Umbau)

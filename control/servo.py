@@ -1,22 +1,19 @@
 """
-control/servo.py — Virtueller Servo: Servo-Winkel → Fingergelenk-Winkel.
+control/servo.py — ServoMode: Servo-Kommandos → Fingergelenk-Winkel.
 
-Schnittstelle identisch zu direct.py und neural.py:
-  compute_joint_targets(input_dict: dict, side: str) -> dict
+command-Keys:
+  servo_name (thumb_opp, thumb, index, middle, ring, pinky) → Sehnen-Mapping
+  dof_*-Keys (Arm, Kopf, Handgelenk)                        → Pass-through
 
-input_dict : {servo_name: angle_deg}
-  Bekannte Servo-Namen: thumb_opp, thumb, index, middle, ring, pinky
-  Fehlende Servos werden als 0° angenommen.
-
-Kopplung (aus _SERVO_FACTORS in config):
-  Alle Gelenke eines Fingers × 1.0 — jedes Gelenk folgt dem Servo direkt.
-  Das Handgelenk ist kein Servo-gekoppeltes Gelenk (Body-DOF).
+Nur die im command enthaltenen Keys werden zurückgegeben — fehlende Servos
+zwingen andere Finger NICHT auf 0 (wichtig für persistente Teil-Kommandos).
 """
 import importlib
 import importlib.util
 from pathlib import Path
 
-# Isaac-Sim-safe Config-Reload (verhindert stale .pyc-Bytecode)
+from control.base import ControlMode
+
 importlib.invalidate_caches()
 import sys as _sys
 _sys.modules.pop("pib_hand_config", None)
@@ -26,19 +23,30 @@ _cfg  = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_cfg)
 
 _servo_pose_to_joints = _cfg.servo_pose_to_joints
+_HAND_DOFS            = _cfg.HAND_DOFS
 
 
-def compute_joint_targets(input_dict: dict, side: str = "left") -> dict:
-    """
-    Virtueller Servo → 15 DOF-Winkel (lineare Näherung).
+class ServoMode(ControlMode):
+    """Virtueller Servo — command = {servo_name: deg} und/oder {dof_*: deg}."""
 
-    Parameters
-    ----------
-    input_dict : {servo_name: angle_deg}  — 0° = offen, 90° = geschlossen
-    side       : "left" oder "right"
+    def __init__(self, side: str = "left"):
+        self._side = side
 
-    Returns
-    -------
-    {dof_name: angle_deg}  — 15 Einträge, alle in Grad (0–90°)
-    """
-    return _servo_pose_to_joints(input_dict, side)
+    def to_joint_targets(self, command: dict) -> dict:
+        hand    = _HAND_DOFS[self._side]
+        servos  = hand["servos"]
+        result  = {}
+
+        for key, val in command.items():
+            if key.startswith("dof_"):
+                result[key] = val                       # Pass-through (Body / direkt)
+            elif key in servos:
+                # nur die Gelenke dieses Servos expandieren
+                full = _servo_pose_to_joints({key: val}, self._side)
+                for usd_idx in servos[key]:
+                    dof = hand["names"][hand["indices"].index(usd_idx)]
+                    result[dof] = full[dof]
+            else:
+                print(f"[ServoMode] unbekannter Servo/DOF: {key!r} — übersprungen")
+
+        return result

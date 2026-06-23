@@ -3,7 +3,7 @@ isaac_sim/_launch_helper.py — Isaac Sim 5.1 Standalone-Launcher.
 
 Verwendung:
   ~/isaacsim/python.sh isaac_sim/_launch_helper.py <modul_name>
-  ~/isaacsim/python.sh isaac_sim/_launch_helper.py test_hand_poses
+  ~/isaacsim/python.sh isaac_sim/_launch_helper.py runner
 
 Stellt als Modul-Globals bereit (import _launch_helper as lh):
   lh.sim_app  — SimulationApp-Instanz für sim_app.update()
@@ -26,8 +26,8 @@ except ImportError:
         "\n[_launch_helper] FEHLER: SimulationApp nicht importierbar.\n"
         "_launch_helper.py ist ein Standalone-Launcher — NICHT im Script Editor ausführen!\n"
         "\nKorrekte Verwendung (Terminal):\n"
-        "  ~/isaacsim/python.sh isaac_sim/_launch_helper.py test_hand_poses\n"
-        "\nFür den Script Editor: test_hand_poses.py direkt öffnen und ausführen.\n"
+        "  ~/isaacsim/python.sh isaac_sim/_launch_helper.py runner\n"
+        "\nFür den Script Editor: runner.py direkt öffnen und ausführen.\n"
     )
     try:
         import carb  # type: ignore
@@ -79,23 +79,15 @@ omni.usd.get_context().open_stage(str(_USD))
 sim_app.update()
 print(f"[launcher] USD geladen: {_USD.name}")
 
-# ── Drives konfigurieren (aus setup_stage) ────────────────────────────────────
-# _SKIP_AUTO_SETUP = True verhindert dass setup_stage beim Import auto-ausführt.
+# ── Session-Setup via start.py ────────────────────────────────────────────────
 try:
-    _ss_spec = _ilu.spec_from_file_location("_setup_stage", _HERE / "setup_stage.py")
-    _ss_mod  = _ilu.module_from_spec(_ss_spec)
-    _ss_mod._SKIP_AUTO_SETUP = True
-    _ss_spec.loader.exec_module(_ss_mod)
-    _stage = omni.usd.get_context().get_stage()
-    if hasattr(_ss_mod, "configure_drives"):
-        _ss_mod.configure_drives(_stage)
-    if hasattr(_ss_mod, "set_joint_limits"):
-        _ss_mod.set_joint_limits(_stage)
-    if hasattr(_ss_mod, "set_initial_pose"):
-        _ss_mod.set_initial_pose(_stage)
-    print("[launcher] Drives konfiguriert via setup_stage")
+    _st_spec = _ilu.spec_from_file_location("_start", _HERE / "start.py")
+    _st_mod  = _ilu.module_from_spec(_st_spec)
+    _st_mod._SKIP_AUTO_SETUP = True
+    _st_spec.loader.exec_module(_st_mod)
+    _st_mod.run(omni.usd.get_context().get_stage())
 except Exception as _e:
-    carb.log_warn(f"[launcher] setup_stage nicht geladen: {_e}")
+    carb.log_warn(f"[launcher] start.py nicht geladen: {_e}")
 
 # ── Physik starten ────────────────────────────────────────────────────────────
 _timeline = omni.timeline.get_timeline_interface()
