@@ -50,6 +50,20 @@ Format: Problem → Entscheidung → Begründung → Konsequenzen
 
 ---
 
+## ADR-005: Greif-Erkennung — Admittanz-Heuristik jetzt, Contact Reports Phase 5
+
+**Problem**: `is_grasping()` muss erkennen ob der Roboter ein Objekt hält. Zwei physikalisch motivierte Ansätze: (1) Admittanzregelung via Gelenk-Torques, (2) Drucksensoren via PhysX Contact Reports.
+
+**Entscheidung**: Stufen-Ansatz:
+- **Sprint 3**: Admittanz-Heuristik — `robot.get_measured_joint_efforts()` gibt Torque pro Gelenk; überschreitet ein Finger-Torque einen Schwellwert während das Drive-Target hoch ist → Kontakt erkannt.
+- **Phase 5**: Contact Report API als virtuelle Drucksensoren — wenn AS5600-Sensordaten kommen, soll die Sim dieselbe Sensor-Modalität liefern (Kraft pro Fingertip-Mesh statt Torque pro Gelenk).
+
+**Begründung**: Admittanz ist mit `get_measured_joint_efforts()` sofort verfügbar, kein USD-Schema nötig. Contact Reports sind für LSTM-Training besser (gleiche Modalität wie echte FSR-Sensoren), aber erfordern `PhysicsContactReport`-Schema auf jedem Fingertip-Prim — sinnvoll erst wenn Sensor-Hardware feststeht.
+
+**Konsequenzen**: `is_grasping()` in robot_io, Schwellwert in server_config.py. Bei Phase 5 Contact-Force-Publisher parallel ergänzen.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

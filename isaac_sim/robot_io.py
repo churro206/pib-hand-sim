@@ -195,6 +195,28 @@ def set_body_targets(joint_angles_deg: dict) -> None:
         print(f"[robot_io] set_body_targets fehlgeschlagen: {e}")
 
 
+def get_body_state() -> dict:
+    """
+    Liest aktuelle Ist-Positionen der Körpergelenke.
+    Returns: {dof_name: angle_deg}  (positive = Onshape-Konvention)
+    """
+    robot   = _get_robot()
+    indices = np.array(BODY_DOFS["indices"], dtype=np.int32)
+    pos_rad = robot.get_joint_positions(joint_indices=indices)
+    return {name: _from_isaac_rad(pos_rad[i]) for i, name in enumerate(BODY_DOFS["names"])}
+
+
+def get_all_joint_states() -> dict:
+    """
+    Gibt Ist-Positionen aller 44 DOFs zurück.
+    Returns: {dof_name: angle_deg}  (Onshape-Konvention)
+    """
+    state = get_body_state()
+    state.update(get_hand_state("left"))
+    state.update(get_hand_state("right"))
+    return state
+
+
 def apply_full_pose(joint_dict: dict) -> None:
     """
     Setzt Drive-Targets aus einem Isaac-Konvention Pose-Dict (Physics Inspector).

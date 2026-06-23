@@ -1,32 +1,25 @@
 """
-isaac_sim/runner.py — Ebene-3-Executor: spielt eine Sequenz über einen ControlMode.
+isaac_sim/runner.py — Sequenz-Executor für pib (Library).
 
-Datenfluss pro Step:
-  Step.target (nur Änderungen)
-    → MODE.to_joint_targets()      servo→dof expandieren, Rest durchreichen
-    → in current-State mergen      (persistenter Zustand)
-    → Smoothstep current→neu       über transition_s
-    → robot_io.set_all_targets()   → Isaac
+Wird von Sequenz-Skripten als Library geladen:
+  _runner = _load_mod("runner", runner_path, _LIBRARY_MODE=True)
+  _runner.execute(seq, mode="direct", side="right")
 
-Konfiguration: SEQUENCE_NAME / MODE_NAME / SIDE unten anpassen.
+Re-Exports für Sequenz-Skripte: Sequence, Step, ALL
 
-Workflow Script Editor:
-  start.py → Play → runner.py ausführen
+Workflow:
+  start.py → Play → Sequenz-Skript ausführen
+  Erneut ausführen nach Änderungen — kein Isaac-Neustart nötig.
 
-Workflow Standalone:
-  ~/isaacsim/python.sh isaac_sim/_launch_helper.py runner
+Standalone:
+  ~/isaacsim/python.sh isaac_sim/_launch_helper.py <sequenz_skript>
 """
 import sys
 import os
 import importlib
 import importlib.util
 import asyncio
-
-# ══ KONFIGURATION ═════════════════════════════════════════════════════════════
-SEQUENCE_NAME = "tendon"   # hand_poses | tendon | pickup
-MODE_NAME     = "servo"        # direct | servo | nn
-SIDE          = "right"        # nur für servo / nn
-# ══════════════════════════════════════════════════════════════════════════════
+import types as _types
 
 # ── Umgebungs-Erkennung ───────────────────────────────────────────────────────
 _lh = sys.modules.get("_launch_helper")
@@ -80,7 +73,7 @@ def _load_mod(name, path, **pre_attrs):
 
 # ── robot_io laden ────────────────────────────────────────────────────────────
 if _STANDALONE:
-    import robot_io as _io  # type: ignore  (_launch_helper hat es registriert)
+    import robot_io as _io  # type: ignore
 else:
     _io = _load_mod("robot_io", os.path.join(_root, "isaac_sim", "robot_io.py"))
     if not sys.modules.get("_runner_robot_initialized"):
@@ -93,28 +86,23 @@ else:
         sys.modules["_runner_robot_initialized"] = _robot
     _io._set_robot(sys.modules["_runner_robot_initialized"])
 
-# ── Sequenzen + Control-Modes via _load_mod laden ────────────────────────────
-# Bewusst KEIN "from config import ..." / "from control import ...":
-# Isaac hat cv2/ auf sys.path mit eigenem config.py → Namensk­ollision.
-# _load_mod lädt per Dateipfad und umgeht das (+ stale .pyc).
-import types as _types
-
+# ── Sequenzen + Control-Modes laden ──────────────────────────────────────────
 _seq = _load_mod("pib_sequences", os.path.join(_root, "config", "sequences.py"))
 
-# control/ als synthetisches Paket registrieren, damit die internen
-# "from control.base import ControlMode" der Submodule auflösen.
 _ctrl_dir = os.path.join(_root, "control")
 sys.modules.pop("control", None)
 _ctrl_pkg = _types.ModuleType("control")
 _ctrl_pkg.__path__ = [_ctrl_dir]
 sys.modules["control"] = _ctrl_pkg
-_load_mod("control.base", os.path.join(_ctrl_dir, "base.py"))
+_load_mod("control.base",   os.path.join(_ctrl_dir, "base.py"))
 DirectMode = _load_mod("control.direct", os.path.join(_ctrl_dir, "direct.py")).DirectMode
 ServoMode  = _load_mod("control.servo",  os.path.join(_ctrl_dir, "servo.py")).ServoMode
 NNMode     = _load_mod("control.nn",     os.path.join(_ctrl_dir, "nn.py")).NNMode
 
-SEQUENCE = _seq.ALL[SEQUENCE_NAME]
-MODE     = {"direct": DirectMode(), "servo": ServoMode(SIDE), "nn": NNMode()}[MODE_NAME]
+# ── Re-Exports ────────────────────────────────────────────────────────────────
+Sequence = _seq.Sequence
+Step     = _seq.Step
+ALL      = _seq.ALL
 
 
 # ── Interpolation ─────────────────────────────────────────────────────────────
@@ -131,14 +119,11 @@ def _interpolate(a: dict, b: dict, t: float) -> dict:
     return {k: a.get(k, 0.0) * (1.0 - s) + b[k] * s for k in b}
 
 
-def _build_frames():
-    """
-    Generator: liefert (label, target_dict) pro Sim-Frame.
-    Pflegt den persistenten current-State und expandiert via MODE.
-    """
+def _build_frames(seq, mode_obj):
+    """Generator: liefert (label, target_dict) pro Sim-Frame."""
     current: dict = {}
-    for step in SEQUENCE.steps:
-        partial = MODE.to_joint_targets(step.target)
+    for step in seq.steps:
+        partial = mode_obj.to_joint_targets(step.target)
         target  = {**current, **partial}
         label   = step.name or "step"
 
@@ -151,15 +136,20 @@ def _build_frames():
             yield label, current
 
 
+def _make_mode_obj(mode_name: str, side: str):
+    return {"direct": DirectMode(), "servo": ServoMode(side), "nn": NNMode()}[mode_name]
+
+
 # ── Script Editor (async) ─────────────────────────────────────────────────────
-async def _run_editor() -> None:
+
+async def _run_for(seq, mode_obj, mode_name: str) -> None:
     try:
         import omni.kit.app  # type: ignore
         app = omni.kit.app.get_app()
-        _log(f"[runner] {SEQUENCE.name} | mode={MODE_NAME} | "
-             f"{' → '.join(s.name for s in SEQUENCE.steps)}")
+        _log(f"[runner] {seq.name} | mode={mode_name} | "
+             f"{' → '.join(s.name for s in seq.steps)}")
         last = None
-        for label, frame in _build_frames():
+        for label, frame in _build_frames(seq, mode_obj):
             if label != last:
                 _log(f"[runner] → {label}")
                 last = label
@@ -173,18 +163,31 @@ async def _run_editor() -> None:
 
 
 # ── Standalone ────────────────────────────────────────────────────────────────
-def run() -> None:
-    _log(f"[runner] {SEQUENCE.name} | mode={MODE_NAME} (Standalone)")
+
+def _run_standalone(seq, mode_obj, mode_name: str) -> None:
+    _log(f"[runner] {seq.name} | mode={mode_name} (Standalone)")
     last = None
-    for label, frame in _build_frames():
+    for label, frame in _build_frames(seq, mode_obj):
         if label != last:
             _log(f"[runner] → {label}")
             last = label
         _io.set_all_targets(frame)
         _lh.sim_app.update()
-    _log("[runner] Sequenz beendet — Endpose gehalten (Drive-Targets aktiv).")
+    _log("[runner] Sequenz beendet — Endpose gehalten.")
 
 
-# ── Einstieg ──────────────────────────────────────────────────────────────────
-if not _STANDALONE:
-    asyncio.ensure_future(_run_editor())
+# ── Öffentliche API ───────────────────────────────────────────────────────────
+
+def execute(seq, mode: str = "direct", side: str = "right") -> None:
+    """
+    Sequenz abspielen.
+
+    seq  : Sequence-Objekt
+    mode : "direct" | "servo" | "nn"
+    side : "left" | "right"  (nur für servo/nn)
+    """
+    mode_obj = _make_mode_obj(mode, side)
+    if not _STANDALONE:
+        asyncio.ensure_future(_run_for(seq, mode_obj, mode))
+    else:
+        _run_standalone(seq, mode_obj, mode)

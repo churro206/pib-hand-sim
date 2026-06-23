@@ -56,11 +56,16 @@ control/base.py                ControlMode ABC
 control/direct.py              DirectMode — pass-through
 control/servo.py               ServoMode — Sehnen-Mapping, partial expansion
 control/nn.py                  NNMode — Stub (Phase 5)
-isaac_sim/runner.py            Sequenz-Executor: SEQUENCE_NAME / MODE_NAME / SIDE oben anpassen
-isaac_sim/robot_io.py          einzige Isaac-IO-Schicht (hier kein Refactor ohne Grund)
-isaac_sim/setup_stage.py       Drives + Limits (einmalig pro Session vor Play)
-isaac_sim/start.py             Startroutine: configure_physics + drives + limits + initial pose
-isaac_sim/_launch_helper.py    Standalone-Launcher (legt robot + robot_io an)
+isaac_sim/runner.py                   Sequenz-Executor (Library): execute(seq, mode, side)
+isaac_sim/robot_io.py                 einzige Isaac-IO-Schicht (hier kein Refactor ohne Grund)
+isaac_sim/setup_stage.py              Drives + Limits (einmalig pro Session vor Play)
+isaac_sim/start.py                    Startroutine: configure_physics + drives + limits + initial pose
+isaac_sim/ros2_server.py              ROS2-Bridge: JointTrajectory → Isaac, joint_states publishen
+isaac_sim/_launch_helper.py           Standalone-Launcher (legt robot + robot_io an)
+isaac_sim/sequences/template.py       Vorlage für neue Sequenzen (kopieren + anpassen)
+isaac_sim/sequences/test_hand_poses.py Winken → Doppelbizeps → Peace
+isaac_sim/sequences/test_tendon.py    Sehnenmechanik-Test (ServoMode)
+isaac_sim/sequences/demo_pickup.py    Pickup-Demo (physikalisch verifiziert)
 ```
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md

@@ -19,7 +19,7 @@
 
 ---
 
-# Sprint 3 — Simulation Server (geplant)
+# Sprint 3 — Simulation Server ←
 
 ## Ziel
 Die Sim wird vom Player zum Server: andere Teams können über ROS2 Befehle
@@ -28,19 +28,23 @@ schicken und Feedback empfangen, ohne Isaac-Kenntnisse.
 ## Tasks
 
 ### Observation API
-- [ ] `get_robot_state()` → Gelenkpositionen aller 44 DOFs + Endeffektorpose (FK)
-- [ ] `get_object_pose()` → Objektposition im Weltframe (Isaac kann das, noch nicht verdrahtet)
-- [ ] Kontaktdetection: `is_grasping()` via PhysX Contact Reports
+- [x] `get_all_joint_states()` → alle 44 DOFs, in `robot_io.py` + über `/pib/joint_states` publiziert
+- [ ] `get_object_pose()` → Objektposition im Weltframe
+- [ ] `is_grasping()` → Admittanz-Heuristik via `get_measured_joint_efforts()` (ADR-005)
 
 ### Scene API
 - [ ] `reset()` → Roboter zu T-Pose, Objekt zurück zur Ausgangsposition
 - [ ] `place_object(pose)` → Objekt an beliebige Position setzen
 
 ### ROS2-Bridge
-- [ ] Isaac Sim ROS2-Bridge aktivieren (`isaacsim.ros2.bridge`)
-- [ ] Topics definieren (mit anderen Teams abstimmen):
-  - Subscribe: `/pib/joint_command` ({dof_name: angle_deg})
-  - Publish: `/pib/joint_states`, `/pib/grasp_state`
+- [x] Isaac Sim ROS2-Bridge aktivieren (`isaacsim.ros2.bridge`) — automatisch in `ros2_server.py`
+- [x] Topics implementiert und end-to-end verifiziert (Hand bewegt sich, 44 DOFs zurück):
+  - Subscribe: `/pib/joint_trajectory` (`trajectory_msgs/JointTrajectory`)
+  - Subscribe: `/pib/set_mode` (`std_msgs/String`)
+  - Publish: `/pib/joint_states` (`sensor_msgs/JointState`, 30 Hz)
+  - Publish: `/pib/grasp_state` (`std_msgs/Bool`, Stub)
+- [x] `ROS_DOMAIN_ID=0` als Projektstandard dokumentiert (`docs/conventions.md`)
+- [ ] Winkeleinheit mit IK-Team abstimmen (`"deg"` vs. `"rad"` in `server_config.py`)
 - [ ] Koordinatenrahmen dokumentieren (pib-Basis als Ursprung)
 
 ---

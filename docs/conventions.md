@@ -48,6 +48,38 @@ Schema: `dof_{teil}_{seite}_{position}`
 - Wert: Grad (float), in der Konvention der jeweiligen Datei
 - Vollständige Dicts (alle 44 DOFs) für Keyframes; Teilmengen für Updates
 
+## ROS2-Konventionen
+
+### Domain ID
+`ROS_DOMAIN_ID=0` — Projektstandard für alle Teams.
+
+Isaac Sim wird ohne gesetztes `ROS_DOMAIN_ID` gestartet (Default = 0). Im Terminal vor jeder ROS2-Session setzen:
+```bash
+export ROS_DOMAIN_ID=0
+```
+
+### Topics
+| Topic | Typ | Richtung |
+|---|---|---|
+| `/pib/joint_trajectory` | `trajectory_msgs/JointTrajectory` | → Isaac (IK-Team) |
+| `/pib/set_mode` | `std_msgs/String` | → Isaac (Operator) |
+| `/pib/joint_states` | `sensor_msgs/JointState` | ← Isaac (Feedback) |
+| `/pib/grasp_state` | `std_msgs/Bool` | ← Isaac (Greif-Status) |
+
+### Winkeleinheit (aktuell)
+`ANGLE_UNIT = "deg"` in `config/server_config.py` — Platzhalter bis Abstimmung mit IK-Team.
+ROS2-Standard wäre Radiant (`"rad"`), nur den Wert in server_config.py ändern zum Umschalten.
+
+### Workflow Script Editor
+```
+start.py → Play → Sequenz-Script ausführen      (isaac_sim/sequences/*.py)
+start.py → Play → ros2_server.py ausführen       (ROS2-Bridge)
+```
+Erneutes Ausführen stoppt jeweils die vorherige Instanz und startet neu (hot-reload).
+`ros2_server.py` beendet sich spätestens 1 Sekunde nach Stop-Flag — auch bei gestoppter Sim.
+
+---
+
 ## Isaac Sim Patterns
 
 ### Modul laden (Script Editor)
