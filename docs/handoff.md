@@ -7,22 +7,27 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 ## Stand 2026-06-23
 
 ### Zuletzt gearbeitet an
-1. **`runner.py` Bug fixes** — `MODE_NAME = "servo"` für `tendon`-Sequenz (war `"direct"` → unbekannte DOF-Keys); Robot-Re-Initialisierungs-Bug: `_robot.initialize()` wurde bei jedem Script-Editor-Run aufgerufen → Fix via `sys.modules["_runner_robot_initialized"]`-Flag, läuft jetzt nur beim ersten Run
-2. **Hot-Reload bestätigt** — nach dem Fix lädt runner.py `sequences.py` bei jedem Re-Run frisch (kein Isaac-Neustart nötig); `_load_mod` + sys.modules-Flag ermöglicht das
-3. **`manual_control_hand.py` gelöscht** — kein Importeur, vollständig durch robot_io + control/ + runner ersetzt
-4. **Alle Docs aktualisiert** — `CLAUDE.md` Schlüsseldateien + Phasen, `architecture.md` Layer-Status + Datenfluss + Modul-Tabelle, `decisions.md` ADR-003 neu geschrieben (Einweg-Modell), `conventions.md` pickup_keyframes-Referenzen entfernt, `current-sprint.md` Sprint 2 als ✓ abgeschlossen
+1. **README Onboarding-Sektion** — neuer Abschnitt „Onboarding für Teamkollegen": Isaac Sim Install-Link, GPU-Anforderung, ROS2 Jazzy, Schritt-für-Schritt-Workflow mit konkreten Menüpfaden
+2. **ROS2-vor-Isaac-Gotcha** — prominenter `> Wichtig:`-Block in Schritt 3: `source /opt/ros/jazzy/setup.bash` muss VOR `isaacsim` laufen, sonst findet Isaac `rclpy` nicht
+3. **requirements.txt-Klarstellung** — Sektion „LSTM-Training (Phase 5)" macht explizit dass `requirements.txt` + Docker Training-only sind; Isaac Sim bringt Python 3.10 + numpy selbst mit
+4. **current-sprint.md** — Onboarding-Task als `[x]` eingetragen unter ROS2-Bridge
 
 ### Offene Punkte
-- Commit steht noch aus — alle Änderungen (control/, sequences.py, runner.py, start.py, gelöschte Dateien, Docs) sind uncommitted
-- Pickup-Lift-Step noch nicht visuell in Isaac verifiziert: `dof_elbow_right: 55.4` (Isaac-Inspector war `-55.4` → nach `_isaac()`-Negierung = `+55.4` Onshape)
-- P3 (collect_data.py vs. data/collect_real.py Zuständigkeiten) noch offen, kein Blocker für Sprint 3
+- Commit + Push steht aus (Leon macht das)
+- `is_grasping()` nicht implementiert — ADR-005: Admittanz-Heuristik via `robot.get_measured_joint_efforts()`, Schwellwert als `GRASP_TORQUE_THRESHOLD` in `server_config.py`
+- Scene API (`reset()`, `place_object()`) noch nicht begonnen
+- Winkeleinheit `"deg"` vs. `"rad"` in `server_config.py` — muss mit IK-Team abgestimmt werden
 
 ### Nächste Schritte (in Reihenfolge)
-1. Commit: `git add config/sequences.py control/ isaac_sim/runner.py isaac_sim/start.py` + deletions + docs, dann pushen
-2. Pickup-Sequenz in Isaac abspielen, Lift-Step visuell prüfen (`SEQUENCE_NAME = "pickup"`, `MODE_NAME = "direct"`)
-3. Sprint 3 beginnen: `get_robot_state()` in robot_io, dann Observation API
+1. Commit pushen (Leon)
+2. `is_grasping()` in `robot_io.py`: `get_measured_joint_efforts(joint_indices=hand_indices)` → Torque-Schwellwert → bool; Schwellwert als `GRASP_TORQUE_THRESHOLD` in `server_config.py`; in `ros2_server.py` verdrahten statt Stub
+3. Scene API: `reset()` → T-Pose + Objekt-Reset; `place_object(pose)` → Prim-Transform setzen
+4. Winkeleinheit mit IK-Team abstimmen
 
 ### Wichtige Kontextdetails
-- **Hot-Reload-Pattern:** `sys.modules["_runner_robot_initialized"]` überlebt zwischen Script-Editor-Runs innerhalb einer Isaac-Session — wird als einmaliger Init-Flag verwendet. Bei Isaac-Neustart wird er automatisch geleert.
-- **Sequenz-Kompatibilität:** `hand_poses` → `direct`; `tendon` → `servo` + `SIDE="right"`; `pickup` → `direct`. Falsche Kombination gibt DOF-Fehler.
-- **`_load_mod` + control/ als synthetisches Paket:** `sys.modules["control"]` wird in runner.py als `types.ModuleType` angelegt, damit `from control.base import ControlMode` in servo.py etc. funktioniert — nicht über normales `import control` erreichbar in Isaac.
+- **ROS_DOMAIN_ID=0** — Projektstandard; Isaac Sim Default=0, Terminal muss explizit gesetzt werden
+- **ROS2 muss vor Isaac Sim gesourced sein** — `source /opt/ros/jazzy/setup.bash && isaacsim`; fehlt das, crasht `ros2_server.py` beim Import von `rclpy`
+- **requirements.txt ist Training-only** — für die Sim selbst nichts installieren; `ros-jazzy-desktop` deckt alle ROS2-Pakete ab (`rclpy`, `sensor_msgs`, `std_msgs`, `trajectory_msgs`)
+- **isaacsim.ros2.bridge** — wird von `ros2_server.py` automatisch aktiviert, kein manuelles Extension-Enabling nötig
+- **ros2_server.py stoppen:** nochmal ausführen im Script Editor (setzt Stop-Flag automatisch), beendet sich spätestens 1s danach
+- **Headless/Docker für Isaac Sim** — bewusst zurückgestellt; sinnvoll erst wenn Server stabil und standalone (`_launch_helper.py ros2_server`) der primäre Workflow ist (Sprint 4+)

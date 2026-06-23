@@ -19,30 +19,95 @@ Ziel: pib v4 Oberköper (44 DOFs) in NVIDIA Isaac Sim 5.1 — steuerbar über RO
 
 ---
 
-## Schnellstart
+## Onboarding für Teamkollegen
 
-### Voraussetzungen
-- NVIDIA Isaac Sim 5.1
-- ROS2 Jazzy (`/opt/ros/jazzy`)
-- Python 3.10+, numpy, `ROS_DOMAIN_ID=0`
+Dieser Abschnitt führt von Null bis zur laufenden Simulation.
 
-### Isaac Sim starten
+### 1 — Voraussetzungen installieren
+
+**NVIDIA GPU + Treiber**
+Mindestens eine RTX-Klasse GPU, Treiber ≥ 550. Ohne GPU läuft Isaac Sim nicht.
+
+**Isaac Sim 5.1** (native auf Ubuntu 24.04, einmalig ~20 GB)
+NVIDIA-Dokumentation unter [docs.isaacsim.omniverse.nvidia.com](https://docs.isaacsim.omniverse.nvidia.com) → „Installation" → „Workstation" folgen. Danach:
+```bash
+isaacsim --version   # sollte 5.1.x ausgeben
 ```
-1. USD laden
-2. start.py im Script Editor ausführen    ← Drives + Limits + T-Pose
-3. Play drücken
-4a. runner.py ausführen                   → Sequenz abspielen
-4b. ros2_server.py ausführen              → ROS2-Bridge starten
+
+**ROS2 Jazzy**
+```bash
+sudo apt install ros-jazzy-desktop
+echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
 
-### ROS2-Bridge testen
+### 2 — Repo klonen
+
+```bash
+git clone https://github.com/churro206/pib-hand-sim
+cd pib-hand-sim
+```
+
+Die USD-Dateien sind im Repo (`isaac_sim/usd/`) — kein extra Download nötig.
+
+### 3 — Isaac Sim starten und einrichten
+
+> **Wichtig:** ROS2 muss in derselben Shell gesourced sein, bevor Isaac Sim startet —
+> sonst findet Isaac `rclpy` nicht und `ros2_server.py` schlägt fehl.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+isaacsim
+```
+
+Dann in Isaac Sim:
+```
+1. File → Open → isaac_sim/usd/pib_upperbody_7_flattened.usd laden
+2. Window → Script Editor öffnen
+3. In Script Editor: isaac_sim/start.py öffnen und ausführen (Strg+Enter)
+   → Drives, Limits und T-Pose werden gesetzt
+4. Toolbar: Play drücken  ▶
+```
+
+### 4a — Sequenz abspielen (ohne ROS2)
+
+Im Script Editor eine Sequenz aus `isaac_sim/sequences/` öffnen und ausführen:
+
+| Script | Was passiert |
+|---|---|
+| `sequences/test_hand_poses.py` | Winken → Doppelbizeps → Peace |
+| `sequences/test_tendon.py` | Hand 3× schließen/öffnen (ServoMode) |
+| `sequences/demo_pickup.py` | Dose greifen und heben |
+
+### 4b — ROS2-Bridge starten
+
+Im Script Editor `isaac_sim/ros2_server.py` ausführen.
+Die Bridge aktiviert die Extension `isaacsim.ros2.bridge` automatisch.
+
+Dann im Terminal:
 ```bash
 export ROS_DOMAIN_ID=0
-source /opt/ros/jazzy/setup.bash
 
-ros2 topic list                           # Topics prüfen
-python3 tools/send_test_trajectory.py    # Testsequenz schicken
-ros2 topic echo /pib/joint_states --once # Feedback lesen
+ros2 topic list                            # /pib/joint_trajectory, /pib/joint_states, …
+python3 tools/send_test_trajectory.py     # Testsequenz schicken
+ros2 topic echo /pib/joint_states --once  # 44 DOFs als Feedback lesen
+```
+
+**Server stoppen:** `ros2_server.py` im Script Editor nochmal ausführen — stoppt den laufenden Server automatisch und startet neu.
+
+### 5 — Eigene Sequenz erstellen
+
+`isaac_sim/sequences/template.py` kopieren, Steps anpassen, im Script Editor ausführen. Kein Isaac-Neustart nötig.
+
+---
+
+## Schnellstart (Kurzfassung)
+
+```
+isaacsim → usd/pib_upperbody_7_flattened.usd laden
+→ start.py ausführen → Play ▶
+→ ros2_server.py ausführen
+→ tools/send_test_trajectory.py
 ```
 
 ---
@@ -170,11 +235,12 @@ Architektur: 2-Layer LSTM, hidden_size=128, Input: 22 Features (11 cmd + 11 pos_
 
 ---
 
-## Lokale Umgebung
+## LSTM-Training (Phase 5)
+
+`requirements.txt` und Docker sind **nur für das LSTM-Training** — nicht für die Simulation selbst.
+Isaac Sim bringt Python 3.10 + numpy mit; ROS2 kommt über die Jazzy-Installation.
 
 ```bash
-git clone https://github.com/churro206/pib-hand-sim
-cd pib-hand-sim
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

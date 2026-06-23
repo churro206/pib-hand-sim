@@ -44,6 +44,7 @@ schicken und Feedback empfangen, ohne Isaac-Kenntnisse.
   - Publish: `/pib/joint_states` (`sensor_msgs/JointState`, 30 Hz)
   - Publish: `/pib/grasp_state` (`std_msgs/Bool`, Stub)
 - [x] `ROS_DOMAIN_ID=0` als Projektstandard dokumentiert (`docs/conventions.md`)
+- [x] Onboarding-Anleitung in `README.md`: Isaac Sim Install, ROS2-vor-Isaac-Gotcha, USD-Datei, Workflow Schritt für Schritt
 - [ ] Winkeleinheit mit IK-Team abstimmen (`"deg"` vs. `"rad"` in `server_config.py`)
 - [ ] Koordinatenrahmen dokumentieren (pib-Basis als Ursprung)
 
