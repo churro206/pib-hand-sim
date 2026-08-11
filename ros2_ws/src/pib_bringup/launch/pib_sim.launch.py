@@ -31,6 +31,15 @@ def generate_launch_description():
         "config", "controllers.yaml"
     )
 
+    # robot_state_publisher — publiziert URDF auf /robot_description Topic
+    # (Jazzy: controller_manager subscribed Topic statt Parameter zu lesen)
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        parameters=[{"robot_description": robot_description}],
+        output="screen",
+    )
+
     # Controller Manager
     controller_manager = Node(
         package="controller_manager",
@@ -64,6 +73,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        robot_state_publisher,
         controller_manager,
         joint_state_broadcaster_spawner,
         delay_jtc,
