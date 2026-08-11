@@ -160,22 +160,25 @@ async def _run_bridge() -> None:
     import omni.kit.app as _app_module  # type: ignore
     app = _app_module.get_app()
 
-    _last_pub = 0.0
+    _last_pub   = 0.0
     _physics_ready = False
+    _play_since = None          # Zeitstempel des letzten Play-Starts
+    _GRACE_S    = 0.5           # Warte nach Play bevor get_joint_positions
 
     import omni.timeline as _timeline_mod  # type: ignore
     _timeline = _timeline_mod.get_timeline_interface()
 
-    def _ensure_robot_initialized():
-        """Lazy-Init: SingleArticulation erst wenn Sim läuft."""
+    def _init_robot() -> bool:
+        """Initialisiert SingleArticulation (nur wenn noch nicht gecacht)."""
         if sys.modules.get("_bridge_robot_initialized"):
+            _io._set_robot(sys.modules["_bridge_robot_initialized"])
             return True
         try:
-            from isaacsim.core.prims import SingleArticulation as _ArtCls  # type: ignore
+            from isaacsim.core.prims import SingleArticulation as _AC  # type: ignore
         except ImportError:
-            from omni.isaac.core.articulations import Articulation as _ArtCls  # type: ignore
+            from omni.isaac.core.articulations import Articulation as _AC  # type: ignore
         try:
-            robot = _ArtCls(prim_path=_io.ROBOT_PRIM_PATH)
+            robot = _AC(prim_path=_io.ROBOT_PRIM_PATH)
             robot.initialize()
             sys.modules["_bridge_robot_initialized"] = robot
             _io._set_robot(robot)
@@ -183,30 +186,50 @@ async def _run_bridge() -> None:
         except Exception:
             return False
 
+    _was_playing = False
+
     while not _stop["stop"]:
         rclpy.spin_once(node, timeout_sec=0)
 
-        # Joint-States publishen (Grad → Radiant)
-        # Erst prüfen ob Sim läuft — verhindert dass Isaac's C++-Schicht
-        # "Physics Simulation View is not created yet" direkt ins Log schreibt.
-        now = time.monotonic()
+        now        = time.monotonic()
+        is_playing = _timeline.is_playing()
+
+        # Sim gestoppt: Handle invalidieren damit nächstes Play re-initialisiert
+        if not is_playing:
+            if _was_playing:
+                _was_playing   = False
+                _physics_ready = False
+                _play_since    = None
+                sys.modules.pop("_bridge_robot_initialized", None)
+                _log("[pib_bridge] Sim gestoppt — warte auf Play.")
+            if _pending_command is not None:
+                _pending_command = None
+            await asyncio.wait_for(app.next_update_async(), timeout=1.0)
+            continue
+
+        # Sim started: Grace-Period abwarten bevor Physics View genutzt wird
+        if not _was_playing:
+            _was_playing = True
+            _play_since  = now
+            _log("[pib_bridge] Play erkannt — warte auf Physics View...")
+
+        if now - _play_since < _GRACE_S:
+            await asyncio.wait_for(app.next_update_async(), timeout=1.0)
+            continue
+
+        # Grace-Period abgelaufen: Robot initialisieren (einmalig pro Session)
+        if not _init_robot():
+            await asyncio.wait_for(app.next_update_async(), timeout=1.0)
+            continue
+
+        # Befehl ausführen
+        if _pending_command is not None:
+            _io.set_all_targets(_pending_command)
+            _pending_command = None
+
+        # Joint-States publishen (50 Hz)
         if now - _last_pub >= _PUBLISH_INTERVAL:
             _last_pub = now
-            if not _timeline.is_playing():
-                if _physics_ready:
-                    _physics_ready = False
-                    _log("[pib_bridge] Sim gestoppt — warte auf Play.")
-                continue
-
-            # Sim läuft: Robot ggf. lazy initialisieren
-            if not _ensure_robot_initialized():
-                continue  # noch nicht bereit
-
-            # Befehl ausführen wenn vorhanden
-            if _pending_command is not None:
-                _io.set_all_targets(_pending_command)
-                _pending_command = None
-
             try:
                 state_deg = _io.get_all_joint_states()
                 if not _physics_ready:
@@ -214,20 +237,13 @@ async def _run_bridge() -> None:
                     _log("[pib_bridge] Physics View bereit — publishe joint_states.")
                 msg = JointState()
                 msg.header.stamp = node.get_clock().now().to_msg()
-                msg.name = list(state_deg.keys())
+                msg.name     = list(state_deg.keys())
                 msg.position = [math.radians(v) for v in state_deg.values()]
                 pub_states.publish(msg)
             except Exception as e:
                 if _physics_ready:
                     _physics_ready = False
                     _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
-
-        elif _pending_command is not None and _timeline.is_playing():
-            # Befehl sofort ausführen auch zwischen Publish-Ticks
-            if _ensure_robot_initialized():
-                _io.set_all_targets(_pending_command)
-                _pending_command = None
-            _last_pub = now
 
         try:
             await asyncio.wait_for(app.next_update_async(), timeout=1.0)
