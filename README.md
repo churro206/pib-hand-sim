@@ -191,6 +191,18 @@ tools/
 - `ROS_DOMAIN_ID=0` — Projektstandard
 - Isaac Sim wird ohne gesetztes Domain-ID gestartet (Default = 0)
 
+### ros2_ws Build-Hinweise
+
+Das Repo enthält `ros2_ws/` mit `topic_based_ros2_control`. Nach dem Klonen einmalig bauen:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+cd ros2_ws && colcon build --packages-select topic_based_ros2_control
+source install/setup.bash
+```
+
+> **Hinweis:** Falls du eine `.venv` im Repo-Root nutzt, muss `catkin_pkg` installiert sein damit `colcon build` funktioniert: `pip install catkin_pkg`
+
 ---
 
 ## Sequenzen abspielen
