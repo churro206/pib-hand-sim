@@ -166,6 +166,9 @@ async def _run_bridge() -> None:
     _last_pub = 0.0
     _physics_ready = False
 
+    import omni.timeline as _timeline_mod  # type: ignore
+    _timeline = _timeline_mod.get_timeline_interface()
+
     while not _stop["stop"]:
         rclpy.spin_once(node, timeout_sec=0)
 
@@ -175,31 +178,34 @@ async def _run_bridge() -> None:
             _pending_command = None
 
         # Joint-States publishen (Grad → Radiant)
-        # Physics View braucht ein paar Frames nach Play — Fehler während
-        # der Initialisierung stumm schlucken, erst loggen wenn dauerhaft.
+        # Erst prüfen ob Sim läuft — verhindert dass Isaac's C++-Schicht
+        # "Physics Simulation View is not created yet" direkt ins Log schreibt.
         now = time.monotonic()
         if now - _last_pub >= _PUBLISH_INTERVAL:
-            try:
-                state_deg = _io.get_all_joint_states()
-                if not _physics_ready:
-                    _physics_ready = True
-                    _log("[pib_bridge] Physics View bereit — publishe joint_states.")
-                msg = JointState()
-                msg.header.stamp = node.get_clock().now().to_msg()
-                msg.name = list(state_deg.keys())
-                msg.position = [math.radians(v) for v in state_deg.values()]
-                pub_states.publish(msg)
-            except Exception as e:
-                err = str(e)
-                if "Physics Simulation View is not created" in err or \
-                   "NoneType" in err:
-                    # Sim gestoppt oder noch nicht gestartet — still warten
+            _sim_playing = _timeline.is_playing()
+            if not _sim_playing:
+                if _physics_ready:
+                    _physics_ready = False
+                    _log("[pib_bridge] Sim gestoppt — warte auf Play.")
+                _last_pub = now
+            else:
+                try:
+                    state_deg = _io.get_all_joint_states()
+                    if not _physics_ready:
+                        _physics_ready = True
+                        _log("[pib_bridge] Physics View bereit — publishe joint_states.")
+                    msg = JointState()
+                    msg.header.stamp = node.get_clock().now().to_msg()
+                    msg.name = list(state_deg.keys())
+                    msg.position = [math.radians(v) for v in state_deg.values()]
+                    pub_states.publish(msg)
+                except Exception as e:
+                    # Sim spielt aber Physics View noch nicht bereit
+                    # (erste Frames nach Play) — still warten
                     if _physics_ready:
                         _physics_ready = False
-                        _log("[pib_bridge] Physics View nicht verfügbar (Sim gestoppt?).")
-                else:
-                    # Unbekannter Fehler — immer loggen
-                    _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
+                        _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
+                _last_pub = now
             _last_pub = now
 
         try:
