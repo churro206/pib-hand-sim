@@ -161,10 +161,33 @@ class PibPickupClient(Node):
         handle.get_result_async().add_done_callback(self._on_result)
 
     def _on_feedback(self, feedback_msg):
+        """Zeigt Ist- vs. Soll-Position der wichtigsten Gelenke pro Sekunde."""
         fb = feedback_msg.feedback
-        if fb.actual.positions and len(fb.actual.positions) > 7:
-            elbow = math.degrees(fb.actual.positions[7])  # dof_elbow_right
-            self.get_logger().info(f"  elbow_right: {elbow:.1f}°")
+        if not fb.actual.positions or not fb.desired.positions:
+            return
+
+        t = fb.actual.time_from_start.sec + fb.actual.time_from_start.nanosec * 1e-9
+        # Nur ~1× pro Sekunde loggen (Feedback kommt mit 50 Hz)
+        if not hasattr(self, "_last_fb_t"):
+            self._last_fb_t = -1.0
+        if t - self._last_fb_t < 0.9:
+            return
+        self._last_fb_t = t
+
+        # Schlüsselgelenke: Ellbogen (Arm-Fortschritt) + ein Finger (Greif-Fortschritt)
+        tracked = {
+            "elbow_right":         7,   # Arm angehoben?
+            "thumb_right_rotator": 10,  # Daumen opponiert?
+            "index_right_proximal":13,  # Finger geschlossen?
+        }
+        parts = []
+        for label, idx in tracked.items():
+            if idx < len(fb.actual.positions):
+                ist  = math.degrees(fb.actual.positions[idx])
+                soll = math.degrees(fb.desired.positions[idx])
+                err  = ist - soll
+                parts.append(f"{label}: {ist:.1f}° (Δ{err:+.1f}°)")
+        self.get_logger().info(f"  t={t:.1f}s | " + " | ".join(parts))
 
     def _on_result(self, future):
         result = future.result().result
