@@ -164,6 +164,7 @@ async def _run_bridge() -> None:
     app = _app_module.get_app()
 
     _last_pub = 0.0
+    _physics_ready = False
 
     while not _stop["stop"]:
         rclpy.spin_once(node, timeout_sec=0)
@@ -174,17 +175,25 @@ async def _run_bridge() -> None:
             _pending_command = None
 
         # Joint-States publishen (Grad → Radiant)
+        # Physics View braucht ein paar Frames nach Play — Fehler während
+        # der Initialisierung stumm schlucken, erst loggen wenn dauerhaft.
         now = time.monotonic()
         if now - _last_pub >= _PUBLISH_INTERVAL:
             try:
                 state_deg = _io.get_all_joint_states()
+                if not _physics_ready:
+                    _physics_ready = True
+                    _log("[pib_bridge] Physics View bereit — publishe joint_states.")
                 msg = JointState()
                 msg.header.stamp = node.get_clock().now().to_msg()
                 msg.name = list(state_deg.keys())
                 msg.position = [math.radians(v) for v in state_deg.values()]
                 pub_states.publish(msg)
             except Exception as e:
-                _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
+                if _physics_ready:
+                    # Nur loggen wenn Physik zuvor bereit war (echte Fehler)
+                    _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
+                # Sonst: Isaac initialisiert noch — still ignorieren
             _last_pub = now
 
         try:
