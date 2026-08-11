@@ -78,15 +78,12 @@ if _STANDALONE:
     import robot_io as _io  # type: ignore
 else:
     _io = _load_mod("robot_io", os.path.join(_root, "isaac_sim", "robot_io.py"))
-    if not sys.modules.get("_bridge_robot_initialized"):
-        try:
-            from isaacsim.core.prims import SingleArticulation as _ArtCls  # type: ignore
-        except ImportError:
-            from omni.isaac.core.articulations import Articulation as _ArtCls  # type: ignore
-        _robot = _ArtCls(prim_path=_io.ROBOT_PRIM_PATH)
-        _robot.initialize()
-        sys.modules["_bridge_robot_initialized"] = _robot
-    _io._set_robot(sys.modules["_bridge_robot_initialized"])
+    # Robot-Initialisierung lazy: initialize() erst wenn Sim läuft, da
+    # SingleArticulation.initialize() intern get_joint_positions() aufruft
+    # und Isaac's C++ "Physics Simulation View is not created yet" loggt.
+    if sys.modules.get("_bridge_robot_initialized"):
+        _io._set_robot(sys.modules["_bridge_robot_initialized"])
+    # Sonst: _ensure_robot_initialized() im Loop nach is_playing()-Check
 
 # ── ROS2-Bridge aktivieren ────────────────────────────────────────────────────
 try:
@@ -169,43 +166,67 @@ async def _run_bridge() -> None:
     import omni.timeline as _timeline_mod  # type: ignore
     _timeline = _timeline_mod.get_timeline_interface()
 
+    def _ensure_robot_initialized():
+        """Lazy-Init: SingleArticulation erst wenn Sim läuft."""
+        if sys.modules.get("_bridge_robot_initialized"):
+            return True
+        try:
+            from isaacsim.core.prims import SingleArticulation as _ArtCls  # type: ignore
+        except ImportError:
+            from omni.isaac.core.articulations import Articulation as _ArtCls  # type: ignore
+        try:
+            robot = _ArtCls(prim_path=_io.ROBOT_PRIM_PATH)
+            robot.initialize()
+            sys.modules["_bridge_robot_initialized"] = robot
+            _io._set_robot(robot)
+            return True
+        except Exception:
+            return False
+
     while not _stop["stop"]:
         rclpy.spin_once(node, timeout_sec=0)
-
-        # Befehl ausführen wenn vorhanden
-        if _pending_command is not None:
-            _io.set_all_targets(_pending_command)
-            _pending_command = None
 
         # Joint-States publishen (Grad → Radiant)
         # Erst prüfen ob Sim läuft — verhindert dass Isaac's C++-Schicht
         # "Physics Simulation View is not created yet" direkt ins Log schreibt.
         now = time.monotonic()
         if now - _last_pub >= _PUBLISH_INTERVAL:
-            _sim_playing = _timeline.is_playing()
-            if not _sim_playing:
+            _last_pub = now
+            if not _timeline.is_playing():
                 if _physics_ready:
                     _physics_ready = False
                     _log("[pib_bridge] Sim gestoppt — warte auf Play.")
-                _last_pub = now
-            else:
-                try:
-                    state_deg = _io.get_all_joint_states()
-                    if not _physics_ready:
-                        _physics_ready = True
-                        _log("[pib_bridge] Physics View bereit — publishe joint_states.")
-                    msg = JointState()
-                    msg.header.stamp = node.get_clock().now().to_msg()
-                    msg.name = list(state_deg.keys())
-                    msg.position = [math.radians(v) for v in state_deg.values()]
-                    pub_states.publish(msg)
-                except Exception as e:
-                    # Sim spielt aber Physics View noch nicht bereit
-                    # (erste Frames nach Play) — still warten
-                    if _physics_ready:
-                        _physics_ready = False
-                        _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
-                _last_pub = now
+                continue
+
+            # Sim läuft: Robot ggf. lazy initialisieren
+            if not _ensure_robot_initialized():
+                continue  # noch nicht bereit
+
+            # Befehl ausführen wenn vorhanden
+            if _pending_command is not None:
+                _io.set_all_targets(_pending_command)
+                _pending_command = None
+
+            try:
+                state_deg = _io.get_all_joint_states()
+                if not _physics_ready:
+                    _physics_ready = True
+                    _log("[pib_bridge] Physics View bereit — publishe joint_states.")
+                msg = JointState()
+                msg.header.stamp = node.get_clock().now().to_msg()
+                msg.name = list(state_deg.keys())
+                msg.position = [math.radians(v) for v in state_deg.values()]
+                pub_states.publish(msg)
+            except Exception as e:
+                if _physics_ready:
+                    _physics_ready = False
+                    _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
+
+        elif _pending_command is not None and _timeline.is_playing():
+            # Befehl sofort ausführen auch zwischen Publish-Ticks
+            if _ensure_robot_initialized():
+                _io.set_all_targets(_pending_command)
+                _pending_command = None
             _last_pub = now
 
         try:
