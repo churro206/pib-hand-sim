@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<!-- PLATZHALTER: Onshape-Export hier einfügen.
+     Ersetze den Inhalt zwischen den TODO-Kommentaren unten
+     durch den exportierten URDF-Inhalt aus Onshape (Links, Joints, Geometrie).
+     Der <ros2_control>-Block am Ende MUSS erhalten bleiben.
+     Gelenkname-Konvention: dof_* (z.B. dof_index_right_proximal)
+
+     Workflow zum Ersetzen:
+       1. In Onshape: Exportieren → Format: URDF → Geometrie: STL → Herunterladen
+       2. Entpacken, .urdf-Datei öffnen
+       3. Alles zwischen <robot name="..."> und </robot> kopieren (ohne die robot-Tags selbst)
+       4. Den TODO-Block unten ersetzen
+       5. STL-Dateien nach urdf/meshes/ kopieren
+       6. colcon build --packages-select pib_description
+       7. check_urdf $(ros2 pkg prefix pib_description)/share/pib_description/urdf/pib_upperbody.urdf
+-->
+<robot name="pib_upperbody_URDF">
+
+  <!-- TODO: Onshape URDF hier einfügen — Links, Joints, Geometrie.
+       Mindestens ein <link>-Element muss vorhanden sein damit check_urdf besteht.
+       Beispiel (entfernen sobald echter Export da ist):
+  <link name="base_link"/>
+  -->
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       ros2_control Hardware Interface
+       topic_based_ros2_control liest /pib/hw/joint_states von Isaac
+       und schreibt /pib/hw/joint_commands nach Isaac.
+       Winkel in Radiant (ros2_control-Standard).
+  ══════════════════════════════════════════════════════════════════ -->
+  <ros2_control name="pib_hw" type="system">
+    <hardware>
+      <plugin>topic_based_ros2_control/TopicBasedSystem</plugin>
+      <param name="joint_commands_topic">/pib/hw/joint_commands</param>
+      <param name="joint_states_topic">/pib/hw/joint_states</param>
+    </hardware>
+
+    <!-- Körper (14 DOFs) -->
+    <joint name="dof_head_horizontal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_head_vertical">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_shoulder_vertical_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_shoulder_horizontal_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_upper_arm_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_elbow_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_forearm_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_wrist_left">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_shoulder_vertical_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_shoulder_horizontal_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_upper_arm_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_elbow_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_forearm_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_wrist_right">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+
+    <!-- Linke Hand (15 DOFs) -->
+    <joint name="dof_thumb_left_rotator">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_thumb_left_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_thumb_left_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_left_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_left_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_left_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_left_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_left_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_left_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_left_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_left_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_left_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_left_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_left_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_left_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+
+    <!-- Rechte Hand (15 DOFs) -->
+    <joint name="dof_thumb_right_rotator">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_thumb_right_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_thumb_right_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_right_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_right_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_index_right_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_right_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_right_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_middle_right_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_right_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_right_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_ring_right_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_right_proximal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_right_distal">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+    <joint name="dof_pinky_right_tip">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+    </joint>
+
+  </ros2_control>
+
+</robot>
