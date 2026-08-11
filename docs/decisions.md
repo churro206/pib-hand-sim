@@ -50,17 +50,25 @@ Format: Problem → Entscheidung → Begründung → Konsequenzen
 
 ---
 
-## ADR-005: Greif-Erkennung — Admittanz-Heuristik jetzt, Contact Reports Phase 5
+## ADR-005: Fingertip-Kontaktkräfte via ArticulationView (PhysX Tensor API)
 
-**Problem**: `is_grasping()` muss erkennen ob der Roboter ein Objekt hält. Zwei physikalisch motivierte Ansätze: (1) Admittanzregelung via Gelenk-Torques, (2) Drucksensoren via PhysX Contact Reports.
+**Problem**: Die Sim soll Fingertip-Kontaktkräfte liefern — für Greif-Erkennung und später als LSTM-Trainingsdaten (gleiche Modalität wie echte FSR-Sensoren).
 
-**Entscheidung**: Stufen-Ansatz:
-- **Sprint 3**: Admittanz-Heuristik — `robot.get_measured_joint_efforts()` gibt Torque pro Gelenk; überschreitet ein Finger-Torque einen Schwellwert während das Drive-Target hoch ist → Kontakt erkannt.
-- **Phase 5**: Contact Report API als virtuelle Drucksensoren — wenn AS5600-Sensordaten kommen, soll die Sim dieselbe Sensor-Modalität liefern (Kraft pro Fingertip-Mesh statt Torque pro Gelenk).
+**Entscheidung**: `ArticulationView.get_net_contact_forces()` aus `isaacsim.core.prims` — derselbe Ansatz wie Isaac Lab's `ContactSensor`, nur ohne den Isaac-Lab-Wrapper. Kein `is_grasping()` Bool, stattdessen Kraft-Veröffentlichung als ROS2-Topic.
 
-**Begründung**: Admittanz ist mit `get_measured_joint_efforts()` sofort verfügbar, kein USD-Schema nötig. Contact Reports sind für LSTM-Training besser (gleiche Modalität wie echte FSR-Sensoren), aber erfordern `PhysicsContactReport`-Schema auf jedem Fingertip-Prim — sinnvoll erst wenn Sensor-Hardware feststeht.
+Konkret:
+- `ArticulationView` statt `SingleArticulation` für den Roboter → gibt Joint-Control + Kontaktkräfte in einem Objekt
+- `get_net_contact_forces(indices=[fingertip_indices])` → `(5, 3)` Numpy-Array, Newton
+- Betrag pro Fingertip → 5 Skalare für rechte Hand
+- Publish auf `/pib/fingertip_forces` als `sensor_msgs/JointState` (`name` = Fingernamen, `effort` = Kraft in Newton), 50 Hz
 
-**Konsequenzen**: `is_grasping()` in robot_io, Schwellwert in server_config.py. Bei Phase 5 Contact-Force-Publisher parallel ergänzen.
+**Begründung**: Admittanz-Heuristik (`get_measured_joint_efforts()`) verworfen — gibt Torque pro Gelenk, nicht Kraft pro Fingertip; schlechte Modalitäts-Übereinstimmung mit echten FSR-Sensoren. `ArticulationView` ist in Isaac Sim 5.1 eingebaut (kein Isaac-Lab-Install nötig) und liefert direkt die physikalisch korrekte Kontaktkraft.
+
+**Konsequenzen**:
+- `pib_bridge.py`: `ArticulationView` initialisieren nach Grace-Period (ersetzt oder ergänzt `SingleArticulation`)
+- Fingertip-Link-Indizes vorab mit `inventory.py` bestimmen (Prim-Pfade der `*_tip`-Links)
+- `sensor_msgs/JointState` auf `/pib/fingertip_forces` — kein Custom-Message-Package nötig
+- Offen: exakte Prim-Pfade der Fingertip-Links noch nicht verifiziert → `inventory.py` zuerst ausführen
 
 ---
 

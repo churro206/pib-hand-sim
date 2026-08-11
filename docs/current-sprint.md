@@ -30,7 +30,7 @@ schicken und Feedback empfangen, ohne Isaac-Kenntnisse.
 ### Observation API
 - [x] `get_all_joint_states()` → alle 44 DOFs, in `robot_io.py` + über `/pib/joint_states` publiziert
 - [ ] `get_object_pose()` → Objektposition im Weltframe
-- [ ] `is_grasping()` → Admittanz-Heuristik via `get_measured_joint_efforts()` (ADR-005)
+- [ ] Fingertip-Kontaktkräfte → `ArticulationView.get_net_contact_forces()` (ADR-005); `/pib/fingertip_forces` (`sensor_msgs/JointState`, effort = Newton); Voraussetzung: Fingertip-Prim-Pfade mit `inventory.py` bestimmen
 
 ### Scene API
 - [ ] `reset()` → Roboter zu T-Pose, Objekt zurück zur Ausgangsposition
@@ -48,15 +48,16 @@ schicken und Feedback empfangen, ohne Isaac-Kenntnisse.
 - [ ] Winkeleinheit mit IK-Team abstimmen (`"deg"` vs. `"rad"` in `server_config.py`)
 - [ ] Koordinatenrahmen dokumentieren (pib-Basis als Ursprung)
 
-### ros2_control-Integration (Branch: feature/ros2-control)
+### ros2_control-Integration (Branch: feature/ros2-control) ✓
 Ziel: Industriestandard-Schnittstelle — IK-Team sendet `FollowJointTrajectory`, MoveIt2-kompatibel.
 Plan: `docs/superpowers/plans/2026-08-11-ros2-control-integration.md`
-- [ ] Task 1: Workspace + topic_based_ros2_control installieren
-- [ ] Task 2: pib_description — URDF (Onshape-Export) + ros2_control-Tags (44 DOFs)
-- [ ] Task 3: pib_bringup — controllers.yaml + pib_sim.launch.py
-- [ ] Task 4: isaac_sim/pib_bridge.py — ersetzt ros2_server.py (dünner Bridge)
-- [ ] Task 5: test_client.py — Wellbewegung als End-to-End-Demo
-- [ ] Task 6: Dokumentation committen
+- [x] Task 1: Workspace + topic_based_ros2_control installieren
+- [x] Task 2: pib_description — URDF (Onshape-Export) + ros2_control-Tags (44 DOFs) + 18 STL-Meshes
+- [x] Task 3: pib_bringup — controllers.yaml + pib_sim.launch.py (inkl. robot_state_publisher für Jazzy)
+- [x] Task 4: isaac_sim/pib_bridge.py — Grace-Period, Lazy Init, Handle-Reset, rclpy Python-Mismatch gelöst
+- [x] Task 5: test_client.py — Pickup-Demo (physikalisch verifiziert) statt Wellbewegung
+- [x] Task 6: README + handoff + current-sprint aktualisiert
+- [ ] Branch in `main` mergen (Leon entscheidet)
 
 ---
 
