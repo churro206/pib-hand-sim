@@ -190,10 +190,16 @@ async def _run_bridge() -> None:
                 msg.position = [math.radians(v) for v in state_deg.values()]
                 pub_states.publish(msg)
             except Exception as e:
-                if _physics_ready:
-                    # Nur loggen wenn Physik zuvor bereit war (echte Fehler)
+                err = str(e)
+                if "Physics Simulation View is not created" in err or \
+                   "NoneType" in err:
+                    # Sim gestoppt oder noch nicht gestartet — still warten
+                    if _physics_ready:
+                        _physics_ready = False
+                        _log("[pib_bridge] Physics View nicht verfügbar (Sim gestoppt?).")
+                else:
+                    # Unbekannter Fehler — immer loggen
                     _log(f"[pib_bridge] publish fehlgeschlagen: {e}")
-                # Sonst: Isaac initialisiert noch — still ignorieren
             _last_pub = now
 
         try:
