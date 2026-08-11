@@ -48,6 +48,16 @@ schicken und Feedback empfangen, ohne Isaac-Kenntnisse.
 - [ ] Winkeleinheit mit IK-Team abstimmen (`"deg"` vs. `"rad"` in `server_config.py`)
 - [ ] Koordinatenrahmen dokumentieren (pib-Basis als Ursprung)
 
+### ros2_control-Integration (Branch: feature/ros2-control)
+Ziel: Industriestandard-Schnittstelle — IK-Team sendet `FollowJointTrajectory`, MoveIt2-kompatibel.
+Plan: `docs/superpowers/plans/2026-08-11-ros2-control-integration.md`
+- [ ] Task 1: Workspace + topic_based_ros2_control installieren
+- [ ] Task 2: pib_description — URDF (Onshape-Export) + ros2_control-Tags (44 DOFs)
+- [ ] Task 3: pib_bringup — controllers.yaml + pib_sim.launch.py
+- [ ] Task 4: isaac_sim/pib_bridge.py — ersetzt ros2_server.py (dünner Bridge)
+- [ ] Task 5: test_client.py — Wellbewegung als End-to-End-Demo
+- [ ] Task 6: Dokumentation committen
+
 ---
 
 # Sprint 4 — Team-Integration (geplant)

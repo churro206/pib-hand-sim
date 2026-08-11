@@ -11,14 +11,20 @@ Alle Teams nutzen **ROS2**.
 
 ---
 
-## 4-Schichten-Modell (Ziel)
+## 5-Schichten-Modell (Ziel)
 
 ```
-Layer 4: Team-Integration          Sprint 4
+Layer 5: Team-Integration          Sprint 4
          ROS2-Protokoll, Koordinatenrahmen, IK-Interface
 
-Layer 3: Simulation Server         Sprint 3 ←
-         Observation API, Scene API, ROS2-Bridge
+Layer 4: ros2_control-Stack        feature/ros2-control ←
+         JointTrajectoryController (FollowJointTrajectory, MoveIt2-kompatibel)
+         JointStateBroadcaster, ForceTorqueSensorBroadcaster
+         topic_based_ros2_control als Hardware-Interface-Bridge
+
+Layer 3: Simulation Server         Sprint 3 (teilweise fertig)
+         pib_bridge.py (dünner Bridge, ersetzt ros2_server.py)
+         /pib/hw/joint_states + /pib/hw/joint_commands (intern, rad)
 
 Layer 2: Control-Architektur       fertig
          ControlMode ABC (direct | servo | nn), sequences, runner
