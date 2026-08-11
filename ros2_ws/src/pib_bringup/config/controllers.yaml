@@ -1,0 +1,70 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50  # Hz — Isaac Sim läuft bei 60 Hz, wir bleiben darunter
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      # Körper
+      - dof_head_horizontal
+      - dof_head_vertical
+      - dof_shoulder_vertical_left
+      - dof_shoulder_horizontal_left
+      - dof_upper_arm_left
+      - dof_elbow_left
+      - dof_forearm_left
+      - dof_wrist_left
+      - dof_shoulder_vertical_right
+      - dof_shoulder_horizontal_right
+      - dof_upper_arm_right
+      - dof_elbow_right
+      - dof_forearm_right
+      - dof_wrist_right
+      # Linke Hand
+      - dof_thumb_left_rotator
+      - dof_thumb_left_proximal
+      - dof_thumb_left_distal
+      - dof_index_left_proximal
+      - dof_index_left_distal
+      - dof_index_left_tip
+      - dof_middle_left_proximal
+      - dof_middle_left_distal
+      - dof_middle_left_tip
+      - dof_ring_left_proximal
+      - dof_ring_left_distal
+      - dof_ring_left_tip
+      - dof_pinky_left_proximal
+      - dof_pinky_left_distal
+      - dof_pinky_left_tip
+      # Rechte Hand
+      - dof_thumb_right_rotator
+      - dof_thumb_right_proximal
+      - dof_thumb_right_distal
+      - dof_index_right_proximal
+      - dof_index_right_distal
+      - dof_index_right_tip
+      - dof_middle_right_proximal
+      - dof_middle_right_distal
+      - dof_middle_right_tip
+      - dof_ring_right_proximal
+      - dof_ring_right_distal
+      - dof_ring_right_tip
+      - dof_pinky_right_proximal
+      - dof_pinky_right_distal
+      - dof_pinky_right_tip
+
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+
+    # Trajektorie interpolieren (ros2_control übernimmt Smoothing)
+    allow_partial_joints_goal: true
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: false
