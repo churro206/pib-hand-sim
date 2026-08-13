@@ -84,7 +84,19 @@ async def _main() -> None:
     await app.next_update_async()
     _log("[autostart] Simulation läuft.")
 
-    # ── 4. pib_bridge.py starten ──────────────────────────────────────────────
+    # ── 4. rclpy-Path vorbereiten (Python 3.11 / Jazzy-Mismatch) ─────────────
+    # jazzy/ ist der Parent des rclpy-Packages (nicht jazzy/rclpy/).
+    # Gecachte System-rclpy (Python 3.12) aus sys.modules entfernen.
+    _rclpy_path = os.path.expanduser(
+        "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy"
+    )
+    if os.path.isdir(_rclpy_path):
+        for _k in [k for k in sys.modules if k.startswith("rclpy")]:
+            del sys.modules[_k]
+        if _rclpy_path not in sys.path:
+            sys.path.insert(0, _rclpy_path)
+
+    # ── 5. pib_bridge.py starten ──────────────────────────────────────────────
     _log("[autostart] Starte pib_bridge...")
     _load_mod("pib_bridge", os.path.join(root, "isaac_sim", "pib_bridge.py"))
     _log("[autostart] pib_bridge gestartet. Bereit.")

@@ -97,13 +97,18 @@ except Exception as _e:
 
 # Isaac Sim bündelt rclpy für Python 3.11 in der Bridge-Extension.
 # System-ROS2 (Jazzy) ist für Python 3.12 gebaut → C-Extension inkompatibel.
-# Isaac-eigenen Path an Position 0 setzen, damit er vor /opt/ros/jazzy greift.
+# Korrekt: jazzy/ (Parent des rclpy-Packages) eintragen, nicht jazzy/rclpy/.
+# Gecachte rclpy-Module aus sys.modules entfernen (falls System-rclpy bereits
+# importiert wurde, z.B. durch ROS2-Sourcing im Start-Terminal).
 import os as _os
 _isaac_ros2_path = _os.path.expanduser(
-    "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy/rclpy"
+    "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy"
 )
-if _os.path.isdir(_isaac_ros2_path) and _isaac_ros2_path not in sys.path:
-    sys.path.insert(0, _isaac_ros2_path)
+if _os.path.isdir(_isaac_ros2_path):
+    for _k in [k for k in sys.modules if k.startswith("rclpy")]:
+        del sys.modules[_k]
+    if _isaac_ros2_path not in sys.path:
+        sys.path.insert(0, _isaac_ros2_path)
     _log(f"[pib_bridge] Isaac ROS2-Path eingetragen: {_isaac_ros2_path}")
 
 import rclpy  # type: ignore
