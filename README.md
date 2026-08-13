@@ -124,25 +124,37 @@ Feedback zeigt jede Sekunde Ist- vs. Soll-Position für Ellbogen, Daumen und Zei
 
 ---
 
-## Schnellstart (Kurzfassung)
+## Schnellstart — Einzeiler
+
+```bash
+./scripts/launch.sh
+```
+
+Öffnet zwei Terminal-Tabs: Isaac Sim (USD + start.py + Play + pib_bridge) und ros2_control-Stack.
+ros2_control startet automatisch ~30s nach Isaac.
+
+Erster manueller Schritt wenn alles läuft:
+```bash
+source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
+ros2 run pib_bringup test_client    # Pickup-Demo
+```
+
+<details>
+<summary>Manueller Weg (ohne launch.sh)</summary>
 
 ```
-# Shell 1 (Isaac starten)
+# Shell 1 (Isaac)
 source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
-~/isaacsim/isaac-sim.sh
-# → USD laden → start.py → Play ▶ → pib_bridge.py
+~/isaacsim/isaac-sim.sh --exec ~/repos/pib-hand-sim/isaac_sim/autostart.py
 
-# Shell 2 (ros2_control)
+# Shell 2 (ros2_control — erst wenn Isaac bereit)
 source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
 ros2 launch pib_bringup pib_sim.launch.py
-
-# Shell 3 (Demo)
-source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=0
-ros2 run pib_bringup test_client
 ```
+
+</details>
 
 ---
 

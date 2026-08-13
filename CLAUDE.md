@@ -60,7 +60,7 @@ isaac_sim/runner.py                   Sequenz-Executor (Library): execute(seq, m
 isaac_sim/robot_io.py                 einzige Isaac-IO-Schicht (hier kein Refactor ohne Grund)
 isaac_sim/setup_stage.py              Drives + Limits (einmalig pro Session vor Play)
 isaac_sim/start.py                    Startroutine: configure_physics + drives + limits + initial pose
-isaac_sim/ros2_server.py              ROS2-Bridge: JointTrajectory → Isaac, joint_states publishen
+isaac_sim/pib_bridge.py               ROS2-Bridge: /pib/hw/* ↔ robot_io, 50 Hz (ros2_control-Workflow)
 isaac_sim/_launch_helper.py           Standalone-Launcher (legt robot + robot_io an)
 isaac_sim/sequences/template.py       Vorlage für neue Sequenzen (kopieren + anpassen)
 isaac_sim/sequences/test_hand_poses.py Winken → Doppelbizeps → Peace

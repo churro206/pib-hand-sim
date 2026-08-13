@@ -73,10 +73,10 @@ ROS2-Standard wäre Radiant (`"rad"`), nur den Wert in server_config.py ändern 
 ### Workflow Script Editor
 ```
 start.py → Play → Sequenz-Script ausführen      (isaac_sim/sequences/*.py)
-start.py → Play → ros2_server.py ausführen       (ROS2-Bridge)
+start.py → Play → pib_bridge.py ausführen        (ros2_control-Bridge)
 ```
 Erneutes Ausführen stoppt jeweils die vorherige Instanz und startet neu (hot-reload).
-`ros2_server.py` beendet sich spätestens 1 Sekunde nach Stop-Flag — auch bei gestoppter Sim.
+`pib_bridge.py` beendet sich spätestens 1 Sekunde nach Stop-Flag — auch bei gestoppter Sim.
 
 ---
 
