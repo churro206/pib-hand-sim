@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Isaac Sim",
+      "type": "shell",
+      "command": "source /opt/ros/jazzy/setup.bash && source ${workspaceFolder}/ros2_ws/install/setup.bash && export ROS_DOMAIN_ID=0 && export PIB_HAND_SIM_ROOT=${workspaceFolder} && ~/isaacsim/isaac-sim.sh --exec ${workspaceFolder}/isaac_sim/autostart.py",
+      "presentation": {
+        "panel": "new",
+        "title": "Isaac Sim",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ros2_control",
+      "type": "shell",
+      "command": "echo 'Warte 30s auf Isaac Sim...' && sleep 30 && source /opt/ros/jazzy/setup.bash && source ${workspaceFolder}/ros2_ws/install/setup.bash && export ROS_DOMAIN_ID=0 && ros2 launch pib_bringup pib_sim.launch.py",
+      "presentation": {
+        "panel": "new",
+        "title": "ros2_control",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 pib-Sim starten",
+      "dependsOn": ["Isaac Sim", "ros2_control"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
