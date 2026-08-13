@@ -85,10 +85,11 @@ async def _main() -> None:
     _log("[autostart] Simulation läuft.")
 
     # ── 4. rclpy-Path vorbereiten (Python 3.11 / Jazzy-Mismatch) ─────────────
-    # jazzy/ ist der Parent des rclpy-Packages (nicht jazzy/rclpy/).
-    # Gecachte System-rclpy (Python 3.12) aus sys.modules entfernen.
+    # jazzy/rclpy/ ist das Python-3.11-site-packages-Verzeichnis von Isaac.
+    # Gecachte System-rclpy (Python 3.12) aus sys.modules entfernen damit
+    # pib_bridge.py das korrekte rclpy importiert.
     _rclpy_path = os.path.expanduser(
-        "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy"
+        "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy/rclpy"
     )
     if os.path.isdir(_rclpy_path):
         for _k in [k for k in sys.modules if k.startswith("rclpy")]:

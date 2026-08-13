@@ -96,13 +96,13 @@ except Exception as _e:
     _log(f"[pib_bridge] ROS2-Bridge-Aktivierung fehlgeschlagen: {_e}")
 
 # Isaac Sim bündelt rclpy für Python 3.11 in der Bridge-Extension.
-# System-ROS2 (Jazzy) ist für Python 3.12 gebaut → C-Extension inkompatibel.
-# Korrekt: jazzy/ (Parent des rclpy-Packages) eintragen, nicht jazzy/rclpy/.
-# Gecachte rclpy-Module aus sys.modules entfernen (falls System-rclpy bereits
-# importiert wurde, z.B. durch ROS2-Sourcing im Start-Terminal).
+# jazzy/rclpy/ ist das Python-3.11-site-packages-Verzeichnis; rclpy liegt
+# als Package darunter (jazzy/rclpy/rclpy/__init__.py).
+# System-ROS2 (Jazzy, Python 3.12) aus sys.modules entfernen bevor wir
+# Isaac's Python-3.11-rclpy eintragen — sonst wird das gecachte importiert.
 import os as _os
 _isaac_ros2_path = _os.path.expanduser(
-    "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy"
+    "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy/rclpy"
 )
 if _os.path.isdir(_isaac_ros2_path):
     for _k in [k for k in sys.modules if k.startswith("rclpy")]:
