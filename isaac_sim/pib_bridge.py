@@ -85,21 +85,11 @@ else:
         _io._set_robot(sys.modules["_bridge_robot_initialized"])
     # Sonst: _ensure_robot_initialized() im Loop nach is_playing()-Check
 
-# ── ROS2-Bridge aktivieren ────────────────────────────────────────────────────
-try:
-    import omni.kit.app as _omni_app  # type: ignore
-    _ext = _omni_app.get_app().get_extension_manager()
-    if not _ext.is_extension_enabled("isaacsim.ros2.bridge"):
-        _ext.set_extension_enabled_immediate("isaacsim.ros2.bridge", True)
-        _log("[pib_bridge] ROS2-Bridge aktiviert.")
-except Exception as _e:
-    _log(f"[pib_bridge] ROS2-Bridge-Aktivierung fehlgeschlagen: {_e}")
-
-# Isaac Sim bündelt rclpy für Python 3.11 in der Bridge-Extension.
-# jazzy/rclpy/ ist das Python-3.11-site-packages-Verzeichnis; rclpy liegt
-# als Package darunter (jazzy/rclpy/rclpy/__init__.py).
-# System-ROS2 (Jazzy, Python 3.12) aus sys.modules entfernen bevor wir
-# Isaac's Python-3.11-rclpy eintragen — sonst wird das gecachte importiert.
+# ── rclpy-Path VOR Bridge-Aktivierung setzen ─────────────────────────────────
+# Die Bridge-Extension importiert rclpy intern beim Aktivieren. Wenn der
+# korrekte Path erst danach eingetragen wird, landet System-rclpy (Python 3.12)
+# in sys.modules — und der spätere Import findet das gecachte.
+# Reihenfolge: Path fix → Bridge aktivieren → import rclpy.
 import os as _os
 _isaac_ros2_path = _os.path.expanduser(
     "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy/rclpy"
@@ -110,6 +100,16 @@ if _os.path.isdir(_isaac_ros2_path):
     if _isaac_ros2_path not in sys.path:
         sys.path.insert(0, _isaac_ros2_path)
     _log(f"[pib_bridge] Isaac ROS2-Path eingetragen: {_isaac_ros2_path}")
+
+# ── ROS2-Bridge aktivieren ────────────────────────────────────────────────────
+try:
+    import omni.kit.app as _omni_app  # type: ignore
+    _ext = _omni_app.get_app().get_extension_manager()
+    if not _ext.is_extension_enabled("isaacsim.ros2.bridge"):
+        _ext.set_extension_enabled_immediate("isaacsim.ros2.bridge", True)
+        _log("[pib_bridge] ROS2-Bridge aktiviert.")
+except Exception as _e:
+    _log(f"[pib_bridge] ROS2-Bridge-Aktivierung fehlgeschlagen: {_e}")
 
 import rclpy  # type: ignore
 from rclpy.node import Node  # type: ignore
