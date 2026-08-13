@@ -31,7 +31,9 @@ ROS2_CMD="echo '[launch] Warte 30s auf Isaac Sim...' \
 
 echo "[launch] Öffne Terminal-Tabs für Isaac Sim und ros2_control..."
 
-gnome-terminal \
+# LD_LIBRARY_PATH leeren: verhindert snap/glibc-Konflikt bei gnome-terminal
+# (tritt auf wenn .venv aktiv ist)
+LD_LIBRARY_PATH="" gnome-terminal \
   --tab --title="Isaac Sim" -- bash -c "${ISAAC_CMD}; exec bash" \
   --tab --title="ros2_control" -- bash -c "${ROS2_CMD}; exec bash"
 
