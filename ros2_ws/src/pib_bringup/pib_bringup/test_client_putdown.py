@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 """
-test_client.py — Pickup-Demo für pib ros2_control-Stack.
+test_client_putdown.py — Kehrt die Pickup-Demo exakt um (Dose absetzen und loslassen).
 
-Führt die physikalisch verifizierte Dose-Greif-Sequenz aus:
-  1. T-Pose (neutral)
-  2. Approach — rechter Arm über die Dose, Daumen opponiert
-  3. Grasp   — alle Finger schließen (33.3°)
-  4. Lift    — Ellbogen hebt die Dose an
+Identische 4 Keyframes wie test_client.py → _make_pickup_trajectory(), nur in
+umgekehrter Reihenfolge durchlaufen:
 
-Sequenz entspricht config/sequences.py → PICKUP (DirectMode, Onshape-Konvention).
-Winkel werden hier nach Radiant konvertiert; robot_io wendet JOINT_SIGN intern an.
+  Step 1 lift     → t=0.0s  Startzustand: Dose gehoben, Hand geschlossen
+  Step 2 grasp    → t=2.0s  Ellbogen senkt ab (elbow_right 55.4° → 17.7°) — Dose auf dem Tisch
+  Step 3 approach → t=4.0s  Finger öffnen (33.3° → 0°) — Dose losgelassen
+  Step 4 neutral  → t=6.0s  Arm zurück in T-Pose
 
-Voraussetzung:
-  1. Isaac Sim läuft (start.py + pib_bridge.py im Script Editor)
-  2. ros2 launch pib_bringup pib_sim.launch.py
+Voraussetzung: Roboter steht im Endzustand von test_client_pickup.py (Dose bereits gehoben).
+Reihenfolge: zuerst `ros2 run pib_bringup test_client_pickup`, danach dieses Skript.
 
 Start:
-  ros2 run pib_bringup test_client
+  ros2 run pib_bringup test_client_putdown
 """
 import math
 import rclpy
@@ -33,15 +31,12 @@ def _r(deg: float) -> float:
     return math.radians(deg)
 
 
-# ── Gelenke die sich in der Pickup-Sequenz bewegen (25 von 44 DOFs) ──────────
+# ── Identisch zu test_client.py — gleiche 25 von 44 DOFs ─────────────────────
 PICKUP_JOINTS = [
-    # Linker Arm — Haltepose
     "dof_shoulder_vertical_left", "dof_shoulder_horizontal_left",
     "dof_upper_arm_left", "dof_elbow_left", "dof_forearm_left",
-    # Rechter Arm — über Dose
     "dof_shoulder_vertical_right", "dof_shoulder_horizontal_right",
     "dof_elbow_right", "dof_forearm_right", "dof_wrist_right",
-    # Rechte Hand
     "dof_thumb_right_rotator", "dof_thumb_right_proximal", "dof_thumb_right_distal",
     "dof_index_right_proximal",  "dof_index_right_distal",  "dof_index_right_tip",
     "dof_middle_right_proximal", "dof_middle_right_distal", "dof_middle_right_tip",
@@ -49,41 +44,30 @@ PICKUP_JOINTS = [
     "dof_pinky_right_proximal",  "dof_pinky_right_distal",  "dof_pinky_right_tip",
 ]
 
-_G = 33.3   # Greifwinkel (Onshape-Konvention, physikalisch verifiziert)
+_G = 33.3
 _OPEN = 0.0
-_THUMB_OPP = 90.0  # Daumen opponiert für Zylindergriff
+_THUMB_OPP = 90.0
 
 
-def _make_pickup_trajectory():
-    """
-    4 Waypoints aus config/sequences.py → PICKUP (kumulativer State, Onshape → rad).
-
-    Step 1 neutral  → t=0.0s  T-Pose, alle 0°
-    Step 2 approach → t=2.0s  Arm positioniert, Hand offen, Daumen opponiert
-    Step 3 grasp    → t=3.5s  Finger schließen auf 33.3°
-    Step 4 lift     → t=5.5s  Ellbogen hebt, Dose angehoben
-    """
+def _make_putdown_trajectory():
     def pt(positions_deg, sec):
         return JointTrajectoryPoint(
             positions=[_r(d) for d in positions_deg],
             time_from_start=Duration(sec=sec, nanosec=0),
         )
 
-    # Step 1 — T-Pose
-    neutral = [0.0] * len(PICKUP_JOINTS)
-
-    # Step 2 — Approach (aus _PICKUP_APPROACH nach _isaac()-Negation)
-    approach = [
-        90.0, 90.0, 0.1, -45.0, -0.2,          # linker Arm
-        62.5, 90.0, 17.7, 1.4, 4.0,             # rechter Arm
-        _THUMB_OPP, _OPEN, _OPEN,               # Daumen opponiert, Hand offen
-        _OPEN, _OPEN, _OPEN,                    # Zeigefinger
-        _OPEN, _OPEN, _OPEN,                    # Mittelfinger
-        _OPEN, _OPEN, _OPEN,                    # Ringfinger
-        _OPEN, _OPEN, _OPEN,                    # Kleinfinger
+    # Step 1 — Lift (= Endzustand von test_client.py)
+    lift = [
+        90.0, 90.0, 0.1, -45.0, -0.2,
+        62.5, 90.0, 55.4, 1.4, 4.0,
+        _THUMB_OPP, _G, _G,
+        _G, _G, _G,
+        _G, _G, _G,
+        _G, _G, _G,
+        _G, _G, _G,
     ]
 
-    # Step 3 — Grasp: Arme wie Approach, alle Finger auf _G
+    # Step 2 — Grasp: Ellbogen senkt ab, Finger bleiben geschlossen
     grasp = [
         90.0, 90.0, 0.1, -45.0, -0.2,
         62.5, 90.0, 17.7, 1.4, 4.0,
@@ -94,29 +78,32 @@ def _make_pickup_trajectory():
         _G, _G, _G,
     ]
 
-    # Step 4 — Lift: elbow_right auf 55.4° (index 7), Finger bleiben geschlossen
-    lift = [
+    # Step 3 — Approach: Finger öffnen, Dose losgelassen
+    approach = [
         90.0, 90.0, 0.1, -45.0, -0.2,
-        62.5, 90.0, 55.4, 1.4, 4.0,    # elbow_right 17.7 → 55.4 hebt die Dose
-        _THUMB_OPP, _G, _G,
-        _G, _G, _G,
-        _G, _G, _G,
-        _G, _G, _G,
-        _G, _G, _G,
+        62.5, 90.0, 17.7, 1.4, 4.0,
+        _THUMB_OPP, _OPEN, _OPEN,
+        _OPEN, _OPEN, _OPEN,
+        _OPEN, _OPEN, _OPEN,
+        _OPEN, _OPEN, _OPEN,
+        _OPEN, _OPEN, _OPEN,
     ]
+
+    # Step 4 — Neutral: T-Pose
+    neutral = [0.0] * len(PICKUP_JOINTS)
 
     return [
-        pt(neutral,  sec=0),
-        pt(approach, sec=2),
-        pt(grasp,    sec=4),
-        pt(lift,     sec=6),
+        pt(lift,     sec=0),
+        pt(grasp,    sec=2),
+        pt(approach, sec=4),
+        pt(neutral,  sec=6),
     ]
 
 
-class PibPickupClient(Node):
+class PibPutdownClient(Node):
 
     def __init__(self):
-        super().__init__("pib_pickup_client")
+        super().__init__("pib_putdown_client")
         self._action_client = ActionClient(
             self,
             FollowJointTrajectory,
@@ -134,16 +121,16 @@ class PibPickupClient(Node):
     def _on_joint_states(self, msg: JointState):
         self._last_joint_states = msg
 
-    def send_pickup(self):
+    def send_putdown(self):
         self.get_logger().info("Warte auf Action-Server...")
         self._action_client.wait_for_server()
         self.get_logger().info(
-            "Action-Server bereit. Starte Pickup-Demo (Dose greifen und heben)."
+            "Action-Server bereit. Starte Putdown-Demo (Dose absetzen und loslassen)."
         )
 
         goal = FollowJointTrajectory.Goal()
         goal.trajectory.joint_names = PICKUP_JOINTS
-        goal.trajectory.points = _make_pickup_trajectory()
+        goal.trajectory.points = _make_putdown_trajectory()
 
         future = self._action_client.send_goal_async(
             goal,
@@ -161,24 +148,21 @@ class PibPickupClient(Node):
         handle.get_result_async().add_done_callback(self._on_result)
 
     def _on_feedback(self, feedback_msg):
-        """Zeigt Ist- vs. Soll-Position der wichtigsten Gelenke pro Sekunde."""
         fb = feedback_msg.feedback
         if not fb.actual.positions or not fb.desired.positions:
             return
 
         t = fb.actual.time_from_start.sec + fb.actual.time_from_start.nanosec * 1e-9
-        # Nur ~1× pro Sekunde loggen (Feedback kommt mit 50 Hz)
         if not hasattr(self, "_last_fb_t"):
             self._last_fb_t = -1.0
         if t - self._last_fb_t < 0.9:
             return
         self._last_fb_t = t
 
-        # Schlüsselgelenke: Ellbogen (Arm-Fortschritt) + ein Finger (Greif-Fortschritt)
         tracked = {
-            "elbow_right":         7,   # Arm angehoben?
-            "thumb_right_rotator": 10,  # Daumen opponiert?
-            "index_right_proximal":13,  # Finger geschlossen?
+            "elbow_right":         7,
+            "thumb_right_rotator": 10,
+            "index_right_proximal":13,
         }
         parts = []
         for label, idx in tracked.items():
@@ -207,8 +191,8 @@ class PibPickupClient(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    client = PibPickupClient()
-    client.send_pickup()
+    client = PibPutdownClient()
+    client.send_putdown()
 
     while rclpy.ok() and not client._done:
         rclpy.spin_once(client, timeout_sec=0.1)

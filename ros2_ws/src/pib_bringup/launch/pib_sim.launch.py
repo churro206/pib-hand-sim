@@ -1,7 +1,7 @@
 """
 pib_sim.launch.py — Startet den kompletten ros2_control-Stack für Isaac Sim.
 
-Voraussetzung: Isaac Sim läuft mit start.py + pib_bridge.py (Script Editor).
+Voraussetzung: Isaac Sim läuft, USD (mit Action Graph) geladen, start.py ausgeführt, Play gedrückt.
 
 Start:
   source /opt/ros/jazzy/setup.bash

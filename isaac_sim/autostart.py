@@ -5,10 +5,9 @@ Wird via --exec gestartet (kein Script Editor nötig):
   ~/isaacsim/isaac-sim.sh --exec /home/leon/repos/pib-hand-sim/isaac_sim/autostart.py
 
 Ablauf (vollautomatisch):
-  1. USD laden
+  1. USD laden (enthält den ROS2-Action-Graph — kein pib_bridge.py mehr nötig)
   2. start.py ausführen (Drives, Limits, T-Pose)
-  3. Simulation starten (Play)
-  4. pib_bridge.py ausführen (ros2_control-Bridge)
+  3. Simulation starten (Play) — Action Graph läuft ab hier automatisch mit
 """
 import sys
 import os
@@ -56,7 +55,7 @@ async def _main() -> None:
     root     = _find_root()
 
     # ── 1. USD laden ─────────────────────────────────────────────────────────
-    usd_path = os.path.join(root, "isaac_sim", "usd", "pib_upperbody_7_flattened.usd")
+    usd_path = os.path.join(root, "isaac_sim", "usd", "pib_upperbody.usd")
     if not os.path.isfile(usd_path):
         _log(f"[autostart] FEHLER: USD nicht gefunden: {usd_path}")
         return
@@ -82,25 +81,7 @@ async def _main() -> None:
     _log("[autostart] Starte Simulation (Play)...")
     timeline.play()
     await app.next_update_async()
-    _log("[autostart] Simulation läuft.")
-
-    # ── 4. rclpy-Path vorbereiten (Python 3.11 / Jazzy-Mismatch) ─────────────
-    # jazzy/rclpy/ ist das Python-3.11-site-packages-Verzeichnis von Isaac.
-    # Gecachte System-rclpy (Python 3.12) aus sys.modules entfernen damit
-    # pib_bridge.py das korrekte rclpy importiert.
-    _rclpy_path = os.path.expanduser(
-        "~/isaacsim/exts/isaacsim.ros2.bridge/jazzy/rclpy"
-    )
-    if os.path.isdir(_rclpy_path):
-        for _k in [k for k in sys.modules if k.startswith("rclpy")]:
-            del sys.modules[_k]
-        if _rclpy_path not in sys.path:
-            sys.path.insert(0, _rclpy_path)
-
-    # ── 5. pib_bridge.py starten ──────────────────────────────────────────────
-    _log("[autostart] Starte pib_bridge...")
-    _load_mod("pib_bridge", os.path.join(root, "isaac_sim", "pib_bridge.py"))
-    _log("[autostart] pib_bridge gestartet. Bereit.")
+    _log("[autostart] Simulation läuft — Action Graph aktiv. Bereit.")
 
 
 asyncio.ensure_future(_main())

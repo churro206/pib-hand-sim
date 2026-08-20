@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/start_isaac.sh — Isaac Sim mit automatischem Startup starten.
 #
-# Lädt die USD, führt start.py aus, drückt Play und startet pib_bridge —
+# Lädt die USD (enthält ROS2-Action-Graph), führt start.py aus, drückt Play —
 # alles ohne Script Editor oder manuelle Schritte.
 #
 # Verwendung:
@@ -21,7 +21,7 @@ if [ ! -f "${ISAAC}" ]; then
     exit 1
 fi
 
-# ROS2 + ros2_ws sourcing (damit pib_bridge.py rclpy findet)
+# ROS2 + ros2_ws sourcing (Action Graph im USD nutzt Isaacs eigenes rclpy)
 source /opt/ros/jazzy/setup.bash
 source "${REPO_ROOT}/ros2_ws/install/setup.bash"
 export ROS_DOMAIN_ID=0

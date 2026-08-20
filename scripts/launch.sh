@@ -2,7 +2,7 @@
 # scripts/launch.sh — Startet die komplette pib-Simulation per Knopfdruck.
 #
 # Öffnet zwei Terminals:
-#   Tab 1: Isaac Sim (USD laden + start.py + Play + pib_bridge)
+#   Tab 1: Isaac Sim (USD laden + start.py + Play — Action Graph läuft mit)
 #   Tab 2: ros2_control-Stack (JTC + JointStateBroadcaster)
 #
 # Erster manueller Schritt danach:
@@ -21,7 +21,7 @@ ISAAC_CMD="source /opt/ros/jazzy/setup.bash \
   && export PIB_HAND_SIM_ROOT=${REPO_ROOT} \
   && ${HOME}/isaacsim/isaac-sim.sh --exec ${REPO_ROOT}/isaac_sim/autostart.py"
 
-# ros2_control erst starten wenn pib_bridge bereit (30s Puffer für Isaac-Start)
+# ros2_control erst starten wenn Isaac Sim + Action Graph bereit sind (30s Puffer)
 ROS2_CMD="echo '[launch] Warte 30s auf Isaac Sim...' \
   && sleep 30 \
   && source /opt/ros/jazzy/setup.bash \

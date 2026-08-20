@@ -1,35 +1,35 @@
 # pib Hand Simulation
 
 Simulationsserver für den RoboCup 2027 (@Home Liga).
-Ziel: pib v4 Oberköper (44 DOFs) in NVIDIA Isaac Sim 5.1 — steuerbar über ros2_control, Greifkraft-Erkennung, später LSTM-Gelenkdynamik.
+pib v4 Oberkörper (44 DOFs) in NVIDIA Isaac Sim 5.1 — steuerbar über ros2_control.
+
+**Branch `experiment/omnigraph-lightweight`:** bewusst minimaler Zweig. Die Isaac-seitige
+ROS2-Anbindung läuft komplett über einen nativen Action Graph (OmniGraph) statt über
+eigenen Python-Bridge-Code. Alles, was für diesen Weg nicht gebraucht wird (robot_io,
+ControlMode-Architektur, Sequenz-Executor, LSTM-Pipeline), wurde aus diesem Branch entfernt.
+Der volle Stand liegt weiterhin auf `feature/ros2-control`.
 
 ---
 
 ## Aktueller Stand
 
-| Phase | Status |
+| Teil | Status |
 |---|---|
-| Isaac IO-Schicht (robot_io, setup_stage) | ✓ fertig |
-| Control-Architektur (DirectMode, ServoMode, NNMode) | ✓ fertig |
-| Sequenz-Executor (runner.py, Smoothstep) | ✓ fertig |
+| USD-Stage mit Action Graph (ROS2 Subscribe/Publish Joint State + Articulation Controller) | ✓ läuft |
 | ros2_control-Stack (JTC, JointStateBroadcaster, TopicBasedSystem) | ✓ end-to-end verifiziert |
-| pib_bridge.py (Isaac ↔ ros2_control) | ✓ fertig |
-| is_grasping() via Admittanz | geplant (Sprint 3) |
-| Scene API (reset, place_object) | geplant (Sprint 3) |
-| AS5600-Sensordaten + LSTM-Training | Phase 5 |
+| Pickup-Demo (Dose greifen und heben) | ✓ physikalisch verifiziert |
+| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ |
 
 ---
 
-## Onboarding für Teamkollegen
-
-Dieser Abschnitt führt von Null bis zur laufenden Simulation.
+## Onboarding
 
 ### 1 — Voraussetzungen installieren
 
 **NVIDIA GPU + Treiber**
-Mindestens eine RTX-Klasse GPU, Treiber ≥ 550. Ohne GPU läuft Isaac Sim nicht.
+Mindestens eine RTX-Klasse GPU, Treiber ≥ 550.
 
-**Isaac Sim 5.1** (native auf Ubuntu 24.04, einmalig ~20 GB)
+**Isaac Sim 5.1** (native auf Ubuntu 24.04)
 NVIDIA-Dokumentation unter [docs.isaacsim.omniverse.nvidia.com](https://docs.isaacsim.omniverse.nvidia.com) → „Installation" → „Workstation" folgen.
 Isaac Sim wird nach `~/isaacsim/` installiert (kein System-PATH-Eintrag).
 
@@ -41,30 +41,23 @@ echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 2 — Repo klonen und bauen
+### 2 — Repo klonen und ros2_ws bauen
 
 ```bash
 git clone https://github.com/churro206/pib-hand-sim
 cd pib-hand-sim
-```
-
-ROS2-Workspace bauen (einmalig):
-```bash
 source /opt/ros/jazzy/setup.bash
-cd ros2_ws
-colcon build
-cd ..
+cd ros2_ws && colcon build && cd ..
 ```
 
-> **Hinweis:** Falls du eine `.venv` im Repo-Root nutzt, muss `catkin_pkg` installiert sein:
-> `pip install catkin_pkg`
-
-Die USD-Dateien sind im Repo (`isaac_sim/usd/`) — kein extra Download nötig.
+Die USD-Datei liegt im Repo (`isaac_sim/usd/pib_upperbody.usd`) — enthält Roboter
+**und** den Action Graph, kein separater Export nötig.
 
 ### 3 — Isaac Sim starten
 
-> **Wichtig:** ROS2 **und** der ros2_ws müssen in derselben Shell gesourced sein, bevor Isaac Sim
-> startet — sonst findet `pib_bridge.py` die richtige rclpy-Version nicht.
+> **Wichtig:** ROS2 **und** der ros2_ws müssen in derselben Shell gesourced sein, bevor Isaac
+> Sim startet — der Action Graph nutzt Isaacs eigene rclpy-Version, die nur bei korrekt
+> gesourcter Umgebung sauber gefunden wird.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -75,14 +68,23 @@ export ROS_DOMAIN_ID=0
 
 Dann in Isaac Sim:
 ```
-1. File → Open → isaac_sim/usd/pib_upperbody_7_flattened.usd laden
+1. File → Open → isaac_sim/usd/pib_upperbody.usd laden
 2. Window → Script Editor öffnen
 3. isaac_sim/start.py öffnen und ausführen (Strg+Enter)
    → Drives, Limits und T-Pose werden gesetzt
 4. Toolbar: Play drücken  ▶
-5. isaac_sim/pib_bridge.py öffnen und ausführen
-   → „[pib_bridge] Play erkannt..." im Log, nach 0,5 s „Physics View bereit"
 ```
+
+Damit läuft alles — der Action Graph ist Teil der USD-Stage und aktiviert sich automatisch
+mit Play. Kein weiteres Skript nötig.
+
+**Schnellstart-Alternative** (ein Terminal, kein Script Editor):
+```bash
+source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
+export ROS_DOMAIN_ID=0
+~/isaacsim/isaac-sim.sh --exec ~/repos/pib-hand-sim/isaac_sim/autostart.py
+```
+Lädt USD, führt `start.py` aus, drückt Play — vollautomatisch.
 
 ### 4 — ros2_control-Stack starten (Terminal 2)
 
@@ -93,107 +95,43 @@ export ROS_DOMAIN_ID=0
 ros2 launch pib_bringup pib_sim.launch.py
 ```
 
-Erwartete Ausgabe:
-```
-[ros2_control_node]: Loaded robot description
-[spawner-joint_state_broadcaster]: Configured and activated joint_state_broadcaster
-[spawner-joint_trajectory_controller]: Configured and activated joint_trajectory_controller
-```
-
 Status prüfen:
 ```bash
 ros2 control list_controllers   # beide müssen "active" sein
 ```
 
-### 5 — Pickup-Demo ausführen (Terminal 3)
+### 5 — Pickup-/Putdown-Demo ausführen (Terminal 3)
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
-ros2 run pib_bringup test_client
+
+ros2 run pib_bringup test_client_pickup     # Dose greifen und heben
+ros2 run pib_bringup test_client_putdown    # danach: Dose absetzen und loslassen
 ```
 
-Der Roboter führt die physikalisch verifizierte Dose-Greif-Sequenz aus:
+`test_client_pickup`:
 - **t=0s** T-Pose
 - **t=2s** Approach — rechter Arm positioniert, Daumen opponiert
 - **t=4s** Grasp — alle Finger auf 33°
 - **t=6s** Lift — Ellbogen hebt die Dose an
 
-Feedback zeigt jede Sekunde Ist- vs. Soll-Position für Ellbogen, Daumen und Zeigefinger.
+`test_client_putdown` (genau umgekehrt, im Anschluss an `test_client_pickup` ausführen):
+- **t=0s** Lift-Zustand (Startpunkt)
+- **t=2s** Grasp — Ellbogen senkt die Dose ab
+- **t=4s** Approach — Finger öffnen, Dose losgelassen
+- **t=6s** Neutral — Arm zurück in T-Pose
+
+Beide zeigen per Feedback jede Sekunde Ist- vs. Soll-Position für Ellbogen, Daumen und
+Zeigefinger.
 
 ---
 
-## Schnellstart — Einzeiler
-
-```bash
-./scripts/launch.sh
-```
-
-Öffnet zwei Terminal-Tabs: Isaac Sim (USD + start.py + Play + pib_bridge) und ros2_control-Stack.
-ros2_control startet automatisch ~30s nach Isaac.
-
-Erster manueller Schritt wenn alles läuft:
-```bash
-source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
-ros2 run pib_bringup test_client    # Pickup-Demo
-```
-
-<details>
-<summary>Manueller Weg (ohne launch.sh)</summary>
+## Architektur (dieser Branch)
 
 ```
-# Shell 1 (Isaac)
-source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=0
-~/isaacsim/isaac-sim.sh --exec ~/repos/pib-hand-sim/isaac_sim/autostart.py
-
-# Shell 2 (ros2_control — erst wenn Isaac bereit)
-source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
-export ROS_DOMAIN_ID=0
-ros2 launch pib_bringup pib_sim.launch.py
-```
-
-</details>
-
----
-
-## 4a — Sequenzen ohne ros2_control (direkt im Script Editor)
-
-Für lokale Tests ohne den ros2_control-Stack: Sequenz aus `isaac_sim/sequences/` im Script Editor öffnen und ausführen.
-
-| Script | Mode | Beschreibung |
-|---|---|---|
-| `sequences/test_hand_poses.py` | direct | Winken → Doppelbizeps → Peace |
-| `sequences/test_tendon.py` | servo | Sehnenmechanik: Hand 3× schließen/öffnen |
-| `sequences/demo_pickup.py` | direct | Dose greifen und heben |
-
-**Neue Sequenz erstellen:** `sequences/template.py` kopieren, Steps anpassen, im Script Editor ausführen. Kein Isaac-Neustart nötig.
-
----
-
-## Architektur
-
-```
-Layer 4: Team-Integration (Sprint 4)
-         ROS2-Protokoll, Koordinatenrahmen, IK-Interface
-
-Layer 3: ros2_control-Stack (fertig)          ←
-         JointTrajectoryController (FollowJointTrajectory, MoveIt2-kompatibel)
-         JointStateBroadcaster → /joint_states
-         topic_based_ros2_control (Hardware-Interface-Bridge)
-
-Layer 2: Control-Architektur (fertig)
-         DirectMode | ServoMode | NNMode → sequences.py → runner.py
-
-Layer 1: Isaac IO-Schicht (fertig)
-         robot_io.py — JOINT_SIGN, Grad↔Rad, DriveAPI, 44 DOFs
-```
-
-### Datenfluss (ros2_control-Workflow)
-
-```
-[test_client / IK-Team]
+[test_client_pickup / test_client_putdown]
   └── FollowJointTrajectory Action
         ↓
 [ros2_control (externer Prozess)]
@@ -201,31 +139,51 @@ Layer 1: Isaac IO-Schicht (fertig)
   ├── JointStateBroadcaster  → /joint_states (rad)
   └── topic_based_ros2_control
         ↕  /pib/hw/joint_states (rad) + /pib/hw/joint_commands (rad)
-[Isaac Sim (Script Editor)]
-  └── pib_bridge.py
-        ↕  robot_io.py (JOINT_SIGN = -1 hier, nirgendwo sonst)
+[Isaac Sim]
+  └── Action Graph (Teil der USD-Stage, kein externes Skript)
+        ROS2SubscribeJointState → Script Node (Vorzeichen-Invertierung)
+          → IsaacArticulationController
+        Artikulation → ROS2PublishJointState
   └── PhysX-Physik-Simulation
 ```
+
+### Der Action Graph im Detail
+
+Liegt vollständig in `isaac_sim/usd/pib_upperbody.usd` (Window → Graph Editors
+→ Action Graph zum Ansehen/Bearbeiten). Vier Nodes:
+
+1. **`ROS2SubscribeJointState`** — `topicName = /pib/hw/joint_commands`
+2. **Script Node** — invertiert `positionCommand` (Onshape-URDF und Isaacs importierte
+   Gelenkachsen sind bei diesem Modell vorzeicheninvertiert; ohne diesen Schritt schließt
+   sich die Hand in die falsche Richtung):
+   ```python
+   def compute(db: og.Database):
+       db.outputs.jointNames = db.inputs.jointNames
+       db.outputs.positionCommand = [-p for p in db.inputs.positionCommand]
+   ```
+3. **`IsaacArticulationController`** — `targetPrim` = Artikulations-Root des Roboters
+4. **`ROS2PublishJointState`** — `topicName = /pib/hw/joint_states`
+
+**Bekannter Kompromiss:** `ROS2PublishJointState` liest den Gelenkzustand direkt aus dem
+Prim (Isaac-Konvention) — dort gibt es keinen Punkt, um die Vorzeichen-Invertierung
+gegenzurechnen. Die Bewegung selbst ist korrekt, aber `/pib/hw/joint_states`,
+`/joint_states` und die Action-Feedback-Werte (Konsolenausgabe von `test_client_pickup`) zeigen
+gespiegelte Werte. `controllers.yaml` hat keine Toleranz-Constraints gesetzt, daher bricht
+dadurch nichts ab — nur die Logausgabe ist verwirrend, nicht die tatsächliche Bewegung.
+
+`velocityCommand`/`effortCommand` (an `ROS2SubscribeJointState`/`IsaacArticulationController`)
+bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces: [position]`.
 
 ---
 
 ## ROS2-Schnittstelle
 
-### Externe Topics (für IK-Team und andere)
-
 | Topic | Typ | Richtung | Beschreibung |
 |---|---|---|---|
-| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control | Ist-Positionen aller 44 DOFs, 50 Hz, **rad** |
+| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control | Ist-Positionen aller 44 DOFs, 50 Hz, rad (Isaac-Konvention, siehe Kompromiss oben) |
 | `/joint_trajectory_controller/follow_joint_trajectory` | Action `control_msgs/FollowJointTrajectory` | → ros2_control | Trajektorie mit Zeitpunkten, MoveIt2-kompatibel |
-
-### Interne Bridge-Topics (pib_bridge.py ↔ ros2_control)
-
-| Topic | Typ | Richtung |
-|---|---|---|
-| `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (50 Hz, rad) |
-| `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad) |
-
-**Winkeleinheit:** ros2_control-Stack arbeitet in **Radiant**. `pib_bridge.py` konvertiert intern nach Grad für `robot_io`.
+| `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad) | Von `topic_based_ros2_control`, gelesen vom Action Graph |
+| `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad) | Vom Action Graph publiziert, gelesen von `topic_based_ros2_control` |
 
 ---
 
@@ -233,10 +191,11 @@ Layer 1: Isaac IO-Schicht (fertig)
 
 | Problem | Lösung |
 |---|---|
-| `ModuleNotFoundError: rclpy._rclpy_pybind11` | ROS2 Jazzy nutzt Python 3.12, Isaac Sim 3.11. `pib_bridge.py` löst das automatisch durch Isaac-eigenen rclpy-Path. |
+| `ModuleNotFoundError: rclpy._rclpy_pybind11` | ROS2 Jazzy nutzt Python 3.12, Isaac Sim 3.11. ROS2 **vor** Isaac Sim in derselben Shell sourcen — Isaacs eigene rclpy-Version greift dann automatisch. |
 | `controller_manager` wartet ewig auf `/robot_description` | Jazzy-Breaking-Change: ros2_control subscribed Topic statt Parameter. Gelöst durch `robot_state_publisher` in `pib_sim.launch.py`. |
-| „Physics Simulation View is not created yet" | Gibt es nicht mehr. `pib_bridge.py` wartet 0,5s Grace-Period nach Play bevor es Physics API aufruft. |
-| Warnings nach Stop + erneutem Play | Gelöst: `pib_bridge.py` invalidiert das Robot-Handle beim Stop und re-initialisiert es nach dem nächsten Play. |
+| `Package 'pib_bringup' not found` | `ros2_ws/install/setup.bash` wurde in dieser Shell nicht gesourced — `cd` ändert daran nichts, `AMENT_PREFIX_PATH` fehlt der Eintrag. |
+| Hand schließt in falsche Richtung / läuft in Limits | Vorzeichen-Script-Node zwischen `ROS2SubscribeJointState` und `IsaacArticulationController` fehlt oder ist falsch verkabelt (siehe oben). |
+| `/joint_states`-Werte wirken gespiegelt/falsch | Bekannter Kompromiss (siehe oben) — Bewegung im Viewport prüfen, nicht nur die Konsole. |
 | Isaac Sim startet aber ROS2 nicht gefunden | ROS2 muss **vor** Isaac Sim gesourced sein: `source /opt/ros/jazzy/setup.bash && ~/isaacsim/isaac-sim.sh` |
 
 ---
@@ -245,34 +204,26 @@ Layer 1: Isaac IO-Schicht (fertig)
 
 ```
 config/
-  pib_hand_config.py     DOF-Namen, Indizes, JOINT_SIGN, Servo-Faktoren
-  sequences.py           Pose-Sequenzen (Onshape-Konvention)
-  server_config.py       Winkeleinheit, Thresholds
-
-control/
-  base.py                ControlMode ABC
-  direct.py              DirectMode — pass-through
-  servo.py               ServoMode — Sehnen-Mapping
-  nn.py                  NNMode — Stub (Phase 5)
+  pib_hand_config.py     DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (für start.py)
 
 isaac_sim/
-  robot_io.py            Einzige Isaac-IO-Schicht: set/get, JOINT_SIGN
-  setup_stage.py         Drives + Limits (einmalig pro Session)
-  start.py               Startroutine (configure_physics + drives + limits + pose)
-  runner.py              Sequenz-Executor (Library): execute(seq, mode, side)
-  pib_bridge.py          ROS2-Bridge: /pib/hw/* ↔ robot_io (50 Hz)
-  sequences/
-    template.py          Vorlage für neue Sequenzen (kopieren + anpassen)
-    test_hand_poses.py   Winken → Doppelbizeps → Peace
-    test_tendon.py       Sehnenmechanik-Test (ServoMode)
-    demo_pickup.py       Dose greifen und heben (physikalisch verifiziert)
+  start.py                Session-Setup: Drives, Limits, T-Pose (vor Play ausführen)
+  setup_stage.py           von start.py genutzt
+  autostart.py             vollautomatischer Start ohne Script Editor (--exec)
+  usd/
+    pib_upperbody.usd   Roboter + Action Graph
 
 ros2_ws/src/
-  pib_description/       URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
+  pib_description/        URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
   pib_bringup/
-    launch/pib_sim.launch.py      Startet gesamten ros2_control-Stack
-    config/controllers.yaml       JTC + JointStateBroadcaster, 50 Hz
-    pib_bringup/test_client.py    Pickup-Demo via FollowJointTrajectory
+    launch/pib_sim.launch.py        Startet gesamten ros2_control-Stack
+    config/controllers.yaml         JTC + JointStateBroadcaster, 50 Hz
+    pib_bringup/test_client_pickup.py     Pickup-Demo via FollowJointTrajectory
+    pib_bringup/test_client_putdown.py   Putdown-Demo (Umkehrung von test_client_pickup)
+  topic_based_ros2_control/   Hardware-Interface-Bridge (Drittanbieter-Paket)
+
+scripts/
+  start_isaac.sh, start_ros2.sh, launch.sh   Terminal-Automatisierung
 ```
 
 ---
@@ -280,57 +231,13 @@ ros2_ws/src/
 ## Konventionen
 
 ### Winkel
-- Intern immer **Grad**, Onshape-Konvention (positiv = Flexion/Heben/Vorne)
-- `JOINT_SIGN = -1` kompensiert Onshape↔Isaac — **nur in robot_io**, nie außerhalb
-- ros2_control-Stack arbeitet in **Radiant** — `pib_bridge.py` konvertiert
-- Hand-Clip: `[0°, 90°]` vor JOINT_SIGN; Body: kein Clip
-
-### Isaac Sim
-- Kein `time.sleep()` → `await app.next_update_async()` (Editor) / `sim_app.update()` (Standalone)
-- `_load_mod(name, path)` in jedem Skript → umgeht stale `.pyc`-Cache
-- `configure_drives()` jede Session aufrufen (PhysX cached Stiffness/Damping nicht)
-- `pib_bridge.py` erneut ausführen = hot-reload (stoppt vorherige Instanz)
+- ros2_control-Stack arbeitet durchgehend in **Radiant**
+- `/pib/hw/joint_commands` und Trajektorie-Ziele: "echte"/URDF-Konvention (0°–90° Flexion positiv)
+- Innerhalb der Simulation (nach dem Vorzeichen-Script-Node): Isaac-Konvention, invertiert
 
 ### ROS2
-- `ROS_DOMAIN_ID=0` — Projektstandard für alle Teams
+- `ROS_DOMAIN_ID=0` — Projektstandard
 - Isaac Sim mit gesourced ROS2 starten (nicht danach)
-
----
-
-## Fingertip-Kontaktkräfte (geplant, Sprint 3)
-
-`ArticulationView.get_net_contact_forces()` aus `isaacsim.core.prims` — dieselbe API wie Isaac Lab's `ContactSensor`, ohne Isaac-Lab-Install. Gibt die summierte Kontaktkraft (Newton) pro Fingertip-Link zurück.
-
-Veröffentlicht auf `/pib/fingertip_forces` (`sensor_msgs/JointState`, 50 Hz):
-- `name`: `["thumb_right", "index_right", "middle_right", "ring_right", "pinky_right"]`
-- `effort`: Kraft pro Fingertip in Newton
-
-Direkt LSTM-fähig — gleiche Modalität wie echte FSR-Sensoren (Gesamtkraft, kein Torque-Umweg).
-Voraussetzung: Fingertip-Prim-Pfade mit `inventory.py` bestimmen.
-
----
-
-## Phase 5 — LSTM-Gelenkdynamik (geplant)
-
-Das Netz lernt `(Sollwinkel_t, Istwinkel_{t-1}) → Istwinkel_t` — modelliert Trägheit,
-Reibung und Hysterese der Sehnenmechanik.
-
-```
-Isaac Sim (synthetisch) ──┐
-                           ├── training/train.py → hand_lstm_*.pt
-AS5600-Sensordaten (real) ─┘
-         ↓
-   export_onnx.py → *.onnx → STM32 (Nucleo H723ZG)
-   export_weights.py → *_weights.npz → NNMode in Isaac
-```
-
-`requirements.txt` und Docker sind **nur für das LSTM-Training** — nicht für die Simulation selbst.
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-docker compose build && docker compose run --rm train
-```
 
 ---
 
@@ -338,7 +245,7 @@ docker compose build && docker compose run --rm train
 
 | Team | Aufgabe | Schnittstelle |
 |---|---|---|
-| pib-Sim (Leon) | Simulation, Control, ros2_control-Stack | — |
+| pib-Sim (Leon) | Simulation, ros2_control-Stack | — |
 | IK-Team | Gelenkwinkel-Trajektorien berechnen | `/joint_trajectory_controller/follow_joint_trajectory` (Action) |
 | Greifpunkt-Team | Greifpunkterkennung im Roboterframe | → (Sprint 4) |
 | Objekterkennung | Objekte im Kamerabild erkennen | hinten angestellt |

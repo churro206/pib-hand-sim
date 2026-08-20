@@ -8,7 +8,7 @@ Im Script Editor ausführen um:
 
 Danach Stage speichern (Ctrl+S), dann Play drücken.
 
-Importierbar von _launch_helper.py — _SKIP_AUTO_SETUP = True (vor exec_module
+Importierbar von start.py — _SKIP_AUTO_SETUP = True (vor exec_module
 setzen) verhindert automatische Ausführung beim Import.
 """
 import os
@@ -242,7 +242,7 @@ def setup_all(stg) -> None:
 
 
 # ── Script-Editor-Block ───────────────────────────────────────────────────────
-# Wird übersprungen wenn _launch_helper.py dieses Modul importiert
+# Wird übersprungen wenn start.py dieses Modul importiert
 # (setzt _SKIP_AUTO_SETUP = True vor exec_module).
 if not globals().get("_SKIP_AUTO_SETUP"):
     setup_all(stage)

@@ -11,9 +11,15 @@ install(DIRECTORY config launch
 )
 
 install(PROGRAMS
-  pib_bringup/test_client.py
+  pib_bringup/test_client_pickup.py
   DESTINATION lib/${PROJECT_NAME}
-  RENAME test_client
+  RENAME test_client_pickup
+)
+
+install(PROGRAMS
+  pib_bringup/test_client_putdown.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME test_client_putdown
 )
 
 ament_package()

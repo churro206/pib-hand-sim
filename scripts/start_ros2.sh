@@ -2,8 +2,8 @@
 # scripts/start_ros2.sh — ros2_control-Stack starten.
 #
 # Startet JointTrajectoryController + JointStateBroadcaster via pib_sim.launch.py.
-# Isaac Sim muss bereits laufen (start_isaac.sh) und pib_bridge bereit sein
-# (im Isaac-Log: "[pib_bridge] Physics View bereit").
+# Isaac Sim muss bereits laufen (start_isaac.sh) und der Action Graph aktiv sein
+# (im Isaac-Log nach Play sichtbar).
 #
 # Verwendung:
 #   ./scripts/start_ros2.sh

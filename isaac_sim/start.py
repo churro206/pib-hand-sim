@@ -5,10 +5,10 @@ Vor dem ersten Play ausführen. Konfiguriert Drives, Limits und Initialpose —
 PhysX cached diese Werte nicht, sie müssen nach jedem Session-Start gesetzt werden.
 
 Workflow Script Editor:
-  build_scene.py → Ctrl+S → start.py → Play → runner.py
+  USD laden (enthält Action Graph) → start.py → Play
 
 Workflow Standalone:
-  _launch_helper.py ruft start.run() automatisch auf — manuell nicht nötig.
+  autostart.py ruft start.run() automatisch auf — manuell nicht nötig.
 """
 import os
 import sys
