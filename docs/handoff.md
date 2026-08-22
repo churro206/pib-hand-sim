@@ -88,3 +88,22 @@ Endzustand der Pickup-Demo (physikalisch korrekt):
         ↕ robot_io.py (JOINT_SIGN hier, nirgendwo sonst)
   └── Physik-Simulation (PhysX)
 ```
+
+#### Limit-Abweichungen: `pib_upperbody_isaac_import.urdf` vs. `setup_stage.py` (Task 2, Stichprobenvergleich)
+
+Alle 44 revoluten Gelenke aus `isaac_sim/urdf/pib_upperbody_isaac_import.urdf` (Task 1,
+Onshape→Isaac-transformierte Limits) gegen die bisher hardcodierten Isaac-Limits in
+`setup_stage.py` (`_BODY_LIMITS_ISAAC` + Hand-Sonderfall `(-90°, 0°)`) geprüft, Toleranz 0.5°.
+
+**42/44 stimmen überein**, 2 Abweichungen — beide Körpergelenke, deren bisheriger
+hardcodierter Wert ein symmetrischer Schätzwert war, während die echte Onshape-Quelle
+(verifiziert in `ros2_ws/src/pib_description/urdf/pib_upperbody.urdf`) einseitig ist:
+
+| Gelenk | alt (`_BODY_LIMITS_ISAAC`) | neu (URDF-transformiert) |
+|---|---|---|
+| `dof_shoulder_horizontal_right` | (-90.0°, 90.0°) | (-90.0°, 0.0°) |
+| `dof_upper_arm_left` | (-90.0°, 90.0°) | (-90.0°, 0.0°) |
+
+Beide Abweichungen gegen die Onshape-Quell-URDF gegengeprüft (Onshape-Limits jeweils
+`[0°, 90°]`) — Transform korrekt, kein Bug in Task 1. Relevant für Task 6 (Limits im
+Action Graph/`setup_stage.py` aktualisieren) und den vollständigen 44-DOF-Sweep in Task 8.
