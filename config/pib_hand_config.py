@@ -3,17 +3,10 @@ import numpy as np
 # ── Roboter ───────────────────────────────────────────────────────────────────
 ROBOT_PRIM_PATH = "/World/pib_upperbody_URDF/pib_upperbody_URDF"
 
-# ── Vorzeichen-Kompensation ───────────────────────────────────────────────────
-# Onshape und Isaac sind vorzeichen-invertiert: positiv in Onshape = Flexion,
-# positiv in Isaac = Extension. JOINT_SIGN=-1 kompensiert das.
-# Die Limits in Onshape sind [0°, 90°] (Flexion positiv). Da wir in Isaac
-# negative Werte schicken, müssen die USD-Limits auf [-90°, 0°] gesetzt werden
-# (→ fix_hand_joint_limits in setup_stage.py).
-JOINT_SIGN = -1  # Onshape-positiv = Flexion; Isaac-positiv = Extension
-
 # ── Körper-DOFs (Kopf, Schultern, Arme, Handgelenke) ─────────────────────────
-# Kein JOINT_SIGN für Körpergelenke — direkte Grad-Werte passend zu den
-# USD-Limits. Vorzeichen ggf. visuell verifizieren.
+# Seit isaac_sim/tools/flip_joint_sign.py (siehe dort) stimmen Onshape- und
+# Isaac-Konvention überein — kein JOINT_SIGN mehr nötig. Direkte Grad-Werte,
+# positiv = Flexion/Heben/Vorne.
 # Limits aus inventory_output.txt (2026-06-18).
 BODY_DOFS = {
     "names": [

@@ -2,6 +2,12 @@
 
 Format: Problem → Entscheidung → Begründung → Konsequenzen
 
+**Branch `experiment/omnigraph-lightweight`:** ADR-001/003/004 beziehen sich auf
+`robot_io.py`/`_launch_helper.py` — auf diesem Branch entfernt, siehe ADR-006. Als
+historischer Kontext (warum diese Entscheidungen ursprünglich getroffen wurden) stehen
+gelassen, gelten aber nicht mehr für den aktuellen Code hier. Voller Stand auf
+`feature/ros2-control`.
+
 ---
 
 ## ADR-001: JOINT_SIGN statt Onshape-Achsen-Fix
@@ -52,6 +58,13 @@ Format: Problem → Entscheidung → Begründung → Konsequenzen
 
 ## ADR-005: Fingertip-Kontaktkräfte via ArticulationView (PhysX Tensor API)
 
+> **Für `experiment/omnigraph-lightweight`:** `pib_bridge.py` und `inventory.py`, auf die
+> sich die Konsequenzen unten beziehen, existieren auf diesem Branch nicht mehr. Der
+> `ArticulationView`-Ansatz hier steht im Zielkonflikt mit der "kein Custom-Python"-Linie
+> dieses Branches (bräuchte einen Script Node mit echtem Python-Code, kein Node dafür
+> vorhanden) — Alternative (`IsaacContactSensor`-Node) noch offen, siehe
+> `docs/architecture.md` Abschnitt "Offen".
+
 **Problem**: Die Sim soll Fingertip-Kontaktkräfte liefern — für Greif-Erkennung und später als LSTM-Trainingsdaten (gleiche Modalität wie echte FSR-Sensoren).
 
 **Entscheidung**: `ArticulationView.get_net_contact_forces()` aus `isaacsim.core.prims` — derselbe Ansatz wie Isaac Lab's `ContactSensor`, nur ohne den Isaac-Lab-Wrapper. Kein `is_grasping()` Bool, stattdessen Kraft-Veröffentlichung als ROS2-Topic.
@@ -69,6 +82,93 @@ Konkret:
 - Fingertip-Link-Indizes vorab mit `inventory.py` bestimmen (Prim-Pfade der `*_tip`-Links)
 - `sensor_msgs/JointState` auf `/pib/fingertip_forces` — kein Custom-Message-Package nötig
 - Offen: exakte Prim-Pfade der Fingertip-Links noch nicht verifiziert → `inventory.py` zuerst ausführen
+
+---
+
+## ADR-006: Action Graph (OmniGraph) statt eigenem ROS2-Bridge-Prozess
+
+> **Überholt durch ADR-007:** Der hier beschriebene Script-Node-Ansatz und sein bekannter
+> Kompromiss (gespiegelte Ist-Werte) wurden ersetzt. Als historischer Kontext stehen
+> gelassen.
+
+**Problem**: `pib_bridge.py` bildete den ROS2↔Isaac-Übergang komplett in Python nach:
+eigener `rclpy`-Node mit manuellem Spin-Loop, Grace-Period/Lazy-Init-Zustandsmaschine
+für die Physics-View-Bereitschaft, Python-3.11/3.12-rclpy-Pfad-Workaround. Für den reinen
+Joint-State-Pub/Sub-Anteil existieren dafür fertige, NVIDIA-gewartete OmniGraph-Nodes.
+
+**Entscheidung**: `pib_bridge.py` ersetzt durch einen Action Graph, Teil der USD-Stage
+(`isaac_sim/usd/pib_upperbody.usd`): `ROS2SubscribeJointState` → Script Node (JOINT_SIGN-
+Invertierung) → `IsaacArticulationController`, Rückrichtung über `ROS2PublishJointState`.
+Topic-Namen/-Typen bleiben identisch zu vorher (`/pib/hw/joint_commands`,
+`/pib/hw/joint_states`, `sensor_msgs/JointState`, rad) — `ros2_control`-Seite unverändert.
+
+**Begründung**: Die nativen Nodes übernehmen Physics-View-Lifecycle-Handling selbst (kein
+Grace-Period-Code mehr nötig) und sind robuster gegen Isaac-Sim-Updates als selbst
+gepflegter `rclpy`-Code. Reduziert auf den Teil, der wirklich Custom-Logik ist: die
+Vorzeicheninvertierung, für die es keinen fertigen Node gibt.
+
+**Konsequenzen**:
+- `robot_io.py`, `pib_bridge.py`, `runner.py`, `_launch_helper.py`, ControlMode-Architektur
+  (`control/`), Sequenz-Pipeline (`config/sequences.py`, `isaac_sim/sequences/`) entfernt —
+  wurden nur vom bisherigen Bridge-/Control-Weg gebraucht
+- **Bekannter Kompromiss:** `ROS2PublishJointState` liest den Gelenkzustand direkt aus dem
+  Prim (Isaac-Konvention) — kein Interceptions-Punkt für die Vorzeichenkorrektur der
+  Rückrichtung. `/pib/hw/joint_states`, `/joint_states` und Action-Feedback zeigen daher
+  gespiegelte Werte. Bewegung selbst korrekt (Befehlsrichtung ist korrigiert); nur die
+  Ist-Wert-Anzeige irreführend. `controllers.yaml` hat keine Toleranz-Constraints, daher
+  kein Abbruch. Sauberer Fix wäre eine Vorzeichen-Korrektur direkt in den URDF-Achsen
+  (nicht umgesetzt — betrifft auch die Body-Gelenke, nicht nur die Hand, und bräuchte
+  Re-Verifikation über alle 44 DOFs)
+- `start.py`/`setup_stage.py` bleiben unverändert nötig — Action Graph ersetzt nur die
+  Laufzeit-Bridge, nicht die einmalige Physik-Konfiguration pro Session
+- `velocityCommand`/`effortCommand` an den Nodes bewusst unverbunden gelassen —
+  `controllers.yaml` konfiguriert nur `command_interfaces: [position]`
+
+---
+
+## ADR-007: Vorzeichen-Fix direkt an den Gelenk-Prims statt Script Node
+
+**Problem**: ADR-006 kompensierte die Vorzeichen-Invertierung (Onshape vs. Isaac) über
+einen Script Node im Action Graph — funktionierte für den Kommando-Pfad, aber
+`ROS2PublishJointState` liest den Prim direkt und hatte keinen Interceptions-Punkt für die
+Rückrichtung (bekannter Kompromiss: gespiegelte Ist-Werte auf `/pib/hw/joint_states`).
+
+**Entscheidung**: `isaac_sim/tools/flip_joint_sign.py`, einmalig im Script Editor gegen die
+offene Stage ausgeführt, danach gespeichert. Für jedes `PhysicsRevoluteJoint`: `localRot0`
+UND `localRot1` werden symmetrisch um dieselbe 180°-Rotation um eine zur Gelenkachse
+senkrechte Achse gedreht — die Weltausrichtung der Achse bleibt dadurch exakt gleich (kein
+Verspringen der Kette), aber der gemessene Winkel kehrt sein Vorzeichen um
+(Rotationskonjugation `F·M·F`: gleicher Winkel, gespiegelte Achse ≡ gespiegelter Winkel,
+gleiche Achse). Limits werden passend vertauscht+negiert. Danach: Script Node aus dem
+Action Graph entfernt, `JOINT_SIGN`/Limit-Spiegelung aus `config/pib_hand_config.py` und
+`isaac_sim/setup_stage.py` entfernt.
+
+Zwei Alternativen verworfen:
+- **URDF editieren + Reimport**: Prämisse war falsch — die USD wird nicht aus der URDF
+  importiert, sondern per Onshape-Importer direkt aus Onshape gebaut. Eine Korrektur der
+  URDF hätte die tatsächliche Build-Pipeline nicht beeinflusst.
+- **Nur eine Seite des Gelenk-Frames drehen** (`localRot1` allein): mathematisch nicht
+  äquivalent — die Weltausrichtung der Achse würde sich ändern, PhysX würde die
+  nachgeordnete Kinematik-Kette beim nächsten Play in die neue Achsrichtung verspringen
+  lassen. Erst die symmetrische Drehung beider Seiten vermeidet das.
+
+**Begründung**: Der Fix sitzt an der Ursache (dem Prim selbst), unabhängig vom Importweg
+(Onshape-Importer statt URDF), und ist eine einmalige, persistente Korrektur (in der USD
+gespeichert) statt einer Laufzeit-Kompensation — kein Script Node, kein `JOINT_SIGN` mehr
+nötig. Behebt den ADR-006-Kompromiss automatisch, da `ROS2PublishJointState` jetzt direkt
+korrekte Werte vom Prim liest.
+
+**Konsequenzen**:
+- `JOINT_SIGN`-Konstante, `_BODY_LIMITS_ISAAC`-Spiegelung, Script Node — entfernt
+- `/pib/hw/joint_states`, `/joint_states`, Action-Feedback zeigen jetzt korrekte
+  (nicht mehr gespiegelte) Ist-Werte
+- Bei jedem künftigen Onshape-Reimport: `flip_joint_sign.py` erneut gegen die neue Stage
+  ausführen
+- Einige Body-Limits in `setup_stage.py` waren zuvor grobe Schätzwerte (z.B.
+  `dof_shoulder_horizontal_right`/`dof_upper_arm_left` waren `[-90°,90°]` geschätzt, korrekt
+  aus der Onshape-Quelle ist `[0°,90°]`) — jetzt korrigiert
+- `isaac_sim/tools/flip_urdf_for_isaac.py` und `isaac_sim/urdf/pib_upperbody_isaac_import.urdf`
+  (Artefakte des verworfenen URDF-Reimport-Ansatzes) entfernt
 
 ---
 

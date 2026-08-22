@@ -141,43 +141,44 @@ def configure_drives(stg) -> int:
     return count
 
 
-# ── Gelenk-Limits in Isaac-Konvention ────────────────────────────────────────
-# JOINT_SIGN=-1: Onshape-positive Winkel (Flexion) landen als negative Isaac-Targets.
-# Daher müssen die Limits gespiegelt werden: Onshape [lo, hi] → Isaac [-hi, -lo].
+# ── Gelenk-Limits ─────────────────────────────────────────────────────────────
+# Seit isaac_sim/tools/flip_joint_sign.py (einmalig in der USD ausgeführt)
+# stimmen Onshape- und Isaac-Konvention überein — keine Spiegelung mehr nötig,
+# das sind direkt die Onshape-Limits (positiv = Flexion/Heben/Vorne).
 #
-# Onshape-Konvention  → Isaac-Konvention
-#   [  0°,  90°]      →   [-90°,   0°]   Fingergelenke + Handgelenk
-#   [-45°,  90°]      →   [-90°,  45°]   Ellbogen
-#   [-45°,  70°]      →   [-70°,  45°]   Kopf vertikal
-#   [-90°,  90°]      →   [-90°,  90°]   symmetrisch → unverändert
+# dof_upper_arm_left/dof_shoulder_horizontal_right korrigiert gegenüber dem
+# alten (gespiegelten) Stand: die vorherige Tabelle hatte hier symmetrisch
+# [-90°,90°] geschätzt, die echte Onshape-Quelle ist einseitig [0°,90°]
+# (verifiziert gegen ros2_ws/src/pib_description/urdf/pib_upperbody.urdf).
 
 _HAND_KEYWORDS = ("proximal", "distal", "tip", "rotator")
 
-_BODY_LIMITS_ISAAC = {
+_BODY_LIMITS = {
     "dof_head_horizontal":           (-90.0,  90.0),
-    "dof_head_vertical":             (-70.0,  45.0),
+    "dof_head_vertical":             (-45.0,  70.0),
     "dof_shoulder_vertical_left":    (-90.0,  90.0),
     "dof_shoulder_horizontal_left":  (-90.0,  90.0),
-    "dof_upper_arm_left":            (-90.0,  90.0),
-    "dof_elbow_left":                (-90.0,  45.0),
+    "dof_upper_arm_left":            (  0.0,  90.0),
+    "dof_elbow_left":                (-45.0,  90.0),
     "dof_forearm_left":              (-90.0,  90.0),
-    "dof_wrist_left":                (-90.0,   0.0),
+    "dof_wrist_left":                (  0.0,  90.0),
     "dof_shoulder_vertical_right":   (-90.0,  90.0),
-    "dof_shoulder_horizontal_right": (-90.0,  90.0),
+    "dof_shoulder_horizontal_right": (  0.0,  90.0),
     "dof_upper_arm_right":           (-90.0,  90.0),
-    "dof_elbow_right":               (-90.0,  45.0),
+    "dof_elbow_right":               (-45.0,  90.0),
     "dof_forearm_right":             (-90.0,  90.0),
-    "dof_wrist_right":               (-90.0,   0.0),
+    "dof_wrist_right":               (  0.0,  90.0),
 }
 
 
 def set_joint_limits(stg) -> int:
     """
-    Setzt Gelenk-Limits direkt auf Isaac-Konvention (JOINT_SIGN=-1 berücksichtigt).
-    Idempotent: setzt immer denselben Zielwert, kein Toggle, kein Flag.
+    Setzt Gelenk-Limits (Onshape-Konvention, seit flip_joint_sign.py identisch
+    mit der Isaac-Konvention). Idempotent: setzt immer denselben Zielwert,
+    kein Toggle, kein Flag.
 
-    Hand/Fingergelenke (proximal/distal/tip/rotator): [-90°, 0°]
-    Körpergelenke: aus _BODY_LIMITS_ISAAC
+    Hand/Fingergelenke (proximal/distal/tip/rotator): [0°, 90°]
+    Körpergelenke: aus _BODY_LIMITS
     """
     count = 0
     for prim in stg.Traverse():
@@ -189,11 +190,11 @@ def set_joint_limits(stg) -> int:
         if not (lower_attr and upper_attr):
             continue
         if any(k in name for k in _HAND_KEYWORDS):
-            lower_attr.Set(-90.0)
-            upper_attr.Set(0.0)
+            lower_attr.Set(0.0)
+            upper_attr.Set(90.0)
             count += 1
-        elif name in _BODY_LIMITS_ISAAC:
-            lower, upper = _BODY_LIMITS_ISAAC[name]
+        elif name in _BODY_LIMITS:
+            lower, upper = _BODY_LIMITS[name]
             lower_attr.Set(lower)
             upper_attr.Set(upper)
             count += 1
@@ -203,16 +204,15 @@ def set_joint_limits(stg) -> int:
 
 def set_initial_pose(stg) -> None:
     """
-    Setzt initiale Drive-Targets (in Grad, USD-Konvention ohne JOINT_SIGN):
+    Setzt initiale Drive-Targets (in Grad, Onshape-Konvention seit
+    flip_joint_sign.py — positiv = Flexion):
       - Hände offen: alle Finger 0°
-      - Ellbogen leicht angewinkelt: 30° (visuell verifizieren — je nach
-        USD-Achse kann positiv = strecken oder beugen bedeuten; ggf. auf -30°
-        ändern)
+      - Ellbogen leicht angewinkelt: 30° (positiv = Flexion)
       - Alles andere: 0° (T-Pose / neutral)
     """
     initial_targets: dict = {
-        "dof_elbow_left":  -30.0,  # Isaac-Konvention: neg = leichte Beugung (JOINT_SIGN=-1)
-        "dof_elbow_right": -30.0,
+        "dof_elbow_left":  30.0,
+        "dof_elbow_right": 30.0,
     }
     count = 0
     for prim in stg.Traverse():
