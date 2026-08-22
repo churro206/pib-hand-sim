@@ -2,7 +2,29 @@
 
 **Branch**: `experiment/omnigraph-lightweight`
 **Datum**: 2026-08-22
-**Status**: Design approved, Implementierung ausstehend
+**Status**: Design approved (Weg 1), Implementierung ausstehend
+
+## Pivot: Weg 2 verworfen
+
+Der ursprünglich gewählte Weg 2 (Joint-Frames direkt in der bereits gebackenen USD umdrehen,
+ohne Reimport) wurde beim Ausformulieren des Implementierungsplans verworfen: Ein
+`PhysicsRevoluteJoint` hält seine Rotationsachse über die Weltausrichtung von
+`localRot0`/`localRot1` fest. Die Vorzeichen-Konvention umzudrehen bedeutet zwangsläufig, die
+Weltrichtung der Gelenkachse selbst umzudrehen — das ist nicht "kostenlos" möglich: entweder
+schnappt PhysX beim nächsten Play die komplette nachgeordnete Kinematik-Kette in die neue
+Achsrichtung (Geometrie verspringt), oder die Umkehrung müsste rekursiv für jedes
+nachgeordnete Glied neu hergeleitet werden — was am Ende genauso viel Aufwand ist wie Weg 1,
+nur ohne dessen Sicherheit. Es gibt keinen risikoarmen Weg, die Konvention direkt im
+gebackenen Prim umzudrehen; irgendwo in der Kette muss weiterhin negiert werden.
+
+**Neue Entscheidung: Weg 1 — URDF editieren + Isaac-Reimport.** Der Rest dieses Dokuments
+(Abschnitt "Warum nicht URDF editieren + neu importieren" unten) beschreibt die ursprüngliche
+Gegenüberstellung; sie gilt jetzt umgekehrt als Begründung *für* Weg 1. Wichtige Ergänzung:
+Die kanonische `ros2_ws/src/pib_description/urdf/pib_upperbody.urdf` bleibt unangetastet
+(weiterhin Onshape-Konvention für ros2_control/IK-Team/RViz) — eine deterministisch daraus
+abgeleitete Kopie (`isaac_sim/urdf/pib_upperbody_isaac_import.urdf`, Achsen negiert, Limits
+vertauscht+negiert) dient ausschließlich als Isaac-Importquelle. Bei jedem Onshape-Re-Export:
+Transform-Skript erneut laufen lassen, dann Isaac-Reimport wiederholen.
 
 ## Kontext
 
