@@ -47,8 +47,8 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
 ## Ziele (dieser Branch)
 - **OmniGraph-Migration** ✓ Action Graph ersetzt `pib_bridge.py`, Pickup-/Putdown-Demo verifiziert
 - **Vorzeichen-Fix** ✓ Gelenke direkt am Prim korrigiert (ADR-007), kein Script Node/JOINT_SIGN mehr
-- **Contact Sensors** ← aktuelles Ziel — Kontaktkräfte pro Fingertip, Ansatz noch offen
-  (native `IsaacReadContactSensor`-Node vs. `ArticulationView`-Tensor-API in einem Script Node)
+- **Contact Sensors** ← aktuelles Ziel — Ansatz entschieden (nativer `IsaacContactSensor`-
+  Node, ADR-008), `index_right` verkabelt+verifiziert, restliche 9 Fingerspitzen offen
 - **Szenen-Erweiterung** ← aktuelles Ziel — weitere Objekte/Umgebung in der USD-Stage
 
 Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen

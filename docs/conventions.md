@@ -46,12 +46,19 @@ export ROS_DOMAIN_ID=0
 ```
 
 ### Topics (dieser Branch)
+
+**Öffentliches Interface — für IK-Team/Greifpunkt-Team/Objekterkennung:**
 | Topic | Typ | Richtung |
 |---|---|---|
-| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control (50 Hz, rad) |
-| `/joint_trajectory_controller/follow_joint_trajectory` | Action `control_msgs/FollowJointTrajectory` | → ros2_control, MoveIt2-kompatibel |
+| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control (50 Hz, rad), vom `JointStateBroadcaster` — Standard, MoveIt2-kompatibel |
+| `/joint_trajectory_controller/follow_joint_trajectory` | Action `control_msgs/FollowJointTrajectory` | → ros2_control, MoveIt2-kompatibel — so werden Gelenkwinkel-Trajektorien (z.B. vom IK-Team) eingespielt |
+| `/pib/fingertip_force/<finger>` | `std_msgs/Float32` | ← Isaac (Newton), ein Topic pro Fingertip, vom Action Graph publiziert (ADR-008). Bisher nur `index_right` verkabelt, Rest offen — Format kann sich noch ändern (Bündelung zu einem Topic als `sensor_msgs/JointState`, siehe ADR-008). |
+
+**Intern — Hardware-Interface-Bridge (ros2_control ↔ Isaac), nicht für andere Teams gedacht:**
+| Topic | Typ | Richtung |
+|---|---|---|
 | `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad), gelesen vom Action Graph |
-| `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad), vom Action Graph publiziert |
+| `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad), vom Action Graph publiziert — Rohwert auf Hardware-Interface-Ebene, entspricht inhaltlich `/joint_states`, aber ohne den ros2_control-Layer davor |
 
 Winkeleinheit durchgehend **Radiant** — kein separater `deg`/`rad`-Umschalter mehr (`config/server_config.py` existiert auf diesem Branch nicht).
 

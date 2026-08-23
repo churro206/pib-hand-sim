@@ -96,13 +96,21 @@ DOFs: 14 Body + 15 linke Hand + 15 rechte Hand = 44 gesamt
 ## Offen (aktuelles Ziel dieses Branches)
 
 ### Contact Sensors
-Kontaktkräfte pro Fingertip, für Greif-Erkennung. Zwei Ansätze, noch nicht entschieden:
-- **Native OmniGraph-Node:** `IsaacContactSensor`-Prim pro Fingertip-Link + `IsaacReadContactSensor`-Node — passt zur "so viel NVIDIA wie möglich"-Linie dieses Branches, liefert aber nur Kontakt-Bool + Kraftbetrag pro Sensor, kein Tensor-Batch.
-- **`ArticulationView.get_net_contact_forces()`** (Tensor-API, gleicher Ansatz wie Isaac Lab's `ContactSensor`) — physikalisch präziser, aber kein Node dafür, bräuchte einen Script Node mit echtem Python-Code — Bruch mit dem "kein Custom-Python"-Prinzip dieses Branches.
+Kontaktkräfte pro Fingertip, für Greif-Erkennung. Entschieden (ADR-008): nativer
+`IsaacContactSensor`-Prim pro Fingertip-Link + `Isaac Read Contact Sensor Node` im Action
+Graph, Ausgabe über einen generischen `ROS2 Publisher`-Node (`std_msgs/Float32`) auf
+`/pib/fingertip_force/<finger>`. Verworfen: `ArticulationView.get_net_contact_forces()`
+(Tensor-API) — hätte einen Script Node mit echtem Python-Code gebraucht, Bruch mit dem
+"kein Custom-Python"-Prinzip dieses Branches.
 
-Vor Entscheidung: Fingertip-Prim-Pfade in der USD identifizieren (kein `inventory.py` mehr
-auf diesem Branch — direkt im Stage-Baum nachsehen oder `feature/ros2-control` als
-Referenz nutzen, dort existiert das Skript noch).
+**Bekannter Stolperstein**: Der Onshape-Importer legt Robotik-Meshes standardmäßig als
+`instanceable` an (Performance-Feature für viele parallele Roboter-Instanzen, hier ohne
+Nutzen). Ein `IsaacContactSensor`-Prim lässt sich nicht unter einem Instance-Proxy anlegen
+(„authoring to an instance proxy is not allowed") — vorher `SetInstanceable(False)` auf
+dem jeweiligen Fingertip-Link-Prim setzen.
+
+Bisher nur `index_right` verkabelt und verifiziert. Restliche 9 Fingerspitzen offen, siehe
+`docs/current-sprint.md`.
 
 ### Szenen-Erweiterung
 Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody.usd` — Details noch offen.

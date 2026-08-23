@@ -58,12 +58,9 @@ gelassen, gelten aber nicht mehr für den aktuellen Code hier. Voller Stand auf
 
 ## ADR-005: Fingertip-Kontaktkräfte via ArticulationView (PhysX Tensor API)
 
-> **Für `experiment/omnigraph-lightweight`:** `pib_bridge.py` und `inventory.py`, auf die
-> sich die Konsequenzen unten beziehen, existieren auf diesem Branch nicht mehr. Der
-> `ArticulationView`-Ansatz hier steht im Zielkonflikt mit der "kein Custom-Python"-Linie
-> dieses Branches (bräuchte einen Script Node mit echtem Python-Code, kein Node dafür
-> vorhanden) — Alternative (`IsaacContactSensor`-Node) noch offen, siehe
-> `docs/architecture.md` Abschnitt "Offen".
+> **Überholt durch ADR-008:** Der `ArticulationView`-Ansatz wurde nie umgesetzt (Zielkonflikt
+> mit der "kein Custom-Python"-Linie dieses Branches). Stattdessen native OmniGraph-Nodes,
+> siehe ADR-008. Als historischer Kontext stehen gelassen.
 
 **Problem**: Die Sim soll Fingertip-Kontaktkräfte liefern — für Greif-Erkennung und später als LSTM-Trainingsdaten (gleiche Modalität wie echte FSR-Sensoren).
 
@@ -169,6 +166,47 @@ korrekte Werte vom Prim liest.
   aus der Onshape-Quelle ist `[0°,90°]`) — jetzt korrigiert
 - `isaac_sim/tools/flip_urdf_for_isaac.py` und `isaac_sim/urdf/pib_upperbody_isaac_import.urdf`
   (Artefakte des verworfenen URDF-Reimport-Ansatzes) entfernt
+
+---
+
+## ADR-008: Fingertip-Kontaktkräfte via native OmniGraph-Nodes statt ArticulationView
+
+**Problem**: ADR-005 sah `ArticulationView.get_net_contact_forces()` in einem Script Node
+vor — bräuchte echten Python-Code im Action Graph, Zielkonflikt mit der "so viel NVIDIA
+wie möglich"-Linie dieses Branches (siehe `docs/architecture.md` → „Offen"). Alternative
+(nativer `IsaacContactSensor`-Node) war dort als Option genannt, aber nicht verifiziert.
+
+**Entscheidung**: Nativer `IsaacContactSensor`-Prim pro Fingertip-Link + `Isaac Read
+Contact Sensor Node` im Action Graph, Ausgabe (`outputs:value`, Kraft in Newton) über
+einen generischen `ROS2 Publisher`-Node (`messagePackage=std_msgs`, `messageSubfolder=msg`,
+`messageName=Float32`) auf `/pib/fingertip_force/<finger>` publiziert — ein Topic pro
+Fingertip, kein gebündeltes `sensor_msgs/JointState`-Array wie in ADR-005 skizziert.
+Für `index_right` verifiziert: Kraftwerte in Isaac (~1-2 N beim Greifen der Testdose)
+kommen unverändert auf `ros2 topic echo /pib/fingertip_force/index_right` an.
+
+**Begründung**: Kein Script Node, kein Custom-Python nötig — passt zur Linie dieses
+Branches (vgl. ADR-006/007). Ein Topic pro Fingertip ist für den aktuellen Stand (1 von
+10 Fingerspitzen verkabelt) einfacher als ein Array-Aufbau über `ConstructArray` +
+`ROS2PublishJointState`; letzteres bleibt eine Option, falls später alle Fingerspitzen
+gebündelt in einer Nachricht laufen sollen.
+
+**Konsequenzen**:
+- Fingertip-Link-Prims mussten einzeln `SetInstanceable(False)` gesetzt werden, bevor der
+  `IsaacContactSensor`-Prim angelegt werden konnte — Onshape-Importer legt Robotik-Meshes
+  standardmäßig als instanceable an (Performance-Feature für viele parallele
+  Roboter-Instanzen, hier ohne Nutzen), Instance Proxies erlauben kein Authoring
+  (Fehler „authoring to an instance proxy is not allowed"). Für jede weitere Fingerspitze
+  wiederholen.
+- Bisher nur `index_right` verkabelt. Restliche 9 Fingerspitzen (siehe
+  `config/pib_hand_config.py` → `HAND_DOFS` für Namensschema) offen — gleiches Muster:
+  Instanceable aus, `IsaacContactSensor`-Prim anlegen, `Isaac Read Contact Sensor Node` +
+  `ROS2 Publisher`-Node im bestehenden Action Graph ergänzen.
+- Debugging-Fallstrick (nicht Node-spezifisch, aber hat die Verifikation verzögert):
+  `ROS_DOMAIN_ID` ist pro Terminal gesetzt, nicht global — eine Shell mit abweichender
+  Domain (z.B. geerbt aus einer anderen Session) sieht *gar keine* ROS2-Topics, auch nicht
+  die längst bestehenden. Vor jeder ROS2-Diagnose `echo $ROS_DOMAIN_ID` prüfen (Soll: `0`,
+  siehe `docs/conventions.md`).
+- `docs/conventions.md` Topic-Tabelle um `/pib/fingertip_force/<finger>` ergänzt.
 
 ---
 

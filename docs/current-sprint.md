@@ -27,12 +27,16 @@ verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 
 **Ziel**: Kontaktkräfte pro Fingertip, für Greif-Erkennung nutzbar.
 
-- [ ] Entscheidung: nativer `IsaacContactSensor`-Node vs. `ArticulationView`-Tensor-API
-      in einem Script Node (Abwägung in `docs/architecture.md` → „Offen")
-- [ ] Fingertip-Prim-Pfade in der USD identifizieren (kein `inventory.py` mehr auf diesem
-      Branch — Stage-Baum direkt durchsuchen, oder `feature/ros2-control` als Referenz)
-- [ ] Sensor(en) hinzufügen, in Action Graph verkabeln
-- [ ] Auf ROS2-Topic veröffentlichen (Name/Format noch offen)
+- [x] Entscheidung: nativer `IsaacContactSensor`-Node (nicht `ArticulationView`-Tensor-API),
+      siehe ADR-008
+- [x] `index_right` verkabelt und verifiziert: `IsaacContactSensor`-Prim + `Isaac Read
+      Contact Sensor Node` + generischer `ROS2 Publisher`-Node (`std_msgs/Float32`) auf
+      `/pib/fingertip_force/index_right` — Kraftwerte kommen korrekt an (~1-2 N beim
+      Greifen der Testdose)
+- [ ] Restliche 9 Fingerspitzen nach demselben Muster verkabeln (siehe ADR-008 für die
+      Schritte: `SetInstanceable(False)` je Link-Prim, Sensor-Prim, zwei Action-Graph-Nodes)
+- [ ] Ggf. auf gebündeltes Topic/Array umstellen, falls Einzel-Topics pro Finger auf Dauer
+      unhandlich werden (`ConstructArray` + `ROS2PublishJointState`, siehe ADR-008)
 
 ## Szenen-Erweiterung ← aktuell
 
