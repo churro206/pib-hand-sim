@@ -22,3 +22,6 @@ venv/
 # Logs
 *.log
 runs/
+
+# Zwischenergebnis von isaac_sim/tools/dump_pose.py
+isaac_sim/tools/_pose_dump.json
