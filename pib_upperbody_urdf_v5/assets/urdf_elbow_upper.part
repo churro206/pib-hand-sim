@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "6b63816a2c83332f8fcd6f39",
+    "fullConfiguration": "default",
+    "id": "MqV2N88SwGLKkhJ7D",
+    "isStandardContent": false,
+    "name": "urdf_elbow-upper <2>",
+    "partId": "R+ID",
+    "suppressed": false,
+    "type": "Part"
+}

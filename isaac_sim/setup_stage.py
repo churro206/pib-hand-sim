@@ -3,8 +3,8 @@ setup_stage.py — Stage-Setup für pib in Isaac Sim.
 
 Im Script Editor ausführen um:
   1. Physics Scene, Boden und Licht einzurichten
-  2. Joint-Drives für alle Gelenke zu konfigurieren (Stiffness/Damping)
-  3. Initiale Pose (Hände offen, Körper neutral) als Drive-Target zu setzen
+  2. Joint-Drives für alle Gelenke zu konfigurieren (Stiffness/Damping/MaxForce)
+  3. Initiale Pose (T-Pose, alle Targets 0°) als Drive-Target zu setzen
 
 Danach Stage speichern (Ctrl+S), dann Play drücken.
 
@@ -26,15 +26,15 @@ def _find_project_root() -> str:
         return os.environ["PIB_HAND_SIM_ROOT"]
     stage_file = Path(stage.GetRootLayer().realPath)
     for ancestor in [stage_file.parent, stage_file.parent.parent]:
-        if (ancestor / "config" / "pib_hand_config.py").is_file():
+        if (ancestor / "config" / "pib_hand_config_v4.py").is_file():
             return str(ancestor)
     for candidate in [Path.home() / "repos" / "pib-hand-sim", Path.home() / "pib-hand-sim"]:
-        if (candidate / "config" / "pib_hand_config.py").is_file():
+        if (candidate / "config" / "pib_hand_config_v4.py").is_file():
             return str(candidate)
     raise FileNotFoundError("pib-hand-sim nicht gefunden. PIB_HAND_SIM_ROOT setzen.")
 
 _root = _find_project_root()
-_spec = importlib.util.spec_from_file_location("pib_hand_config", f"{_root}/config/pib_hand_config.py")
+_spec = importlib.util.spec_from_file_location("pib_hand_config_v4", f"{_root}/config/pib_hand_config_v4.py")
 _cfg  = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_cfg)
 ROBOT_PRIM_PATH = _cfg.ROBOT_PRIM_PATH
@@ -108,14 +108,24 @@ def configure_lights(stg) -> None:
 
 def configure_drives(stg) -> int:
     """
-    Setzt Stiffness und Damping für alle PhysicsRevoluteJoint-Prims.
+    Setzt Stiffness, Damping und MaxForce für alle PhysicsRevoluteJoint-Prims.
+    Funktioniert für v4 und v5 identisch (Namens-Substring-Klassifizierung,
+    kein dof_-Präfix nötig, siehe _classify_dof).
 
-    Klassifizierung nach DOF-Name:
+    Klassifizierung nach DOF-Name (Stiffness / Damping):
       head      → stiffness=3000, damping=150
       shoulder/upper_arm/elbow/forearm → 5000 / 200
       wrist     → 2000 / 100
       rotator   → 1000 / 50   (Daumen CMC)
       proximal/distal/tip → 500 / 20  (alle Fingerglieder)
+
+    MaxForce (physics:maxForce) wird auf unbegrenzt (inf) gesetzt — das ist
+    der USD-Physics-Schema-Default und das Verhalten, das v4 schon immer
+    hatte (dort wurde nie explizit ein maxForce gesetzt). Der Isaac-URDF-
+    Importer übernimmt für v5 offenbar den effort-Wert aus der URDF direkt
+    als Kappung (z.B. 10 Nm an der Schulter — reichte nicht, um die Trägheit
+    des Arms zu überwinden). Bewusst kein "realistischer" Nm-Wert geraten —
+    stellt nur wieder den unbegrenzten v4-Zustand her, siehe current-sprint.md.
 
     Returns: Anzahl konfigurierter Joints
     """
@@ -135,9 +145,10 @@ def configure_drives(stg) -> int:
 
         drive.GetStiffnessAttr().Set(stiffness)
         drive.GetDampingAttr().Set(damping)
+        drive.GetMaxForceAttr().Set(float("inf"))
         count += 1
 
-    print(f"configure_drives: {count} Joints konfiguriert")
+    print(f"configure_drives: {count} Joints konfiguriert (Stiffness/Damping/MaxForce=inf)")
     return count
 
 
@@ -149,7 +160,7 @@ def configure_drives(stg) -> int:
 # dof_upper_arm_left/dof_shoulder_horizontal_right korrigiert gegenüber dem
 # alten (gespiegelten) Stand: die vorherige Tabelle hatte hier symmetrisch
 # [-90°,90°] geschätzt, die echte Onshape-Quelle ist einseitig [0°,90°]
-# (verifiziert gegen ros2_ws/src/pib_description/urdf/pib_upperbody.urdf).
+# (verifiziert gegen ros2_ws/src/pib_description_v4/urdf/pib_upperbody.urdf).
 
 _HAND_KEYWORDS = ("proximal", "distal", "tip", "rotator")
 
@@ -204,16 +215,12 @@ def set_joint_limits(stg) -> int:
 
 def set_initial_pose(stg) -> None:
     """
-    Setzt initiale Drive-Targets (in Grad, Onshape-Konvention seit
-    flip_joint_sign.py — positiv = Flexion):
-      - Hände offen: alle Finger 0°
-      - Ellbogen leicht angewinkelt: 30° (positiv = Flexion)
-      - Alles andere: 0° (T-Pose / neutral)
+    Setzt alle Drive-Targets auf 0° (T-Pose, volle Streckung) — Onshape-
+    Konvention seit flip_joint_sign.py, positiv = Flexion. Kein Sonderfall
+    mehr für den Ellbogen (war vorher 30°, das war nie begründet). Traversiert
+    generisch über alle PhysicsRevoluteJoint-Prims, kein Namensabgleich nötig
+    — funktioniert für v4 und v5 identisch.
     """
-    initial_targets: dict = {
-        "dof_elbow_left":  30.0,
-        "dof_elbow_right": 30.0,
-    }
     count = 0
     for prim in stg.Traverse():
         is_revolute = (prim.GetTypeName() == "PhysicsRevoluteJoint" or
@@ -221,15 +228,12 @@ def set_initial_pose(stg) -> None:
         if not is_revolute:
             continue
 
-        name   = prim.GetPath().name
-        target = initial_targets.get(name, 0.0)
-
         drive = UsdPhysics.DriveAPI.Get(prim, "angular")
         if drive:
-            drive.GetTargetPositionAttr().Set(target)
+            drive.GetTargetPositionAttr().Set(0.0)
             count += 1
 
-    print(f"set_initial_pose: {count} Drive-Targets gesetzt (Ellbogen je 30°, Rest 0°)")
+    print(f"set_initial_pose: {count} Drive-Targets auf 0° gesetzt (T-Pose)")
 
 
 def setup_all(stg) -> None:

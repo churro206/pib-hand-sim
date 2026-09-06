@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "890f312692fd848f86c62e24",
+    "fullConfiguration": "default",
+    "id": "Mok1E4Cuz9O+T4u53",
+    "isStandardContent": false,
+    "name": "urdf_forearm_left <1>",
+    "partId": "SaHPa",
+    "suppressed": false,
+    "type": "Part"
+}

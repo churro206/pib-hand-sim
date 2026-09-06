@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "a6b8eec04564e2a67d45596a",
+    "fullConfiguration": "default",
+    "id": "M0JX4T1XLbIc/YSp2",
+    "isStandardContent": false,
+    "name": "urdf_head_base <1>",
+    "partId": "RRLD",
+    "suppressed": false,
+    "type": "Part"
+}

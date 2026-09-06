@@ -24,12 +24,12 @@ def _find_root() -> str:
         import omni.usd  # type: ignore
         f = Path(omni.usd.get_context().get_stage().GetRootLayer().realPath)
         for ancestor in [f.parent, f.parent.parent]:
-            if (ancestor / "config" / "pib_hand_config.py").is_file():
+            if (ancestor / "config" / "pib_hand_config_v4.py").is_file():
                 return str(ancestor)
     except Exception:
         pass
     for candidate in [Path.home() / "repos" / "pib-hand-sim", Path.home() / "pib-hand-sim"]:
-        if (candidate / "config" / "pib_hand_config.py").is_file():
+        if (candidate / "config" / "pib_hand_config_v4.py").is_file():
             return str(candidate)
     raise FileNotFoundError("pib-hand-sim nicht gefunden. PIB_HAND_SIM_ROOT setzen.")
 

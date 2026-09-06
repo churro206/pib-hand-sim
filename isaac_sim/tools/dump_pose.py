@@ -37,7 +37,7 @@ def _find_root() -> str:
     from pathlib import Path
     f = Path(stage.GetRootLayer().realPath)
     for ancestor in f.parents:  # alle Elternverzeichnisse, nicht nur 2 Ebenen
-        if (ancestor / "config" / "pib_hand_config.py").is_file():
+        if (ancestor / "config" / "pib_hand_config_v4.py").is_file():
             return str(ancestor)
     raise FileNotFoundError("pib-hand-sim nicht gefunden. PIB_HAND_SIM_ROOT setzen.")
 

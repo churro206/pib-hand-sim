@@ -14,6 +14,12 @@ RoboCup 2027 @Home. Mehrere Gruppen:
 
 Alle Teams nutzen **ROS2**. Auf diesem Branch noch nicht angegangen (siehe „Offen" unten).
 
+**v4/v5**: Seit der v5-Hand-Baugruppe läuft alles Folgende doppelt, für v4 (verifiziert,
+Referenz-Implementierung) und v5 (im Aufbau) parallel — nicht ablösend. Durchgängiges
+Namensschema: `_v4`-Suffix bzw. `_v5`-Suffix auf jeder Ebene (USD, Config, ROS2-Package).
+Wo unten nicht explizit unterschieden wird, ist v4 gemeint (aktuell einziger vollständig
+verifizierter Stand); v5-Stand siehe `docs/current-sprint.md`.
+
 ---
 
 ## Schichtenmodell (dieser Branch)
@@ -29,8 +35,8 @@ Layer 2: Action Graph (fertig)
          ROS2SubscribeJointState → IsaacArticulationController
          Artikulation → ROS2PublishJointState
 
-Layer 1: Isaac-Setup (fertig, minimal)
-         config/pib_hand_config.py (DOF-Namen, Limits) + start.py/setup_stage.py
+Layer 1: Isaac-Setup (fertig, minimal, bisher nur v4)
+         config/pib_hand_config_v4.py (DOF-Namen, Limits) + start.py/setup_stage.py
          (Drives, Limits, Initialpose — einmalig pro Session vor Play)
 ```
 
@@ -41,7 +47,7 @@ Graph spricht direkt mit `ros2_control` über die Topics, ohne Python-Vermittlun
 
 ## Layer 2 — Action Graph im Detail
 
-Liegt vollständig in `isaac_sim/usd/pib_upperbody.usd` (Window → Graph Editors → Action
+Liegt vollständig in `isaac_sim/usd/pib_upperbody_v4.usd` (Window → Graph Editors → Action
 Graph zum Ansehen/Bearbeiten). Drei Nodes:
 
 1. **`ROS2SubscribeJointState`** — `topicName = /pib/hw/joint_commands`
@@ -72,7 +78,7 @@ im Action Graph selbst.
 
 | Datei | Verantwortung |
 |---|---|
-| `config/pib_hand_config.py` | DOF-Namen, Indizes, `ROBOT_PRIM_PATH`, Joint-Limits |
+| `config/pib_hand_config_v4.py` | DOF-Namen, Indizes, `ROBOT_PRIM_PATH`, Joint-Limits |
 | `isaac_sim/setup_stage.py` | Physics Scene, Boden/Licht, Joint-Drives (Stiffness/Damping), Initialpose |
 | `isaac_sim/start.py` | Bündelt `setup_stage`-Aufrufe, vor Play im Script Editor ausführen |
 | `isaac_sim/autostart.py` | Vollautomatisch: USD laden → `start.py` → Play (`--exec`, kein Script Editor nötig) |
@@ -85,11 +91,14 @@ funktionieren (siehe `ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py`
 
 ---
 
-## Robot-Prim
+## Robot-Prim (v4)
 ```
-ROBOT_PRIM_PATH = /World/pib_upperbody_URDF/pib_upperbody_URDF   (aus config/pib_hand_config.py)
+ROBOT_PRIM_PATH = /World/pib_upperbody_URDF/pib_upperbody_URDF   (aus config/pib_hand_config_v4.py)
 DOFs: 14 Body + 15 linke Hand + 15 rechte Hand = 44 gesamt
 ```
+v5-Prim-Pfad/DOF-Struktur noch offen — v5 hat dieselbe DOF-Aufteilung, aber andere
+Gelenk-/Link-Namen (kein `dof_`-Präfix, Daumen-Mittelgelenk heißt `tip` statt `distal`),
+siehe `docs/current-sprint.md`.
 
 ---
 
@@ -113,7 +122,16 @@ Bisher nur `index_right` verkabelt und verifiziert. Restliche 9 Fingerspitzen of
 `docs/current-sprint.md`.
 
 ### Szenen-Erweiterung
-Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody.usd` — Details noch offen.
+Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody_v4.usd` — Details noch offen.
+
+### v5-Hand-Integration
+v5 läuft dauerhaft parallel zu v4 (nicht ablösend), Repo-Struktur bereits auf `_v4`/`_v5`
+gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Noch offen: `pib_hand_config_v5.py`
+(DOF-Namen/Limits gegen die echte Stage verifizieren, nicht nur aus der URDF übernehmen),
+`isaac_sim/usd/pib_upperbody_v5.usd` flatten + Action Graph/Contact Sensors aufbauen,
+`ros2_ws/src/pib_description_v5/` (inkl. handgepflegter `<ros2_control>`-Tags, analog zu
+`pib_description_v4`). v5-Gelenkachsen sind laut Import bereits korrekt orientiert —
+`flip_joint_sign.py` (ADR-007) vermutlich nicht nötig, aber noch nicht gegengeprüft.
 
 ---
 

@@ -25,11 +25,11 @@ def _find_root() -> str:
         return os.environ["PIB_HAND_SIM_ROOT"]
     from pathlib import Path
     candidate = Path(__file__).parent.parent
-    if (candidate / "config" / "pib_hand_config.py").is_file():
+    if (candidate / "config" / "pib_hand_config_v4.py").is_file():
         return str(candidate)
     for p in ["~/repos/pib-hand-sim", "~/pib-hand-sim"]:
         expanded = os.path.expanduser(p)
-        if os.path.isfile(os.path.join(expanded, "config", "pib_hand_config.py")):
+        if os.path.isfile(os.path.join(expanded, "config", "pib_hand_config_v4.py")):
             return expanded
     raise FileNotFoundError("Projekt nicht gefunden. PIB_HAND_SIM_ROOT setzen.")
 
@@ -55,7 +55,7 @@ async def _main() -> None:
     root     = _find_root()
 
     # ── 1. USD laden ─────────────────────────────────────────────────────────
-    usd_path = os.path.join(root, "isaac_sim", "usd", "pib_upperbody.usd")
+    usd_path = os.path.join(root, "isaac_sim", "usd", "pib_upperbody_v4.usd")
     if not os.path.isfile(usd_path):
         _log(f"[autostart] FEHLER: USD nicht gefunden: {usd_path}")
         return

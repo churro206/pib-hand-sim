@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "f4c3de9f0cdce4a621e64a90",
+    "fullConfiguration": "default",
+    "id": "M0O8GaGnCaVC7+AHY",
+    "isStandardContent": false,
+    "name": "urdf_finger_distal <3>",
+    "partId": "RWOD",
+    "suppressed": false,
+    "type": "Part"
+}

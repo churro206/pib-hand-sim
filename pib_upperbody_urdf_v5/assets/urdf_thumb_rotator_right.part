@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "9086003d400a3bbcd7bc702e",
+    "fullConfiguration": "default",
+    "id": "Mwbztq2JbaaAQtQxy",
+    "isStandardContent": false,
+    "name": "urdf_thumb_rotator_right <1>",
+    "partId": "RqjD",
+    "suppressed": false,
+    "type": "Part"
+}

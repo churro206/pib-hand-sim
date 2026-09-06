@@ -19,7 +19,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # URDF einlesen
     urdf_path = os.path.join(
-        get_package_share_directory("pib_description"),
+        get_package_share_directory("pib_description_v4"),
         "urdf", "pib_upperbody.urdf"
     )
     with open(urdf_path, "r") as f:

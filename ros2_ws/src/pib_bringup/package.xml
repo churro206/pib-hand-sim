@@ -10,7 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>pib_description</depend>
+  <depend>pib_description_v4</depend>
   <depend>ros2_control</depend>
   <depend>ros2_controllers</depend>
   <depend>joint_state_broadcaster</depend>

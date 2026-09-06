@@ -24,10 +24,15 @@
 ## Namenskonventionen
 
 ### DOF-Namen
-Schema: `dof_{teil}_{seite}_{position}`
+**v4** — Schema: `dof_{teil}_{seite}_{position}`
 - Beispiele: `dof_index_left_proximal`, `dof_shoulder_vertical_right`, `dof_thumb_left_rotator`
 - Seite: `left` / `right`; Position: `proximal` / `distal` / `tip` / `rotator` / `vertical` / `horizontal`
-- Nie erfinden — immer aus `config/pib_hand_config.py` oder der URDF (`ros2_ws/src/pib_description/urdf/`)
+- Nie erfinden — immer aus `config/pib_hand_config_v4.py` oder der URDF (`ros2_ws/src/pib_description_v4/urdf/`)
+
+**v5** — Schema: `{teil}_{seite}_{position}` (**kein** `dof_`-Präfix — bewusst so aus Onshape
+exportiert, nicht angleichen). Sonst identisch, mit einer Abweichung: Daumen-Mittelgelenk
+heißt `tip` statt `distal` (`thumb_right_tip` statt `dof_thumb_right_distal` in v4).
+- Nie erfinden — immer aus `config/pib_hand_config_v5.py` oder `pib_upperbody_urdf_v5/robot.urdf`
 
 ### Python-Dateien
 - `isaac_sim/` — alles was Isaac Sim braucht (`start.py`, `setup_stage.py`, `autostart.py`)

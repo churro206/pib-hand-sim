@@ -50,7 +50,7 @@ source /opt/ros/jazzy/setup.bash
 cd ros2_ws && colcon build && cd ..
 ```
 
-Die USD-Datei liegt im Repo (`isaac_sim/usd/pib_upperbody.usd`) — enthält Roboter
+Die USD-Datei liegt im Repo (`isaac_sim/usd/pib_upperbody_v4.usd`) — enthält Roboter
 **und** den Action Graph, kein separater Export nötig.
 
 ### 3 — Isaac Sim starten
@@ -68,7 +68,7 @@ export ROS_DOMAIN_ID=0
 
 Dann in Isaac Sim:
 ```
-1. File → Open → isaac_sim/usd/pib_upperbody.usd laden
+1. File → Open → isaac_sim/usd/pib_upperbody_v4.usd laden
 2. Window → Script Editor öffnen
 3. isaac_sim/start.py öffnen und ausführen (Strg+Enter)
    → Drives, Limits und T-Pose werden gesetzt
@@ -149,7 +149,7 @@ Zeigefinger.
 
 ### Der Action Graph im Detail
 
-Liegt vollständig in `isaac_sim/usd/pib_upperbody.usd` (Window → Graph Editors
+Liegt vollständig in `isaac_sim/usd/pib_upperbody_v4.usd` (Window → Graph Editors
 → Action Graph zum Ansehen/Bearbeiten). Vier Nodes:
 
 1. **`ROS2SubscribeJointState`** — `topicName = /pib/hw/joint_commands`
@@ -204,17 +204,17 @@ bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces:
 
 ```
 config/
-  pib_hand_config.py     DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (für start.py)
+  pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (für start.py)
 
 isaac_sim/
   start.py                Session-Setup: Drives, Limits, T-Pose (vor Play ausführen)
   setup_stage.py           von start.py genutzt
   autostart.py             vollautomatischer Start ohne Script Editor (--exec)
   usd/
-    pib_upperbody.usd   Roboter + Action Graph
+    pib_upperbody_v4.usd   Roboter + Action Graph
 
 ros2_ws/src/
-  pib_description/        URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
+  pib_description_v4/     URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
   pib_bringup/
     launch/pib_sim.launch.py        Startet gesamten ros2_control-Stack
     config/controllers.yaml         JTC + JointStateBroadcaster, 50 Hz

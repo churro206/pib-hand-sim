@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "88a7aa55b7898da8505c0334",
+    "fullConfiguration": "default",
+    "id": "MvtQs+hioaEqDyaqD",
+    "isStandardContent": false,
+    "name": "urdf_palm_right <1>",
+    "partId": "RKyD",
+    "suppressed": false,
+    "type": "Part"
+}

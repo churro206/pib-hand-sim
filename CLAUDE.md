@@ -20,7 +20,7 @@ dort gültiges CLAUDE.md).
 ## Vorzeichen-Konvention (behoben, ADR-007)
 Onshape und Isaacs importierte Gelenkachsen waren vorzeicheninvertiert — physikalische
 Eigenschaft des Modells, kein Doku-Detail. Behoben direkt am Prim in
-`isaac_sim/tools/flip_joint_sign.py` (einmalig gegen `isaac_sim/usd/pib_upperbody.usd`
+`isaac_sim/tools/flip_joint_sign.py` (einmalig gegen `isaac_sim/usd/pib_upperbody_v4.usd`
 ausgeführt, Ergebnis gespeichert) — kein Script Node, kein `JOINT_SIGN` mehr nötig, siehe
 ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufen.
 
@@ -31,7 +31,7 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
 - `_load_mod(name, path)` in `start.py`/`setup_stage.py` → umgeht stale `.pyc`-Cache
 - `configure_drives()` jede Session aufrufen (PhysX cached Stiffness/Damping nicht) — `start.py` vor Play ausführen
 - `set_joint_limits()` verwenden — `fix_joint_limits` existiert nicht mehr
-- DOF-Namen nie erfinden → aus `config/pib_hand_config.py` oder der URDF (`ros2_ws/src/pib_description/urdf/`)
+- DOF-Namen nie erfinden → aus `config/pib_hand_config_v4.py`/`_v5.py` oder der jeweiligen URDF (`ros2_ws/src/pib_description_v4/urdf/`, `pib_upperbody_urdf_v5/robot.urdf`)
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -50,23 +50,31 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
 - **Contact Sensors** ← aktuelles Ziel — Ansatz entschieden (nativer `IsaacContactSensor`-
   Node, ADR-008), `index_right` verkabelt+verifiziert, restliche 9 Fingerspitzen offen
 - **Szenen-Erweiterung** ← aktuelles Ziel — weitere Objekte/Umgebung in der USD-Stage
+- **v5-Hand-Integration** ← aktuelles Ziel — v4 und v5 laufen dauerhaft parallel (nicht
+  ablösend), Repo-Struktur auf durchgängiges `_v4`/`_v5`-Schema gebracht; v5-seitige
+  Config/Action-Graph/Contact-Sensors/ros2_control noch offen, siehe `docs/current-sprint.md`
 
 Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen
 Branch verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 
 ## Schlüsseldateien
 ```
-config/pib_hand_config.py      DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits
+config/pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (v4, verifiziert)
+config/pib_hand_config_v5.py   dasselbe für v5 (folgt, siehe current-sprint.md)
 isaac_sim/start.py             Startroutine: Drives + Limits + Initialpose (vor Play ausführen)
 isaac_sim/setup_stage.py       von start.py genutzt
-isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec)
-isaac_sim/usd/pib_upperbody.usd   Roboter + Action Graph (einzige USD-Datei im Repo)
-ros2_ws/src/pib_description/                  URDF (44 DOFs + ros2_control-Tags) + Meshes
+isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec), lädt v4
+isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifizierter Arbeitsstand
+isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) — im Aufbau, noch Reference-Stub
+ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
-ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack
+ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
 ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py    Pickup-Demo (FollowJointTrajectory)
 ros2_ws/src/pib_bringup/pib_bringup/test_client_putdown.py   Putdown-Demo (Umkehrung)
 ```
+
+v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab) — überall
+im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
 → Entscheidungen: @docs/decisions.md (ADR-007) | Sprint: @docs/current-sprint.md

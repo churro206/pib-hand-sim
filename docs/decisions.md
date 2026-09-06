@@ -198,7 +198,7 @@ gebündelt in einer Nachricht laufen sollen.
   (Fehler „authoring to an instance proxy is not allowed"). Für jede weitere Fingerspitze
   wiederholen.
 - Bisher nur `index_right` verkabelt. Restliche 9 Fingerspitzen (siehe
-  `config/pib_hand_config.py` → `HAND_DOFS` für Namensschema) offen — gleiches Muster:
+  `config/pib_hand_config_v4.py` → `HAND_DOFS` für Namensschema) offen — gleiches Muster:
   Instanceable aus, `IsaacContactSensor`-Prim anlegen, `Isaac Read Contact Sensor Node` +
   `ROS2 Publisher`-Node im bestehenden Action Graph ergänzen.
 - Debugging-Fallstrick (nicht Node-spezifisch, aber hat die Verifikation verzögert):

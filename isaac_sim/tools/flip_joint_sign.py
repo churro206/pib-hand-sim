@@ -20,7 +20,7 @@ Limits werden passend mitgedreht: neu_lower = -alt_upper, neu_upper = -alt_lower
 WICHTIG:
   - Vor dem Ausführen: Simulation stoppen (nicht während Play laufen lassen).
   - Danach NICHT einfach start.py erneut ausführen, bevor setup_stage.py/
-    config/pib_hand_config.py angepasst sind (siehe Begleit-Änderungen) —
+    config/pib_hand_config_v4.py angepasst sind (siehe Begleit-Änderungen) —
     sonst überschreibt set_joint_limits() die neuen Limits wieder mit den
     alten gespiegelten Werten.
   - Erst nach visueller Bestätigung (Play, ein Gelenk auf positiven Wert

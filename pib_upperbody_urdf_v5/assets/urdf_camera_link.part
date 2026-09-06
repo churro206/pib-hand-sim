@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "b446875cccaefbe4e80e2774",
+    "elementId": "a6b8eec04564e2a67d45596a",
+    "fullConfiguration": "default",
+    "id": "Mj6sASL7LCT9imTXI",
+    "isStandardContent": false,
+    "name": "urdf_camera_link <1>",
+    "partId": "R9UD",
+    "suppressed": false,
+    "type": "Part"
+}
