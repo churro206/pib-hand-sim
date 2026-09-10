@@ -8,32 +8,30 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ### Zuletzt gearbeitet an
 
-1. **`isaac_sim/tools/dump_pose.py` neu**: liest Drive-Targets (Grad, Onshape-Konvention) der aktuell posierten Gelenke und hängt sie als Waypoint an `isaac_sim/tools/_pose_dump.json` an (gitignored) — Vorstufe für neue `test_client_*.py`-Sequenzen, da Copy-Paste aus der Isaac-Sim-Konsole nicht zuverlässig funktioniert.
-2. **`_find_root()`-Bug in `dump_pose.py` behoben**: prüfte nur 2 Eltern-Ebenen der offenen USD, Repo-Root liegt aber 3 Ebenen über `isaac_sim/usd/*.usd` — jetzt `f.parents` (alle Ebenen). **`isaac_sim/start.py` hat denselben Bug noch, unverändert** (fällt dort bisher unbemerkt auf den Home-Verzeichnis-Fallback zurück).
-3. **Szenen-Erweiterung**: Tisch-Prop als statischer Collider fixiert (`RigidBodyAPI` entfernt, nur `CollisionAPI` behalten — Asset-Browser-Möbel bringen oft eine dynamische `RigidBodyAPI` mit, die zum „Wegfliegen" führte), Korb mit Griffen + Tasse als Greif-Testobjekte ergänzt. Committed in `d11e9b9`.
-4. **`isaac_sim/tools/make_object_variant.py` verworfen**: sollte Korb/Teller per USD-VariantSet austauschbar machen, war fertig implementiert (Container-Prim + `create_container`/`add_variant`/`set_default_variant`), Leon hat es aber vor Umsetzung wieder verworfen — nicht mehr auf der Platte.
-5. Zwei Commits: `cdd135d` (dump_pose.py + `.gitignore`), `d11e9b9` (USD-Szene Tisch/Korb/Tasse — Commit-Message ist meine Interpretation aus dem Gespräch, da USD binär ist und nicht diffbar; ggf. gegenprüfen).
+1. **v4/v5-Namensschema repo-weit durchgezogen**: `isaac_sim/usd/pib_upperbody.usd` → `pib_upperbody_v4.usd`, `config/pib_hand_config.py` → `pib_hand_config_v4.py`, `pib_upperbody_urdf/` → `pib_upperbody_urdf_v4/`, `ros2_ws/src/pib_description/` → `pib_description_v4/`. Dabei gefunden: `pib_upperbody.usd` war seit ADR-007 stale — der echte v4-Stand (Contact-Sensor-Rebuild + Tisch/Korb/Tasse) lag in `pib_upperbody_contact_sensors_assets.usd`, das ist jetzt `pib_upperbody_v4.usd`.
+2. **v5-Hand-URDF importiert und in die Szene eingepflegt**: `isaac_sim/usd/pib_upperbody_v5.usd` = Kopie von v4, alter Roboter-Prim gelöscht, v5-URDF (`pib_upperbody_urdf_v5/robot.urdf`) reinimportiert (Convex Hull, Static Base, Instanceable aus), Tisch/Korb/Tasse aus v4 übernommen.
+3. **`isaac_sim/setup_stage.py` gefixt** (gilt für v4 und v5): `configure_drives()` setzt jetzt `physics:maxForce=inf` auf allen Drives (Isaac-Importer hatte für v5 den URDF-`effort`-Wert als Kappung übernommen, 10 Nm an der Schulter reichte nicht gegen die Trägheit). `set_initial_pose()` setzt alle Targets auf 0° (Ellbogen-30°-Sonderfall entfernt, war nie begründet).
+4. Nach dem maxForce-Fix schwangen manche v5-Gelenke — Ursache war **Self-Collision**, nicht Damping/Solver. Deaktiviert auf `root_joint` (v5s Articulation Root sitzt dort, nicht auf dem Wrapper-Xform wie bei v4). Alles committed (`877f714`) und gepusht.
 
 ### Offene Punkte
 
-- **Noch keine echten Pose-Sequenzen aufgenommen** — `dump_pose.py` ist gebaut und lief testweise, aber `_pose_dump.json` enthält noch keine vollständige Waypoint-Serie für eine neue Sequenz (z.B. Teller/Korb greifen).
-- Objekt-Austausch (Korb↔Teller) bewusst zurückgestellt — offen, ob später doch per VariantSet (Ansatz war valide, nur verworfen wegen Zeitdruck) oder einfach manuell in der Stage getauscht wird.
-- `start.py`s `_find_root()` hat denselben Ebenen-Bug wie `dump_pose.py` vor dem Fix — noch nicht behoben, Leon wollte das ggf. separat entscheiden.
-- Kurzzeitig `Simulation view object is invalidated and cannot be used again to call getSharedMetatype` beim Play — verschwand nach Isaac-Sim-Neustart, Root Cause nicht verifiziert (Verdacht: Nachwirkung der Contact-Sensor-Instanceable-Chirurgie aus einer früheren Session, siehe ADR-008, oder der dort nie bestätigte saubere Neustart).
-- Contact Sensors unverändert: nur `index_right` verkabelt, restliche 9 Fingerspitzen offen (siehe `docs/current-sprint.md`).
+- `config/pib_hand_config_v5.py` fehlt noch — DOF-Namen liegen aus der URDF vor, aber Limits/`ROBOT_PRIM_PATH`/Drive-Werte müssen gegen die echte Isaac-Stage verifiziert werden, nicht aus der URDF übernommen.
+- `ros2_ws/src/pib_description_v5/` fehlt — die v4-URDF hat 8 handgepflegte `<ros2_control>`-Tags gegenüber dem rohen Export, kein reiner Kopiervorgang.
+- Action Graph und Contact Sensors sind für v5 noch nicht verkabelt.
+- ADR-009 noch nicht geschrieben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Schema, maxForce-/Self-Collision-Fund) — Leon wollte das bewusst erst nach dem Einpflegen machen.
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Mit `dump_pose.py` eine erste vollständige Waypoint-Sequenz für ein neues Testobjekt aufnehmen (Label+Zeit pro Waypoint in der Datei), dann daraus `test_client_<name>.py` nach Pickup/Putdown-Muster bauen lassen.
-2. Entscheiden, ob/wie Objekt-Austausch (Korb/Teller) doch noch umgesetzt wird, oder ob Szenen-Erweiterung erstmal ohne Swap-Mechanik weiterläuft.
-3. Restliche 9 Fingerspitzen für Contact Sensors verkabeln (ADR-008-Muster: `SetInstanceable(False)` je Link, `IsaacContactSensor`-Prim, zwei Action-Graph-Nodes).
-4. Optional: `_find_root()`-Fix aus `dump_pose.py` auch in `start.py` nachziehen.
+1. Test-Trajektorien für v5 aufnehmen (`dump_pose.py`-Workflow, analog zu v4).
+2. Contact Sensors für v5 verkabeln (`index_right`-Muster aus ADR-008) — `SetInstanceable(False)` vermutlich **nicht** nötig, da Instanceable beim v5-Import schon deaktiviert war, aber gegenprüfen.
+3. Action Graph für v5 aufbauen (`ROS2SubscribeJointState`/`IsaacArticulationController`/`ROS2PublishJointState`) — `targetPrim` **muss** auf `root_joint` zeigen, nicht auf den Wrapper-Xform (anders als bei v4).
+4. `config/pib_hand_config_v5.py` schreiben — Voraussetzung für `set_joint_limits()`/`set_initial_pose()` mit v5-Namen und für die ros2_control-Seite.
 
 ### Wichtige Kontextdetails
 
-- **`dump_pose.py`-Mechanik**: liest `UsdPhysics.DriveAPI.Get(prim, "angular").GetTargetPositionAttr()` — dasselbe Attribut, das `setup_stage.set_initial_pose()` schreibt, also Onshape-Konvention (Grad), kein JOINT_SIGN mehr nötig (ADR-007 gilt weiter).
-- **Copy-Paste aus der Isaac-Sim-Konsole ist unzuverlässig** — deshalb schreibt `dump_pose.py` direkt in eine Datei (`isaac_sim/tools/_pose_dump.json`, gitignored), die Claude liest statt Konsolen-Output zu parsen.
-- **Drive-Targets/Pose zurücksetzen ohne Neustart**: `start.py` im Script Editor erneut ausführen (setzt alle Gelenke auf 0°, Ellbogen auf 30°) — für exakt 0° überall notfalls Ellbogen manuell per `DriveAPI.GetTargetPositionAttr().Set(0.0)` nachziehen.
-- **Objekt versehentlich umgekippt/verschoben**: erst Stop→Play probieren (verwirft den Session-Layer-Zustand, Objekt springt auf zuletzt gespeicherte authored Pose zurück) — funktioniert nicht, wenn zwischendurch mit Ctrl+S gespeichert wurde.
-- **Statische Props**: Asset-Browser-Möbel (z.B. der Tisch) kommen oft mit dynamischer `RigidBodyAPI` — für fixe Umgebungsobjekte diese entfernen, nur `CollisionAPI` behalten, sonst "fliegt" das Objekt bei Kollisionen weg.
-- **Leon macht öfter kurze Pausen mitten in der Arbeit** — Session kann mit unfertigem Zwischenstand enden (wie hier: Pose-Dump-Tooling fertig, aber noch keine echte Sequenz aufgenommen).
+- **v5-Joint-Namen bewusst ohne `dof_`-Präfix gelassen** (Onshape-Assembly-Konvention, kein Re-Export nur für Namensangleich, Leons Entscheidung) — Daumen-Mittelgelenk heißt `tip` statt `distal` wie bei v4. Nie versuchen anzugleichen.
+- **v5s Articulation Root sitzt auf `root_joint`** (ein `PhysicsFixedJoint`-Prim), nicht auf dem Wrapper-Xform wie bei v4 — anderes, aber gültiges Muster des neueren Isaac-URDF-Importers. Beim Action-Graph-Verkabeln unbedingt beachten.
+- **Instanceable beim v5-Import deaktiviert** → der ADR-008-Stolperstein (`SetInstanceable(False)` pro Fingerspitze nötig für Contact Sensors) entfällt für v5 komplett, war für v4 nötig.
+- **maxForce=inf gilt jetzt für v4 und v5 gleichermaßen** (`configure_drives()` ist rein namens-generisch, kein Config-Bezug) — v4 lief nur zufällig nie in den Bug, weil dort nie explizit ein `maxForce` gesetzt wurde (USD-Schema-Default ist `inf`).
+- **`isaac_sim/usd/configuration/`** (neu im Repo) ist eine Live-Dependency von `pib_upperbody_v5.usd` (Isaac-Importer-Sublayer-Struktur, ähnlich `pib_upperbody_urdf_v5/robot/configuration/`) — nicht löschen/verschieben, ohne die USD vorher zu flattenen.
+- Schwing-Debugging-Reihenfolge fürs nächste Mal: **maxForce-Kappung → Self-Collision → Solver-Iterationen → Damping-Retuning**, in dieser Priorität (billigster/nicht-invasivster Test zuerst).

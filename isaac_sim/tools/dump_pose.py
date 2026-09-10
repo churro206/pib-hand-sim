@@ -45,7 +45,7 @@ def _find_root() -> str:
 DUMP_FILE = os.path.join(_find_root(), "isaac_sim", "tools", "_pose_dump.json")
 
 # --- Pro Waypoint anpassen -------------------------------------------------
-WAYPOINT_LABEL = "approach"   # z.B. "neutral", "approach", "grasp", "lift"
+WAYPOINT_LABEL = "neutral"   # z.B. "neutral", "approach", "grasp", "lift"
 WAYPOINT_TIME_S = 2.0         # Ziel-Zeit relativ zum Sequenzstart (Sekunden)
 
 # Leer lassen = alle PhysicsRevoluteJoint-Prims in der Stage (alle 44 DOFs).
@@ -82,3 +82,4 @@ with open(DUMP_FILE, "w") as f:
 
 print(f"Waypoint '{WAYPOINT_LABEL}' (t={WAYPOINT_TIME_S}s, {len(pose)} Gelenke) -> {DUMP_FILE}")
 print("Bisherige Waypoints in der Datei:", list(data.keys()))
+

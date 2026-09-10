@@ -91,14 +91,25 @@ weiter oben in dieser Session):
 - [ ] `config/pib_hand_config_v5.py` — DOF-Namen liegen aus der URDF vor, aber Limits/
       `ROBOT_PRIM_PATH`/Drive-Werte müssen gegen die echte Isaac-Stage verifiziert werden,
       nicht aus der URDF übernommen (gleiches Prinzip wie bei v4)
-- [ ] `ros2_ws/src/pib_description_v5/` — neues Package, inkl. handgepflegter
-      `<ros2_control>`-Tags (die v4-URDF hat 8 zusätzliche, hier nicht automatisch
-      generierte Tags gegenüber dem rohen Export — kein reiner Kopiervorgang)
-- [ ] Test-Trajektorien für v5 bauen (analog `dump_pose.py`-Workflow)
+- [x] `ros2_ws/src/pib_description_v5/` — neues Package, `<ros2_control>`-Block von Hand
+      ergänzt (44 Joints, `topic_based_ros2_control`, gleiche `/pib/hw/*`-Topics wie v4 —
+      unproblematisch, da nie beide Stacks gleichzeitig gegen dieselbe Isaac-Instanz laufen)
+- [x] `ros2_ws/src/pib_bringup/config/controllers_v5.yaml` + `launch/pib_sim_v5.launch.py`
+      — v5-Pendants zu `controllers.yaml`/`pib_sim.launch.py`, v5-Joint-Namen
+- [x] `test_client_pickup_v5.py`/`test_client_putdown_v5.py` — aus der per `dump_pose.py`
+      aufgenommenen Sequenz (`isaac_sim/tools/_pose_dump.json`: neutral/approach/grasp/lift,
+      je 2s) gebaut, alle 44 DOFs (nicht nur Teilmenge wie bei v4), Joint-Namen gegen JSON/
+      YAML/URDF kreuzgeprüft (alle 44 identisch)
+- [ ] **Noch ungetestet** — `colcon build` für die neuen Packages lief in dieser Session
+      nicht (kein ROS2-Sourcing hier verfügbar), erste Ausführung steht noch aus
 - [ ] Contact Sensors für v5 verkabeln (`index_right`-Muster, ADR-008)
-- [ ] Action Graph für v5 aufbauen (`ROS2SubscribeJointState`/`IsaacArticulationController`/
-      `ROS2PublishJointState`, `targetPrim` → `root_joint`, siehe oben)
-- [ ] Pickup-/Putdown-Demo für v5 als Regressionscheck (sobald ros2_control-Seite steht)
+- [ ] **Action Graph für v5 fehlt noch — Blocker für die Test-Clients**: Ohne
+      `ROS2SubscribeJointState`/`IsaacArticulationController`(`targetPrim`→`root_joint`)/
+      `ROS2PublishJointState` in `pib_upperbody_v5.usd` bewegt sich der Roboter trotz
+      laufendem ros2_control-Stack nicht — die Clients senden ins Leere. Einfachster Weg:
+      die drei Nodes aus `pib_upperbody_v4.usd`s Action Graph kopieren, `targetPrim` auf
+      `root_joint` der v5-Stage umbiegen
+- [ ] Pickup-/Putdown-Demo für v5 als Regressionscheck (sobald Action Graph steht)
 - [ ] ADR-009 schreiben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Namensschema, maxForce-Fix,
       Self-Collision-Fund, Erkenntnis dass dieser Import-Weg über `onshape-to-robot`+URDF lief
       statt über den direkten Onshape-Importer wie beim v4-Aufbau)

@@ -22,4 +22,16 @@ install(PROGRAMS
   RENAME test_client_putdown
 )
 
+install(PROGRAMS
+  pib_bringup/test_client_pickup_v5.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME test_client_pickup_v5
+)
+
+install(PROGRAMS
+  pib_bringup/test_client_putdown_v5.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME test_client_putdown_v5
+)
+
 ament_package()

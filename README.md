@@ -13,12 +13,13 @@ Der volle Stand liegt weiterhin auf `feature/ros2-control`.
 
 ## Aktueller Stand
 
-| Teil | Status |
-|---|---|
-| USD-Stage mit Action Graph (ROS2 Subscribe/Publish Joint State + Articulation Controller) | ✓ läuft |
-| ros2_control-Stack (JTC, JointStateBroadcaster, TopicBasedSystem) | ✓ end-to-end verifiziert |
-| Pickup-Demo (Dose greifen und heben) | ✓ physikalisch verifiziert |
-| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ |
+| Teil | v4 | v5 |
+|---|---|---|
+| USD-Stage mit Action Graph (ROS2 Subscribe/Publish Joint State + Articulation Controller) | ✓ läuft | ✓ läuft |
+| ros2_control-Stack (JTC, JointStateBroadcaster, TopicBasedSystem) | ✓ end-to-end verifiziert | ✓ end-to-end verifiziert |
+| Pickup-Demo (Dose greifen und heben) | ✓ physikalisch verifiziert | ✓ läuft |
+| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ | ✓ läuft, Dose kippt gelegentlich um |
+| Contact Sensors (Fingertip-Kontaktkraft) | nur `index_right` verkabelt | offen |
 
 ---
 
@@ -50,13 +51,29 @@ source /opt/ros/jazzy/setup.bash
 cd ros2_ws && colcon build && cd ..
 ```
 
-Die USD-Datei liegt im Repo (`isaac_sim/usd/pib_upperbody_v4.usd`) — enthält Roboter
-**und** den Action Graph, kein separater Export nötig.
+Die USD-Datei liegt im Repo — enthält Roboter **und** den Action Graph, kein separater
+Export nötig. **v4 und v5 laufen dauerhaft parallel** (v5 löst v4 nicht ab), eigene USD,
+eigenes ROS2-Package, eigene Launch-/Config-/Client-Dateien je Version:
+
+| | v4 (verifizierte Referenz) | v5 (im Aufbau) |
+|---|---|---|
+| USD | `isaac_sim/usd/pib_upperbody_v4.usd` | `isaac_sim/usd/pib_upperbody_v5.usd` |
+| ROS2-Description-Package | `pib_description_v4` | `pib_description_v5` |
+| Launch-Datei | `pib_sim.launch.py` | `pib_sim_v5.launch.py` |
+| Controller-Config | `controllers.yaml` | `controllers_v5.yaml` |
+| Pickup-/Putdown-Client | `test_client_pickup`/`_putdown` | `test_client_pickup_v5`/`_putdown_v5` |
+| DOF-Namensschema | `dof_*` (mit Präfix) | ohne Präfix, Daumen-Mittelgelenk `tip` statt `distal` |
+
+> **Wichtig: v4- und v5-Stack niemals gleichzeitig laufen lassen** — beide nutzen dieselben
+> `/pib/hw/joint_commands`/`/pib/hw/joint_states`-Topics und denselben Action-Namen. Ein
+> zweiter `ros2 launch`-Aufruf neben einem schon laufenden kollidiert am
+> `controller_manager`-Knotennamen (`A controller named '...' was already loaded`) — erst
+> den einen sauber beenden (Strg+C), bevor der andere startet.
 
 ### 3 — Isaac Sim starten
 
-> **Wichtig:** ROS2 **und** der ros2_ws müssen in derselben Shell gesourced sein, bevor Isaac
-> Sim startet — der Action Graph nutzt Isaacs eigene rclpy-Version, die nur bei korrekt
+> ROS2 **und** der ros2_ws müssen in derselben Shell gesourced sein, bevor Isaac Sim
+> startet — der Action Graph nutzt Isaacs eigene rclpy-Version, die nur bei korrekt
 > gesourcter Umgebung sauber gefunden wird.
 
 ```bash
@@ -68,23 +85,24 @@ export ROS_DOMAIN_ID=0
 
 Dann in Isaac Sim:
 ```
-1. File → Open → isaac_sim/usd/pib_upperbody_v4.usd laden
+1. File → Open → isaac_sim/usd/pib_upperbody_v4.usd  (oder _v5.usd) laden
 2. Window → Script Editor öffnen
 3. isaac_sim/start.py öffnen und ausführen (Strg+Enter)
-   → Drives, Limits und T-Pose werden gesetzt
+   → Drives, Limits und T-Pose werden gesetzt (Version-unabhängig, dieselbe start.py)
 4. Toolbar: Play drücken  ▶
 ```
 
-Damit läuft alles — der Action Graph ist Teil der USD-Stage und aktiviert sich automatisch
-mit Play. Kein weiteres Skript nötig.
+Damit läuft alles — der Action Graph ist Teil der jeweiligen USD-Stage und aktiviert sich
+automatisch mit Play. Kein weiteres Skript nötig.
 
-**Schnellstart-Alternative** (ein Terminal, kein Script Editor):
+**Schnellstart-Alternative** (ein Terminal, kein Script Editor, lädt immer v4):
 ```bash
 source /opt/ros/jazzy/setup.bash && source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
 ~/isaacsim/isaac-sim.sh --exec ~/repos/pib-hand-sim/isaac_sim/autostart.py
 ```
-Lädt USD, führt `start.py` aus, drückt Play — vollautomatisch.
+Lädt v4-USD, führt `start.py` aus, drückt Play — vollautomatisch. Für v5: Schritt 3 oben
+manuell durchgehen (`autostart.py` kennt bisher nur v4).
 
 ### 4 — ros2_control-Stack starten (Terminal 2)
 
@@ -92,12 +110,15 @@ Lädt USD, führt `start.py` aus, drückt Play — vollautomatisch.
 source /opt/ros/jazzy/setup.bash
 source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
-ros2 launch pib_bringup pib_sim.launch.py
+
+ros2 launch pib_bringup pib_sim.launch.py       # v4
+ros2 launch pib_bringup pib_sim_v5.launch.py    # v5 — je nachdem, welche USD offen ist
 ```
 
 Status prüfen:
 ```bash
-ros2 control list_controllers   # beide müssen "active" sein
+ros2 control list_controllers          # beide müssen "active" sein
+ros2 topic echo /joint_states --once   # plausible Werte, nicht leer/stale
 ```
 
 ### 5 — Pickup-/Putdown-Demo ausführen (Terminal 3)
@@ -107,24 +128,29 @@ source /opt/ros/jazzy/setup.bash
 source ~/repos/pib-hand-sim/ros2_ws/install/setup.bash
 export ROS_DOMAIN_ID=0
 
-ros2 run pib_bringup test_client_pickup     # Dose greifen und heben
-ros2 run pib_bringup test_client_putdown    # danach: Dose absetzen und loslassen
+ros2 run pib_bringup test_client_pickup        # v4 — Dose greifen und heben
+ros2 run pib_bringup test_client_putdown       # v4 — danach: Dose absetzen und loslassen
+
+ros2 run pib_bringup test_client_pickup_v5     # v5 — dieselbe Rolle wie oben
+ros2 run pib_bringup test_client_putdown_v5    # v5
 ```
 
-`test_client_pickup`:
-- **t=0s** T-Pose
-- **t=2s** Approach — rechter Arm positioniert, Daumen opponiert
-- **t=4s** Grasp — alle Finger auf 33°
-- **t=6s** Lift — Ellbogen hebt die Dose an
+Beide Versionen folgen derselben 4-Waypoint-Choreografie, je 2s Abstand — nur die genauen
+Winkel/die Anzahl gesendeter DOFs unterscheiden sich (v4 sendet eine Teilmenge von 25/44
+DOFs mit fest im Skript kodierten Werten; v5 sendet alle 44 DOFs, 1:1 aus einer per
+`isaac_sim/tools/dump_pose.py` in der laufenden Stage aufgenommenen Sequenz —
+`isaac_sim/tools/_pose_dump.json`, gitignored, siehe Skript-Docstrings für die exakten
+Werte):
+- **t=0s** neutral — T-Pose
+- **t=2s** approach — rechter Arm über die Dose, Daumen opponiert
+- **t=4s** grasp — rechte Finger schließen
+- **t=6s** lift — Ellbogen/Schulter hebt die Dose an
 
-`test_client_putdown` (genau umgekehrt, im Anschluss an `test_client_pickup` ausführen):
-- **t=0s** Lift-Zustand (Startpunkt)
-- **t=2s** Grasp — Ellbogen senkt die Dose ab
-- **t=4s** Approach — Finger öffnen, Dose losgelassen
-- **t=6s** Neutral — Arm zurück in T-Pose
+Putdown ist jeweils die exakte Umkehrung (lift → grasp → approach → neutral). Beide zeigen
+per Feedback jede Sekunde Ist- vs. Soll-Position für Ellbogen, Daumen und Zeigefinger.
 
-Beide zeigen per Feedback jede Sekunde Ist- vs. Soll-Position für Ellbogen, Daumen und
-Zeigefinger.
+**Bekannt, noch offen (v5)**: Beim Absetzen kippt die Dose am Ende gelegentlich um —
+Sequenz funktioniert grundsätzlich, Feinschliff der Absetz-Trajektorie steht noch aus.
 
 ---
 
@@ -211,15 +237,24 @@ isaac_sim/
   setup_stage.py           von start.py genutzt
   autostart.py             vollautomatischer Start ohne Script Editor (--exec)
   usd/
-    pib_upperbody_v4.usd   Roboter + Action Graph
+    pib_upperbody_v4.usd   Roboter (v4) + Action Graph
+    pib_upperbody_v5.usd   Roboter (v5) + Action Graph
+  tools/
+    dump_pose.py           Nimmt Drive-Targets der aktuell posierten Gelenke als Waypoint
+                            auf → isaac_sim/tools/_pose_dump.json (gitignored)
 
 ros2_ws/src/
   pib_description_v4/     URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
+  pib_description_v5/     dasselbe für v5 (kein dof_-Präfix in den Joint-Namen)
   pib_bringup/
-    launch/pib_sim.launch.py        Startet gesamten ros2_control-Stack
-    config/controllers.yaml         JTC + JointStateBroadcaster, 50 Hz
-    pib_bringup/test_client_pickup.py     Pickup-Demo via FollowJointTrajectory
-    pib_bringup/test_client_putdown.py   Putdown-Demo (Umkehrung von test_client_pickup)
+    launch/pib_sim.launch.py           Startet ros2_control-Stack (v4)
+    launch/pib_sim_v5.launch.py        dasselbe für v5
+    config/controllers.yaml            JTC + JointStateBroadcaster, 50 Hz (v4)
+    config/controllers_v5.yaml         dasselbe für v5
+    pib_bringup/test_client_pickup.py       Pickup-Demo v4 via FollowJointTrajectory
+    pib_bringup/test_client_putdown.py      Putdown-Demo v4 (Umkehrung)
+    pib_bringup/test_client_pickup_v5.py    Pickup-Demo v5, aus dump_pose.py-Sequenz
+    pib_bringup/test_client_putdown_v5.py   Putdown-Demo v5 (Umkehrung)
   topic_based_ros2_control/   Hardware-Interface-Bridge (Drittanbieter-Paket)
 
 scripts/

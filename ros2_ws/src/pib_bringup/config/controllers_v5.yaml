@@ -1,0 +1,70 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50  # Hz — Isaac Sim läuft bei 60 Hz, wir bleiben darunter
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      # Körper
+      - head_horizontal
+      - head_vertical
+      - shoulder_vertical_left
+      - shoulder_horizontal_left
+      - upper_arm_left
+      - elbow_left
+      - forearm_left
+      - wrist_left
+      - shoulder_vertical_right
+      - shoulder_horizontal_right
+      - upper_arm_right
+      - elbow_right
+      - forearm_right
+      - wrist_right
+      # Linke Hand
+      - thumb_left_rotator
+      - thumb_left_proximal
+      - thumb_left_tip
+      - index_left_proximal
+      - index_left_distal
+      - index_left_tip
+      - middle_left_proximal
+      - middle_left_distal
+      - middle_left_tip
+      - ring_left_proximal
+      - ring_left_distal
+      - ring_left_tip
+      - pinky_left_proximal
+      - pinky_left_distal
+      - pinky_left_tip
+      # Rechte Hand
+      - thumb_right_rotator
+      - thumb_right_proximal
+      - thumb_right_tip
+      - index_right_proximal
+      - index_right_distal
+      - index_right_tip
+      - middle_right_proximal
+      - middle_right_distal
+      - middle_right_tip
+      - ring_right_proximal
+      - ring_right_distal
+      - ring_right_tip
+      - pinky_right_proximal
+      - pinky_right_distal
+      - pinky_right_tip
+
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+
+    # Trajektorie interpolieren (ros2_control übernimmt Smoothing)
+    allow_partial_joints_goal: true
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: false
