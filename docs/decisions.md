@@ -210,6 +210,88 @@ gebündelt in einer Nachricht laufen sollen.
 
 ---
 
+## ADR-009: Sehnendynamik-Kopplung via Script Node (bewusste Ausnahme von ADR-006/007/008)
+
+**Problem**: Die reale linke Hand (Prototyp, Unterarm + Hand) hat nur **8 Servos**
+(Handgelenk, Unterarmdrehung, Daumen-Rotator, sowie je ein Servo pro Finger/Daumen-MCP) —
+gesteuert über einen STM32 Nucleo. PIP/DIP (bzw. Daumen-IP) sind **nicht** unabhängig
+aktuiert, sondern folgen dem MCP rein mechanisch über zwei Kopplungsstangen (Viergelenk-
+getriebe pro Stufe). Die Simulation bildete bisher jedes Fingerglied als unabhängig
+positionsgesteuertes Gelenk ab (`servo_pose_to_joints()` in `config/pib_hand_config_v4.py`:
+lineare 1:1-Näherung) — kinematisch falsch und unbrauchbar als digitaler Zwilling für
+späteres Sim-to-Real-RL-Training (siehe `feature/rl-grasping`).
+
+**Entscheidung**: Ein Script Node (`FingerCoupling`) im bestehenden Action Graph
+(`/Graph/ROS_JointStates` in `pib_upperbody_v5.usd`) berechnet PIP/DIP/IP-Zielwinkel jeden
+Tick aus dem **gemessenen** Ist-Winkel des jeweils vorgelagerten Gelenks — geschlossener
+Regelkreis, kein Verlass auf den befehligten Soll-Wert. Formel: analytische Viergelenk-
+Kopplung (geschlossene Lösung, keine LUT, keine Nullstellensuche im Regelkreis), hergeleitet
+und validiert in `tendondrive/finger_analytisch.py` (Finger, r=7mm) und
+`tendondrive/daumen_analytisch.py` (Daumen, r=7,4mm) — siehe dort für die geometrische
+Herleitung der Schließbedingung. Ein neuer `IsaacArticulationState`-Node liefert die Ist-
+Winkel (`MeasuredJointState`, 18 Gelenke: `{finger}_{side}_proximal`/`_distal` +
+`thumb_{side}_proximal`). MCP selbst bleibt normale ROS2-Positions-Drive wie bisher, keine
+Sehnenkraft/Effort-Steuerung — reine kinematische Umleitung der Positions-Commands für 18
+von 44 Gelenken (4 Finger × 2-stufig + Daumen × 1-stufig, je beide Seiten).
+
+Geprüfte Alternative: natives PhysX Fixed-Tendon-Schema (`PhysxTendonAxisAPI`/
+`PhysxTendonAxisRootAPI`, in Isaac Sim 5.1 vorhanden) — verworfen, weil dessen Gearing ein
+**linearer** Koeffizient pro Achse ist. Die reale Kopplung ist stark nichtlinear
+(Übersetzung dPIP/dMCP läuft von 0,6 bis 1,667 über den Bewegungsbereich 0°–90°) und lässt
+sich damit nicht exakt abbilden, nur linear annähern.
+
+**Begründung**: Bewusste, begründete Ausnahme von der ADR-006/007/008-Linie ("kein Custom-
+Python im Action Graph") — das eigentliche Kriterium dahinter (Action Graph bleibt Teil der
+Stage, kein externer Prozess, kein Skript-Editor-Lauf pro Session nötig) ist weiterhin
+erfüllt. Für eine echte Sehnenkraft-Berechnung gäbe es ohnehin keinen nativen Node; die
+Alternative (Fixed Tendon) kann die nichtlineare Geometrie nicht exakt genug abbilden.
+
+**Konsequenzen**:
+- Neue Tools: `isaac_sim/tools/build_finger_coupling_graph.py` (einmaliger Graph-Aufbau,
+  fügt `MeasuredJointState`+`FingerCoupling` hinzu, hängt `ArticulationController.inputs:
+  jointNames`/`positionCommand` von `SubscriberJointState` auf `FingerCoupling` um),
+  `isaac_sim/tools/patch_finger_coupling_script.py` (gezielter Patch nur des Skript-Texts,
+  ohne Knoten neu anzulegen), `isaac_sim/tools/inspect_action_graph.py` (Diagnose: listet
+  Action-Graph-Knoten inkl. tatsächlicher Attribut-Verbindungen, schreibt nach
+  `isaac_sim/tools/_action_graph_inventory.txt`, gitignored).
+- `/pib/hw/joint_commands` liefert weiterhin Werte für alle 44 DOFs, aber `distal`/`tip`
+  (Daumen: `tip`) der 4 Finger + Daumen, beide Seiten (18 Gelenke), werden vom Script Node
+  **überschrieben** — eingehende ROS2-Werte für diese Gelenke werden ignoriert. `docs/
+  conventions.md` Topic-Tabelle entsprechend ergänzt.
+- **Zwei Bugs beim Erstaufbau gefunden, beide gefixt:**
+  1. `NameError: name 'np' is not defined` beim Aufruf der `FourBar`-Methoden, obwohl
+     `import numpy as np` direkt über der Klassendefinition auf Modulebene stand. Ursache:
+     Isaac Sims Script-Node-Sandbox execut den Skript-Text offenbar mit getrennten
+     globals-/locals-Dicts — der `import` landet nur im locals-Dict, aber Methoden einer
+     auf Modulebene definierten Klasse bekommen als `__globals__` das (numpy-lose)
+     globals-Dict. Klassischer Python-Fallstrick bei `exec()` mit getrennten globals/
+     locals. **Fix**: Klasse und Instanzen als Closures innerhalb von `setup(db)` anlegen,
+     Instanzen in `db.per_instance_state` ablegen — schließt korrekt über `setup()`s
+     eigenen Laufzeit-Namensraum, unabhängig vom Sandbox-Mechanismus. Gilt für **jeden**
+     künftigen Script Node auf diesem Branch — siehe neue Regel in `CLAUDE.md`.
+  2. Ziel-Gelenkname `thumb_{side}_distal` war falsch — v5-Namensschema nennt das
+     Daumenmittelgelenk `tip`, nicht `distal` (dokumentierte Abweichung, siehe
+     `docs/conventions.md`, war beim Schreiben übersehen worden). Führte zu einer
+     `ArticulationController`-Warnung (`OmniGraph Warning: 'thumb_left_distal'`), die
+     augenscheinlich den **kompletten** `positionCommand`-Batch blockierte — auch
+     unbeteiligte Gelenke wie `wrist_left` bewegten sich währenddessen nicht, was die
+     Fehlersuche zunächst in eine falsche Richtung lenkte (sah wie ein grundsätzliches
+     Verkabelungs-/Physics-Problem aus, war aber ein einzelner falscher Name).
+- End-to-end über den echten `ros2_control`-Stack verifiziert (`FollowJointTrajectory`-
+  Goals gegen `index_left_proximal`, `thumb_left_proximal`, `wrist_left` als Kontrolltest,
+  sowie alle 10 Finger-/Daumen-MCPs beider Hände gleichzeitig auf 90° — der einzige exakte
+  Punkt der Kopplungskurve, leicht auf einen Blick prüfbar).
+- Geometrie wird für **beide** Hände als identisch/gespiegelt angenommen (Kopplung läuft
+  für `left` und `right` symmetrisch) — nicht separat verifiziert, da real aktuell nur die
+  **linke** Hand als Hardware-Prototyp existiert.
+- Kontaktsensor-Erweiterung (restliche 9 Fingerspitzen, ADR-008-Muster) und
+  `config/pib_hand_config_v5.py` bleiben offen, siehe `docs/current-sprint.md`.
+- RL-Grasping-Vorhaben (Isaac Lab) auf neuem Branch `feature/rl-grasping` — Aktionsraum
+  dort **muss** die 8 realen Servo-DOFs sein, PIP/DIP/IP intern über dieselbe `FourBar`-
+  Formel berechnet (nicht lernbar), sonst lernt die Policy real unerreichbare Posen.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

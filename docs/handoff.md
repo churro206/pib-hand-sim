@@ -4,34 +4,37 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-09-06
+## Stand 2026-09-27
 
 ### Zuletzt gearbeitet an
 
-1. **v4/v5-Namensschema repo-weit durchgezogen**: `isaac_sim/usd/pib_upperbody.usd` → `pib_upperbody_v4.usd`, `config/pib_hand_config.py` → `pib_hand_config_v4.py`, `pib_upperbody_urdf/` → `pib_upperbody_urdf_v4/`, `ros2_ws/src/pib_description/` → `pib_description_v4/`. Dabei gefunden: `pib_upperbody.usd` war seit ADR-007 stale — der echte v4-Stand (Contact-Sensor-Rebuild + Tisch/Korb/Tasse) lag in `pib_upperbody_contact_sensors_assets.usd`, das ist jetzt `pib_upperbody_v4.usd`.
-2. **v5-Hand-URDF importiert und in die Szene eingepflegt**: `isaac_sim/usd/pib_upperbody_v5.usd` = Kopie von v4, alter Roboter-Prim gelöscht, v5-URDF (`pib_upperbody_urdf_v5/robot.urdf`) reinimportiert (Convex Hull, Static Base, Instanceable aus), Tisch/Korb/Tasse aus v4 übernommen.
-3. **`isaac_sim/setup_stage.py` gefixt** (gilt für v4 und v5): `configure_drives()` setzt jetzt `physics:maxForce=inf` auf allen Drives (Isaac-Importer hatte für v5 den URDF-`effort`-Wert als Kappung übernommen, 10 Nm an der Schulter reichte nicht gegen die Trägheit). `set_initial_pose()` setzt alle Targets auf 0° (Ellbogen-30°-Sonderfall entfernt, war nie begründet).
-4. Nach dem maxForce-Fix schwangen manche v5-Gelenke — Ursache war **Self-Collision**, nicht Damping/Solver. Deaktiviert auf `root_joint` (v5s Articulation Root sitzt dort, nicht auf dem Wrapper-Xform wie bei v4). Alles committed (`877f714`) und gepusht.
+1. **Sehnendynamik-Kopplung implementiert und verifiziert** (ADR-009): neuer `FingerCoupling`-Script-Node im v5-Action-Graph (`isaac_sim/tools/build_finger_coupling_graph.py`) berechnet PIP/DIP bzw. Daumen-IP jeden Tick aus dem gemessenen MCP-/PIP-Ist-Winkel (Viergelenkgetriebe-Formel aus `tendondrive/`). Digitaler Zwilling der realen linken Hand (8 Servos, PIP/DIP mechanisch nicht unabhängig aktuierbar).
+2. **Zwei Bugs gefunden und gefixt**: `NameError: name 'np' is not defined` (Script-Node-Sandbox execut mit getrennten globals/locals, Fix: Closures in `setup(db)` statt Modulebene) und falscher Gelenkname `thumb_left_distal` statt `thumb_left_tip` (v5-Namensschema-Abweichung übersehen).
+3. **End-to-end über echten `ros2_control`-Stack getestet**: `FollowJointTrajectory`-Goals gegen einzelne Finger, Daumen, Kontrolltest (`wrist_left`), alle 10 Finger-/Daumen-MCPs beider Hände gleichzeitig auf 90° (exakter Referenzpunkt der Kopplungskurve) — alles bestätigt korrekt.
+4. **Docs durchgängig aktualisiert** (CLAUDE.md, architecture.md, conventions.md, current-sprint.md, decisions.md/ADR-009) und neuer Branch `feature/rl-grasping` angelegt (RL-Feingreifen in Isaac Lab, aufbauend auf diesem digitalen Zwilling — eigenes CLAUDE.md dort).
 
 ### Offene Punkte
 
-- `config/pib_hand_config_v5.py` fehlt noch — DOF-Namen liegen aus der URDF vor, aber Limits/`ROBOT_PRIM_PATH`/Drive-Werte müssen gegen die echte Isaac-Stage verifiziert werden, nicht aus der URDF übernommen.
-- `ros2_ws/src/pib_description_v5/` fehlt — die v4-URDF hat 8 handgepflegte `<ros2_control>`-Tags gegenüber dem rohen Export, kein reiner Kopiervorgang.
-- Action Graph und Contact Sensors sind für v5 noch nicht verkabelt.
-- ADR-009 noch nicht geschrieben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Schema, maxForce-/Self-Collision-Fund) — Leon wollte das bewusst erst nach dem Einpflegen machen.
+- Restliche 9 Fingerspitzen-Kontaktsensoren (v4 **und** v5) noch nicht verkabelt — bei der Inspektion diese Session gefunden, dass `index_right` in v5 (entgegen der bisherigen Doku) bereits verkabelt war.
+- Regressionscheck Pickup-/Putdown-Demo v5 gegen die neue Kopplung **noch nicht gemacht** — die aufgezeichnete Sequenz schickt eigene distal/tip-Werte, die jetzt ignoriert werden, sollte aber trotzdem funktionieren (nicht verifiziert).
+- `config/pib_hand_config_v5.py` weiterhin nicht geschrieben.
+- ADR-010 (v5-Reimport-Entscheidung, Backlog-Punkt aus einer früheren Session, nur umnummeriert von ADR-009) weiterhin nicht geschrieben.
+- Kopplungsgeometrie nur für linke Seite an echter Hardware verifizierbar — rechte Hand existiert nicht physisch, Annahme "gespiegelt identisch" bleibt ungeprüft.
+- Isaac Lab ist auf dieser Maschine nicht installiert — erster Blocker für `feature/rl-grasping`.
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Test-Trajektorien für v5 aufnehmen (`dump_pose.py`-Workflow, analog zu v4).
-2. Contact Sensors für v5 verkabeln (`index_right`-Muster aus ADR-008) — `SetInstanceable(False)` vermutlich **nicht** nötig, da Instanceable beim v5-Import schon deaktiviert war, aber gegenprüfen.
-3. Action Graph für v5 aufbauen (`ROS2SubscribeJointState`/`IsaacArticulationController`/`ROS2PublishJointState`) — `targetPrim` **muss** auf `root_joint` zeigen, nicht auf den Wrapper-Xform (anders als bei v4).
-4. `config/pib_hand_config_v5.py` schreiben — Voraussetzung für `set_joint_limits()`/`set_initial_pose()` mit v5-Namen und für die ros2_control-Seite.
+1. Restliche 9 Fingerspitzen-Kontaktsensoren verkabeln (ADR-008-Muster, v4 und v5).
+2. Regressionscheck Pickup-/Putdown-Demo v5.
+3. `config/pib_hand_config_v5.py` schreiben (Limits/`ROBOT_PRIM_PATH` gegen laufende Stage verifizieren).
+4. Auf `feature/rl-grasping`: Isaac Lab installieren, dann `ArticulationCfg` gegen die echte v5-USD verifizieren — Aktionsraum **muss** die 8 realen Servo-DOFs sein, PIP/DIP/IP intern über dieselbe `FourBar`-Formel (nicht lernbar), sonst lernt die Policy real unerreichbare Posen.
 
 ### Wichtige Kontextdetails
 
-- **v5-Joint-Namen bewusst ohne `dof_`-Präfix gelassen** (Onshape-Assembly-Konvention, kein Re-Export nur für Namensangleich, Leons Entscheidung) — Daumen-Mittelgelenk heißt `tip` statt `distal` wie bei v4. Nie versuchen anzugleichen.
-- **v5s Articulation Root sitzt auf `root_joint`** (ein `PhysicsFixedJoint`-Prim), nicht auf dem Wrapper-Xform wie bei v4 — anderes, aber gültiges Muster des neueren Isaac-URDF-Importers. Beim Action-Graph-Verkabeln unbedingt beachten.
-- **Instanceable beim v5-Import deaktiviert** → der ADR-008-Stolperstein (`SetInstanceable(False)` pro Fingerspitze nötig für Contact Sensors) entfällt für v5 komplett, war für v4 nötig.
-- **maxForce=inf gilt jetzt für v4 und v5 gleichermaßen** (`configure_drives()` ist rein namens-generisch, kein Config-Bezug) — v4 lief nur zufällig nie in den Bug, weil dort nie explizit ein `maxForce` gesetzt wurde (USD-Schema-Default ist `inf`).
-- **`isaac_sim/usd/configuration/`** (neu im Repo) ist eine Live-Dependency von `pib_upperbody_v5.usd` (Isaac-Importer-Sublayer-Struktur, ähnlich `pib_upperbody_urdf_v5/robot/configuration/`) — nicht löschen/verschieben, ohne die USD vorher zu flattenen.
-- Schwing-Debugging-Reihenfolge fürs nächste Mal: **maxForce-Kappung → Self-Collision → Solver-Iterationen → Damping-Retuning**, in dieser Priorität (billigster/nicht-invasivster Test zuerst).
+- **Reale Hand**: nur die linke Hand + Unterarm existiert physisch (Prototyp), 8 Servos über STM32 Nucleo gesteuert (Handgelenk, Unterarmdrehung, Daumen-Rotator, 5× Finger-/Daumen-MCP). PIP/DIP/IP sind rein mechanisch über Kopplungsstangen gekoppelt, nicht individuell aktuiert — das ist der Grund für die gesamte Sehnendynamik-Arbeit, nicht nur ein Kinematik-Nice-to-have.
+- **Script-Node-Sandbox-Gotcha gilt für JEDEN künftigen Script Node**, nicht nur `FingerCoupling`: Klassen/Instanzen nie auf Modulebene, immer als Closure in `setup(db)` + `db.per_instance_state`. Siehe `docs/conventions.md` → „Script Node (Action Graph)".
+- **`IsaacArticulationController` scheint bei einem ungültigen Gelenknamen im Array den kompletten `positionCommand`-Batch zu verwerfen**, nicht nur den einen Eintrag — beim `thumb_left_distal`-Bug bewegte sich deshalb auch das unbeteiligte `wrist_left` nicht, was die Fehlersuche erst in eine falsche Richtung (generelles Physics-/Grace-Period-Problem) gelenkt hat. Nicht abschließend im Isaac-Sim-Quellcode verifiziert, nur empirisch beobachtet.
+- `isaac_sim/tools/inspect_action_graph.py` schreibt die Ausgabe zusätzlich nach `isaac_sim/tools/_action_graph_inventory.txt` (gitignored) — Konsolenausgabe im Script Editor lässt sich schlecht kopieren, `__file__` ist dort außerdem nicht definiert (Pfad wird stattdessen über die offene Stage aufgelöst, wie in `setup_stage.py`).
+- **`ros2 launch` läuft im Vordergrund** — Ctrl-C killt den kompletten Stack (`robot_state_publisher`, `controller_manager`, alle Controller), nicht nur die Spawner-Prozesse (die sich ohnehin normal selbst beenden). Zwei Terminals nötig: eins zum Laufenlassen, eins für Testbefehle.
+- Geprüfte, aber verworfene Alternative zur Sehnendynamik: natives PhysX-Fixed-Tendon-Schema (`PhysxTendonAxisAPI`) — Gearing ist linear, reale Kopplung ist nichtlinear (Übersetzung 0,6–1,667 über 0–90°), damit nicht exakt abbildbar.
+- **Neuer Branch `feature/rl-grasping`** von diesem Stand abgezweigt (nach Doku-Update), eigenes `CLAUDE.md` — erbt den kompletten digitalen Zwilling (USD, Sehnendynamik, Kontaktsensoren), nicht neu aufbauen.

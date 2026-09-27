@@ -7,7 +7,9 @@ Bewusst minimaler Zweig: Isaac-seitige ROS2-Anbindung läuft über einen nativen
 Graph (OmniGraph, Teil der USD-Stage) statt über eigenen Python-Bridge-Code. Diese Datei
 beschreibt den Stand **dieses Branches**. Der vollständige Stand mit `robot_io.py`,
 ControlMode-Architektur und Sprint-Fahrplan liegt auf `feature/ros2-control` (eigenes,
-dort gültiges CLAUDE.md).
+dort gültiges CLAUDE.md). Feinmotorisches Greifen per Reinforcement Learning (Isaac Lab,
+aufbauend auf dem hier entstandenen digitalen Zwilling) liegt auf `feature/rl-grasping`
+(ebenfalls eigenes CLAUDE.md), von diesem Branch abgezweigt.
 
 ## Session-Start
 **Lies zuerst `docs/handoff.md`** — enthält Stand und offene Punkte der letzten Session.
@@ -15,7 +17,7 @@ dort gültiges CLAUDE.md).
 ## Stack
 - **Isaac Sim 5.1** — Script Editor (`start.py`) + Action Graph (Teil der USD-Stage) + `ros2_control`
 - **Python 3.10+**, numpy | kein Test-Framework
-- Keine LSTM/Training-Pipeline auf diesem Branch (siehe `feature/ros2-control`)
+- Keine LSTM/Training-Pipeline auf diesem Branch (LSTM: siehe `feature/ros2-control`, RL-Grasping: siehe `feature/rl-grasping`)
 
 ## Vorzeichen-Konvention (behoben, ADR-007)
 Onshape und Isaacs importierte Gelenkachsen waren vorzeicheninvertiert — physikalische
@@ -32,6 +34,7 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
 - `configure_drives()` jede Session aufrufen (PhysX cached Stiffness/Damping nicht) — `start.py` vor Play ausführen
 - `set_joint_limits()` verwenden — `fix_joint_limits` existiert nicht mehr
 - DOF-Namen nie erfinden → aus `config/pib_hand_config_v4.py`/`_v5.py` oder der jeweiligen URDF (`ros2_ws/src/pib_description_v4/urdf/`, `pib_upperbody_urdf_v5/robot.urdf`)
+- Script Node (Action Graph): Klassen/Instanzen **nie** auf Modulebene des Skript-Texts anlegen, nur innerhalb `setup(db)` als Closures + `db.per_instance_state` — sonst `NameError` beim Methodenaufruf trotz sichtbarem `import` darüber (getrennte globals/locals im Sandbox-Exec, siehe ADR-009, `docs/conventions.md`)
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -47,15 +50,19 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
 ## Ziele (dieser Branch)
 - **OmniGraph-Migration** ✓ Action Graph ersetzt `pib_bridge.py`, Pickup-/Putdown-Demo verifiziert
 - **Vorzeichen-Fix** ✓ Gelenke direkt am Prim korrigiert (ADR-007), kein Script Node/JOINT_SIGN mehr
+- **v5-Hand-Integration** ✓ Action Graph, ros2_control-Stack, Pickup-/Putdown-Demo für v5
+  fertig und verifiziert; `config/pib_hand_config_v5.py` fehlt noch (siehe `docs/current-sprint.md`)
+- **Sehnendynamik** ✓ Digitaler Zwilling der realen linken Hand (8 Servos, Viergelenk-
+  Kopplung PIP/DIP/IP aus gemessenem MCP-Winkel) — bewusste Script-Node-Ausnahme von
+  ADR-006/007/008, siehe ADR-009
 - **Contact Sensors** ← aktuelles Ziel — Ansatz entschieden (nativer `IsaacContactSensor`-
-  Node, ADR-008), `index_right` verkabelt+verifiziert, restliche 9 Fingerspitzen offen
+  Node, ADR-008), `index_right` verkabelt+verifiziert (v4 und v5), restliche 9 Fingerspitzen
+  offen — nächster konkreter Schritt
 - **Szenen-Erweiterung** ← aktuelles Ziel — weitere Objekte/Umgebung in der USD-Stage
-- **v5-Hand-Integration** ← aktuelles Ziel — v4 und v5 laufen dauerhaft parallel (nicht
-  ablösend), Repo-Struktur auf durchgängiges `_v4`/`_v5`-Schema gebracht; v5-seitige
-  Config/Action-Graph/Contact-Sensors/ros2_control noch offen, siehe `docs/current-sprint.md`
 
 Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen
-Branch verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
+Branch verworfen — voller Fahrplan dazu auf `feature/ros2-control`. Feinmotorisches Greifen
+per RL ist ebenfalls nicht Teil dieses Branches — siehe `feature/rl-grasping`.
 
 ## Schlüsseldateien
 ```
@@ -65,7 +72,10 @@ isaac_sim/start.py             Startroutine: Drives + Limits + Initialpose (vor 
 isaac_sim/setup_stage.py       von start.py genutzt
 isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec), lädt v4
 isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifizierter Arbeitsstand
-isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) — im Aufbau, noch Reference-Stub
+isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) + Action Graph inkl. Sehnendynamik (ADR-009)
+isaac_sim/tools/build_finger_coupling_graph.py   Sehnendynamik-Kopplung in v5-Action-Graph einhängen (ADR-009)
+isaac_sim/tools/inspect_action_graph.py          Diagnose: Action-Graph-Knoten+Verbindungen auslesen
+tendondrive/                          Geometrie/Herleitung der Viergelenk-Kopplung (Finger+Daumen)
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
 ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
@@ -77,4 +87,4 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-007) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-009) | Sprint: @docs/current-sprint.md

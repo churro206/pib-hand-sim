@@ -65,6 +65,13 @@ export ROS_DOMAIN_ID=0
 | `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad), gelesen vom Action Graph |
 | `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad), vom Action Graph publiziert — Rohwert auf Hardware-Interface-Ebene, entspricht inhaltlich `/joint_states`, aber ohne den ros2_control-Layer davor |
 
+**v5 only (ADR-009)**: Werte in `/pib/hw/joint_commands` für `{index,middle,ring,pinky}_
+{left,right}_distal`/`_tip` und `thumb_{left,right}_tip` (18 von 44 Gelenken) werden vom
+`FingerCoupling`-Script-Node im Action Graph **ignoriert** und durch die analytisch
+gekoppelten Werte aus dem jeweils gemessenen MCP-/PIP-Ist-Winkel ersetzt — diese Gelenke
+sind auf der realen Hand nicht unabhängig aktuierbar (Sehnenkopplung, nicht 3 Motoren pro
+Finger). `proximal` (MCP) bleibt normale ROS2-Positions-Drive.
+
 Winkeleinheit durchgehend **Radiant** — kein separater `deg`/`rad`-Umschalter mehr (`config/server_config.py` existiert auf diesem Branch nicht).
 
 ### Workflow
@@ -102,6 +109,33 @@ Genutzt von `start.py`, um `setup_stage.py` zu laden.
 await app.next_update_async()
 ```
 (Kein Standalone-Modus mehr auf diesem Branch — `_launch_helper.py` wurde entfernt.)
+
+### Script Node (Action Graph) — Modulebene vs. setup()/compute()
+**Nie** Klassen/Instanzen mit echten Berechnungen auf Modulebene eines Script-Node-Skripts
+anlegen (z.B. `import numpy as np` gefolgt von `MEIN_OBJEKT = MeineKlasse(...)` direkt
+danach). Beobachteter Fehler (ADR-009): `NameError: name 'np' is not defined` beim Aufruf
+einer Methode, obwohl der `import` sichtbar direkt darüber steht. Ursache: Isaac Sims
+Script-Node-Sandbox execut Top-Level-Code offenbar mit getrennten globals-/locals-Dicts —
+der `import` landet nur im locals-Dict, Methoden einer auf Modulebene definierten Klasse
+bekommen aber das (numpy-lose) globals-Dict als `__globals__`. Klassischer Python-
+Fallstrick bei `exec()` mit getrennten globals/locals.
+
+**Fix**: Klasse(n) und Instanzen als Closures innerhalb von `setup(db)` definieren,
+Instanzen in `db.per_instance_state` ablegen, `compute(db)` greift nur noch darauf zu:
+```python
+def setup(db):
+    import numpy as np
+
+    class Foo:
+        def bar(self):
+            return np.array(...)  # funktioniert -- echte Closure ueber setup()s Frame
+
+    db.per_instance_state.foo = Foo()
+
+def compute(db):
+    result = db.per_instance_state.foo.bar()
+```
+Referenzimplementierung: `isaac_sim/tools/finger_coupling_script_node.py`.
 
 ## Commit-Konventionen
 - Keine automatischen Commits — Leon schaut erst drüber

@@ -29,12 +29,16 @@ verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 
 - [x] Entscheidung: nativer `IsaacContactSensor`-Node (nicht `ArticulationView`-Tensor-API),
       siehe ADR-008
-- [x] `index_right` verkabelt und verifiziert: `IsaacContactSensor`-Prim + `Isaac Read
+- [x] `index_right` verkabelt und verifiziert (v4): `IsaacContactSensor`-Prim + `Isaac Read
       Contact Sensor Node` + generischer `ROS2 Publisher`-Node (`std_msgs/Float32`) auf
       `/pib/fingertip_force/index_right` — Kraftwerte kommen korrekt an (~1-2 N beim
       Greifen der Testdose)
-- [ ] Restliche 9 Fingerspitzen nach demselben Muster verkabeln (siehe ADR-008 für die
-      Schritte: `SetInstanceable(False)` je Link-Prim, Sensor-Prim, zwei Action-Graph-Nodes)
+- [x] **v5 hat `index_right` ebenfalls schon verkabelt** — bei der Action-Graph-Inspektion
+      diese Session gefunden (`isaac_sim/tools/inspect_action_graph.py`), war in dieser
+      Datei zuvor nicht als erledigt vermerkt (Doku war hier hinter der Realität)
+- [ ] Restliche 9 Fingerspitzen (v4 und v5) nach demselben Muster verkabeln (siehe ADR-008
+      für die Schritte: `SetInstanceable(False)` je Link-Prim, Sensor-Prim, zwei Action-
+      Graph-Nodes) — **nächster konkreter Schritt** (Leon: "FSR an den anderen Fingern")
 - [ ] Ggf. auf gebündeltes Topic/Array umstellen, falls Einzel-Topics pro Finger auf Dauer
       unhandlich werden (`ConstructArray` + `ROS2PublishJointState`, siehe ADR-008)
 
@@ -90,7 +94,7 @@ weiter oben in dieser Session):
       `root_joint` zeigen, nicht auf den Wrapper-Prim
 - [ ] `config/pib_hand_config_v5.py` — DOF-Namen liegen aus der URDF vor, aber Limits/
       `ROBOT_PRIM_PATH`/Drive-Werte müssen gegen die echte Isaac-Stage verifiziert werden,
-      nicht aus der URDF übernommen (gleiches Prinzip wie bei v4)
+      nicht aus der URDF übernommen (gleiches Prinzip wie bei v4) — weiterhin offen
 - [x] `ros2_ws/src/pib_description_v5/` — neues Package, `<ros2_control>`-Block von Hand
       ergänzt (44 Joints, `topic_based_ros2_control`, gleiche `/pib/hw/*`-Topics wie v4 —
       unproblematisch, da nie beide Stacks gleichzeitig gegen dieselbe Isaac-Instanz laufen)
@@ -100,22 +104,57 @@ weiter oben in dieser Session):
       aufgenommenen Sequenz (`isaac_sim/tools/_pose_dump.json`: neutral/approach/grasp/lift,
       je 2s) gebaut, alle 44 DOFs (nicht nur Teilmenge wie bei v4), Joint-Namen gegen JSON/
       YAML/URDF kreuzgeprüft (alle 44 identisch)
-- [ ] **Noch ungetestet** — `colcon build` für die neuen Packages lief in dieser Session
-      nicht (kein ROS2-Sourcing hier verfügbar), erste Ausführung steht noch aus
-- [ ] Contact Sensors für v5 verkabeln (`index_right`-Muster, ADR-008)
-- [ ] **Action Graph für v5 fehlt noch — Blocker für die Test-Clients**: Ohne
-      `ROS2SubscribeJointState`/`IsaacArticulationController`(`targetPrim`→`root_joint`)/
-      `ROS2PublishJointState` in `pib_upperbody_v5.usd` bewegt sich der Roboter trotz
-      laufendem ros2_control-Stack nicht — die Clients senden ins Leere. Einfachster Weg:
-      die drei Nodes aus `pib_upperbody_v4.usd`s Action Graph kopieren, `targetPrim` auf
-      `root_joint` der v5-Stage umbiegen
-- [ ] Pickup-/Putdown-Demo für v5 als Regressionscheck (sobald Action Graph steht)
-- [ ] ADR-009 schreiben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Namensschema, maxForce-Fix,
+- [x] **`colcon build` erfolgreich** — `ros2_ws/install/` enthält `pib_description_v5`/
+      `pib_bringup` aktuell (verifiziert diese Session, war zuvor als ungetestet vermerkt)
+- [x] **Action Graph für v5 fertig verkabelt** (war hier fälschlich noch als Blocker
+      vermerkt — laut `docs/handoff.md` vom 2026-09-10 bereits erledigt, diese Session per
+      `inspect_action_graph.py` gegen die echte Stage verifiziert: `targetPrim` zeigt
+      korrekt auf `root_joint`)
+- [x] Pickup-/Putdown-Demo für v5 als Regressionscheck — laut `docs/handoff.md` vom
+      2026-09-10 bereits end-to-end verifiziert. **Erneuter Regressionscheck nötig**, da
+      die Sehnendynamik-Kopplung (siehe unten) jetzt `distal`/`tip` der aufgezeichneten
+      Sequenz überschreibt — noch nicht erneut gegen die Demo getestet
+- [ ] ADR-010 schreiben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Namensschema, maxForce-Fix,
       Self-Collision-Fund, Erkenntnis dass dieser Import-Weg über `onshape-to-robot`+URDF lief
-      statt über den direkten Onshape-Importer wie beim v4-Aufbau)
+      statt über den direkten Onshape-Importer wie beim v4-Aufbau) — Nummer verschoben von
+      ADR-009 auf ADR-010, da ADR-009 jetzt die Sehnendynamik-Entscheidung ist (siehe unten)
+
+## Sehnendynamik ✓ (neu, diese Session)
+
+**Ziel**: Digitaler Zwilling der realen linken Hand (Unterarm + Hand, 8 Servos) — PIP/DIP
+bzw. Daumen-IP folgen dem jeweiligen MCP über dieselbe Viergelenk-Kopplung wie die echte
+Hardware, statt unabhängig positionsgesteuert zu sein. Vorarbeit (Geometrie/Formel
+hergeleitet und validiert) kam aus einer separaten Session, lag als Prompt + Referenz-
+Skripte in `tendondrive/`.
+
+- [x] Entscheidung: Script Node im bestehenden Action Graph, geschlossener Regelkreis über
+      gemessene Ist-Winkel, kein Sehnenkraft-/Effort-Modell (siehe ADR-009)
+- [x] Action Graph erweitert (`isaac_sim/tools/build_finger_coupling_graph.py`):
+      `MeasuredJointState` (`IsaacArticulationState`) + `FingerCoupling` (Script Node) neu,
+      `ArticulationController` liest `jointNames`/`positionCommand` jetzt von
+      `FingerCoupling` statt direkt von `SubscriberJointState`
+- [x] Zwei Bugs gefunden und gefixt (Script-Node-Sandbox-`NameError`, falscher Daumen-
+      Gelenkname `distal` statt `tip`) — Details siehe ADR-009
+- [x] End-to-end über echten `ros2_control`-Stack verifiziert: einzelne Finger, Daumen,
+      Kontrolltest mit unbeteiligtem Gelenk (`wrist_left`), alle 10 Finger-/Daumen-MCPs
+      beider Hände gleichzeitig auf 90°
+- [ ] Restliche 9 Fingerspitzen-Kontaktsensoren (siehe „Contact Sensors" oben) — als
+      nächstes geplant, dann volle Sensorabdeckung für den digitalen Zwilling
+- [ ] Regressionscheck Pickup-/Putdown-Demo v5 (s.o.)
+- [ ] Geometrie nur für linke Seite an echter Hardware validierbar (rechte Hand existiert
+      nicht physisch) — Annahme "gespiegelt identisch" bleibt unverifiziert
+
+---
+
+## RL-Grasping (Isaac Lab) — ausgelagert auf `feature/rl-grasping`
+
+Feinmotorisches Greifen (Force Closure) per RL, aufbauend auf dem digitalen Zwilling dieses
+Branches (Sehnendynamik, USD, Kontaktsensoren). Eigener Branch, eigenes `CLAUDE.md` — siehe
+dort für Ziele/Stand. Nicht Teil dieses Sprints.
 
 ---
 
 ## Nicht in diesem Sprint
-- Team-Integration (Koordinatenrahmen, IK-/Greifpunkt-Interface)
-- AS5600-Sensoren, LSTM-Training
+- Team-Integration (Koordinatenrahmen, IK-/Greifpunkt-Interface) — siehe `feature/ros2-control`
+- AS5600-Sensoren, LSTM-Training — siehe `feature/ros2-control`
+- RL-Grasping-Training — siehe `feature/rl-grasping`

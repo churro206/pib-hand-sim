@@ -14,6 +14,11 @@ RoboCup 2027 @Home. Mehrere Gruppen:
 
 Alle Teams nutzen **ROS2**. Auf diesem Branch noch nicht angegangen (siehe „Offen" unten).
 
+**RL-Grasping**: Feinmotorisches Greifen (Force Closure) per Reinforcement Learning in
+Isaac Lab, aufbauend auf dem digitalen Zwilling dieses Branches — eigener Branch
+`feature/rl-grasping`, eigenes `CLAUDE.md`. Nicht Teil dieses Branches, siehe dort für
+Details.
+
 **v4/v5**: Seit der v5-Hand-Baugruppe läuft alles Folgende doppelt, für v4 (verifiziert,
 Referenz-Implementierung) und v5 (im Aufbau) parallel — nicht ablösend. Durchgängiges
 Namensschema: `_v4`-Suffix bzw. `_v5`-Suffix auf jeder Ebene (USD, Config, ROS2-Package).
@@ -72,6 +77,26 @@ die anfangs noch einen Script Node brauchte, ist seit ADR-007 keine Laufzeit-Kom
 mehr, sondern eine einmalige Korrektur direkt an den Gelenk-Prims — kein Custom-Code mehr
 im Action Graph selbst.
 
+### v5-Besonderheit: FingerCoupling Script Node (ADR-009)
+Gilt **nur für `pib_upperbody_v5.usd`**, nicht für v4 — der obige Aufbau (drei Nodes, kein
+Script Node) bleibt für v4 unverändert gültig. In `/Graph/ROS_JointStates` (v5) kommen zwei
+zusätzliche Knoten dazu, beide direkt (parallel, nicht verkettet) an `OnPlaybackTick`:
+
+4. **`MeasuredJointState`** (`isaacsim.core.nodes.IsaacArticulationState`) — liest die
+   Ist-Winkel der 18 gekoppelten Gelenke (`targetPrim = root_joint`)
+5. **`FingerCoupling`** (`omni.graph.scriptnode.ScriptNode`) — berechnet PIP/DIP/IP-
+   Zielwinkel aus den Ist-Winkeln (Viergelenk-Kopplung), sitzt jetzt zwischen
+   `SubscriberJointState` und `ArticulationController`: liest deren `jointNames`/
+   `positionCommand` als Daten-Input, überschreibt 18 der 44 Einträge, `ArticulationController`
+   bezieht `jointNames`/`positionCommand` seither von `FingerCoupling` statt direkt von
+   `SubscriberJointState`
+
+Bewusste, begründete Ausnahme von "kein Custom-Python im Action Graph" — siehe ADR-009 für
+Begründung, Alternativen-Abwägung (natives PhysX-Fixed-Tendon-Schema verworfen, Gearing zu
+linear für die reale Kopplungsgeometrie) und zwei dabei gefundene Bugs. **Wichtige Regel
+für jeden künftigen Script Node**: Klassen/Instanzen als Closures innerhalb von `setup(db)`
+anlegen, nicht auf Modulebene — sonst `NameError`, siehe ADR-009 und `CLAUDE.md`.
+
 ---
 
 ## Layer 1 — Isaac-Setup
@@ -118,20 +143,22 @@ Nutzen). Ein `IsaacContactSensor`-Prim lässt sich nicht unter einem Instance-Pr
 („authoring to an instance proxy is not allowed") — vorher `SetInstanceable(False)` auf
 dem jeweiligen Fingertip-Link-Prim setzen.
 
-Bisher nur `index_right` verkabelt und verifiziert. Restliche 9 Fingerspitzen offen, siehe
-`docs/current-sprint.md`.
+Bisher nur `index_right` verkabelt und verifiziert (v4 **und** v5 — v5 wurde diese Session
+bei der Action-Graph-Inspektion als bereits vorhanden gefunden). Restliche 9 Fingerspitzen
+offen, siehe `docs/current-sprint.md` — nächster konkreter Schritt.
 
 ### Szenen-Erweiterung
 Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody_v4.usd` — Details noch offen.
 
 ### v5-Hand-Integration
 v5 läuft dauerhaft parallel zu v4 (nicht ablösend), Repo-Struktur bereits auf `_v4`/`_v5`
-gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Noch offen: `pib_hand_config_v5.py`
-(DOF-Namen/Limits gegen die echte Stage verifizieren, nicht nur aus der URDF übernehmen),
-`isaac_sim/usd/pib_upperbody_v5.usd` flatten + Action Graph/Contact Sensors aufbauen,
-`ros2_ws/src/pib_description_v5/` (inkl. handgepflegter `<ros2_control>`-Tags, analog zu
-`pib_description_v4`). v5-Gelenkachsen sind laut Import bereits korrekt orientiert —
-`flip_joint_sign.py` (ADR-007) vermutlich nicht nötig, aber noch nicht gegengeprüft.
+gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Action Graph, ros2_control-
+Stack und Pickup-/Putdown-Demo für v5 sind fertig und verifiziert (siehe „Layer 2" oben,
+`docs/current-sprint.md`); ebenso die Sehnendynamik-Kopplung (ADR-009). Noch offen:
+`config/pib_hand_config_v5.py` (DOF-Namen liegen vor, Limits/`ROBOT_PRIM_PATH` müssen
+gegen die echte Stage verifiziert werden, nicht aus der URDF übernommen), restliche
+Kontaktsensoren, ADR-010 (v5-Reimport-Entscheidung, bisher nur in `docs/current-sprint.md`
+nacherzählt, nicht als ADR festgehalten).
 
 ---
 

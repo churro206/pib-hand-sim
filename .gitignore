@@ -25,3 +25,6 @@ runs/
 
 # Zwischenergebnis von isaac_sim/tools/dump_pose.py
 isaac_sim/tools/_pose_dump.json
+
+# Zwischenergebnis von isaac_sim/tools/inspect_action_graph.py
+isaac_sim/tools/_action_graph_inventory.txt
