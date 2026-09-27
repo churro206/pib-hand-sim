@@ -8,6 +8,11 @@ historischer Kontext (warum diese Entscheidungen ursprünglich getroffen wurden)
 gelassen, gelten aber nicht mehr für den aktuellen Code hier. Voller Stand auf
 `feature/ros2-control`.
 
+> **Geerbt auf `feature/rl-grasping`** (Branch-Abzweigung 2026-09-27): Historie bis
+> ADR-009 gilt unverändert für die Simulationsseite, auf der dieser Branch aufbaut. Neue
+> RL-Entscheidungen bekommen eigene ADRs hier ab ADR-010 (Nummerierung getrennt von
+> `experiment/omnigraph-lightweight`, das dort unabhängig weiterläuft).
+
 ---
 
 ## ADR-001: JOINT_SIGN statt Onshape-Achsen-Fix

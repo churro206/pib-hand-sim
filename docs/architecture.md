@@ -5,6 +5,12 @@ vollständige Stand mit `robot_io.py`, ControlMode-Architektur (`direct`/`servo`
 Sequenz-Executor und Sprint-3/4-Fahrplan liegt auf `feature/ros2-control` (eigene Version
 dieser Datei dort).
 
+> **Geerbt auf `feature/rl-grasping`** (Branch-Abzweigung 2026-09-27): Diese Datei
+> beschreibt weiterhin die Simulations-/Action-Graph-Architektur von
+> `experiment/omnigraph-lightweight`, auf der `feature/rl-grasping` aufbaut und die dort
+> unverändert genutzt (nicht hier gepflegt) wird. RL-spezifische Inhalte stehen im
+> `CLAUDE.md` dieses Branches und in `docs/rl-grasping-notes.md`.
+
 ## Team-Kontext
 RoboCup 2027 @Home. Mehrere Gruppen:
 - **pib-Sim** (Leon): Simulation, ros2_control-Stack, Schnittstellen

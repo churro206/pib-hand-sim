@@ -3,6 +3,10 @@
 Alte Sprints/Ziele (Simulation Server, Team-Integration, LSTM-Training) für diesen Branch
 verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 
+> **Geerbt auf `feature/rl-grasping`** (Branch-Abzweigung 2026-09-27): beschreibt den
+> Sim-Sprint-Stand von `experiment/omnigraph-lightweight` zum Abzweigungszeitpunkt, nicht
+> hier weitergepflegt. RL-Sprint/Aufgaben siehe `CLAUDE.md` dieses Branches.
+
 ## OmniGraph-Migration ✓
 
 - [x] `pib_bridge.py` durch Action Graph ersetzt (`ROS2SubscribeJointState` → Script Node

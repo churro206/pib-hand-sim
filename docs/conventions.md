@@ -3,6 +3,10 @@
 **Branch `experiment/omnigraph-lightweight`.** Beschreibt den Stand dieses Branches — kein
 `robot_io.py`, kein `control/`, keine Sequenz-Pipeline. Voller Stand auf `feature/ros2-control`.
 
+> **Geerbt auf `feature/rl-grasping`** (Branch-Abzweigung 2026-09-27): weiterhin gültig für
+> die Simulationsseite, die dieser Branch nutzt (nicht hier gepflegt). Siehe `CLAUDE.md` /
+> `docs/rl-grasping-notes.md` für RL-spezifisches.
+
 ## Winkel und Vorzeichen
 
 ### Konvention (ROS2 und Isaac identisch, seit ADR-007)

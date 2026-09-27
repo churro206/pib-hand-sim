@@ -1,90 +1,90 @@
 # pib-Hand-Sim
 
-Leon, RoboCup 2027 @Home: pib v4 Roboterhand-Simulation in NVIDIA Isaac Sim 5.1.
+Leon, RoboCup 2027 @Home: feinmotorisches Greifen (Force Closure) für die reale linke
+pib-Hand per Reinforcement Learning in NVIDIA Isaac Lab.
 
-## Branch `experiment/omnigraph-lightweight`
-Bewusst minimaler Zweig: Isaac-seitige ROS2-Anbindung läuft über einen nativen Action
-Graph (OmniGraph, Teil der USD-Stage) statt über eigenen Python-Bridge-Code. Diese Datei
-beschreibt den Stand **dieses Branches**. Der vollständige Stand mit `robot_io.py`,
-ControlMode-Architektur und Sprint-Fahrplan liegt auf `feature/ros2-control` (eigenes,
-dort gültiges CLAUDE.md). Feinmotorisches Greifen per Reinforcement Learning (Isaac Lab,
-aufbauend auf dem hier entstandenen digitalen Zwilling) liegt auf `feature/rl-grasping`
-(ebenfalls eigenes CLAUDE.md), von diesem Branch abgezweigt.
+## Branch `feature/rl-grasping`
+Von `experiment/omnigraph-lightweight` abgezweigt (2026-09-27), **nachdem** dort der
+digitale Zwilling der Hand fertig war (v5-USD, Sehnendynamik-Kopplung ADR-009,
+`ros2_control`-Stack). Dieser Branch **erbt** diesen Zwilling und baut eine RL-Trainings-
+umgebung obendrauf — er pflegt nicht die Simulations-/Action-Graph-Seite selbst weiter,
+das bleibt auf `experiment/omnigraph-lightweight` (eigenes, dort gültiges `CLAUDE.md`).
+Team-Integration/LSTM-Fahrplan liegt weiterhin auf `feature/ros2-control`.
 
 ## Session-Start
-**Lies zuerst `docs/handoff.md`** — enthält Stand und offene Punkte der letzten Session.
+**Lies zuerst `docs/handoff.md`** — Stand der letzten Session auf diesem Branch. Für den
+geerbten Sim-Kontext: `docs/architecture.md`/`docs/decisions.md` (Stand zum Abzweigungs-
+zeitpunkt, siehe Hinweisblöcke dort) und `docs/rl-grasping-notes.md` (Ursprungs-Prompt +
+Bewertung dieses Vorhabens).
 
-## Stack
-- **Isaac Sim 5.1** — Script Editor (`start.py`) + Action Graph (Teil der USD-Stage) + `ros2_control`
-- **Python 3.10+**, numpy | kein Test-Framework
-- Keine LSTM/Training-Pipeline auf diesem Branch (LSTM: siehe `feature/ros2-control`, RL-Grasping: siehe `feature/rl-grasping`)
+## Reale Hardware (Kontext, nicht simuliert von diesem Branch selbst)
+- Physischer Prototyp: **nur die linke Hand + Unterarm** existiert real, kein rechter Arm.
+- **8 Servos**, gesteuert über einen STM32 Nucleo: Handgelenk, Unterarmdrehung,
+  Daumen-Rotator, sowie je ein Servo pro Finger-MCP (Zeige-/Mittel-/Ring-/kleiner Finger)
+  und Daumen-MCP.
+- PIP/DIP (Finger) bzw. IP (Daumen) sind **nicht** individuell aktuiert — mechanische
+  Kopplung über Kopplungsstangen (Viergelenkgetriebe). In der Simulation bereits korrekt
+  nachgebildet: `experiment/omnigraph-lightweight`, ADR-009,
+  `isaac_sim/tools/finger_coupling_script_node.py` (`FourBar`-Klasse).
+- Taktiles Feedback: FSR-artige Kontaktsensoren, in der Simulation als `IsaacContactSensor`
+  nachgebildet (ADR-008-Muster) — bisher nur `index_right` verkabelt, Rest offen (Abhängigkeit
+  von `experiment/omnigraph-lightweight`, nicht hier zu lösen).
 
-## Vorzeichen-Konvention (behoben, ADR-007)
-Onshape und Isaacs importierte Gelenkachsen waren vorzeicheninvertiert — physikalische
-Eigenschaft des Modells, kein Doku-Detail. Behoben direkt am Prim in
-`isaac_sim/tools/flip_joint_sign.py` (einmalig gegen `isaac_sim/usd/pib_upperbody_v4.usd`
-ausgeführt, Ergebnis gespeichert) — kein Script Node, kein `JOINT_SIGN` mehr nötig, siehe
-ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufen.
+## Aufgabe dieser RL-Policy
+Übergeordnetes IK-Framework bringt die Handfläche bereits zuverlässig in Objektnähe (Objekt
+liegt auf flachem Tisch). Die Policy übernimmt **nur** die Feinkoordination der Finger und
+den Kraftschluss (Force Closure) — kein Greifpunkt-/Trajektorien-Learning, keine
+Armbewegung im großen Maßstab.
 
-- Vorzeichen-Referenz (verifiziert): `shoulder_horizontal_right: +20` = Arm vorne; `elbow_right: +90` = voll gebeugt
+## KRITISCHER Design-Punkt: Aktionsraum
+Der Aktionsraum der Policy **muss exakt den 8 realen Servo-DOFs entsprechen** — nicht allen
+simulierten Gelenken. PIP/DIP/IP dürfen **nicht** unabhängig im Aktionsraum liegen: auf der
+echten Hand ist das physikalisch unmöglich (Sehnenkopplung, kein Motor pro Gelenk). Die
+Env-Step-Logik muss PIP/DIP/IP intern über **dieselbe** Viergelenk-Formel berechnen wie der
+Action-Graph-Script-Node auf `experiment/omnigraph-lightweight`
+(`isaac_sim/tools/finger_coupling_script_node.py`, Geometrie/Herleitung validiert in
+`tendondrive/finger_analytisch.py` + `daumen_analytisch.py`) — **nicht lernbar**. Sonst
+lernt die Policy Posen, die auf der realen Hand unerreichbar sind, und der Sim-to-Real-
+Transfer bricht. Das gilt für Observation UND Action Space gleichermaßen (beobachtete
+PIP/DIP/IP-Winkel sind redundant zum MCP-Winkel, kein unabhängiger Freiheitsgrad).
 
-## Isaac Sim API-Regeln
-- Kein `time.sleep()` → `await app.next_update_async()` (Editor) / `sim_app.update()` (Standalone)
-- `_load_mod(name, path)` in `start.py`/`setup_stage.py` → umgeht stale `.pyc`-Cache
-- `configure_drives()` jede Session aufrufen (PhysX cached Stiffness/Damping nicht) — `start.py` vor Play ausführen
-- `set_joint_limits()` verwenden — `fix_joint_limits` existiert nicht mehr
-- DOF-Namen nie erfinden → aus `config/pib_hand_config_v4.py`/`_v5.py` oder der jeweiligen URDF (`ros2_ws/src/pib_description_v4/urdf/`, `pib_upperbody_urdf_v5/robot.urdf`)
-- Script Node (Action Graph): Klassen/Instanzen **nie** auf Modulebene des Skript-Texts anlegen, nur innerhalb `setup(db)` als Closures + `db.per_instance_state` — sonst `NameError` beim Methodenaufruf trotz sichtbarem `import` darüber (getrennte globals/locals im Sandbox-Exec, siehe ADR-009, `docs/conventions.md`)
+## Stack (Ziel — noch nicht installiert)
+- **NVIDIA Isaac Lab** (`ManagerBasedRLEnvCfg`, `ArticulationCfg`, `ContactSensorCfg`,
+  `ImplicitActuatorCfg`) — **auf dieser Maschine noch nicht installiert**
+  (`ModuleNotFoundError: No module named 'isaaclab'`, kein `IsaacLab`-Verzeichnis
+  gefunden, Stand 2026-09-27). Erster konkreter Schritt.
+- Isaac Sim 5.1 (gemeinsam mit `experiment/omnigraph-lightweight`)
+- PyTorch (Isaac-Lab-Abhängigkeit), RL-Library noch nicht festgelegt (z.B. `rsl-rl`,
+  `skrl` — Isaac Lab bringt Referenz-Integrationen mit, gegen installierte Version prüfen)
 
-## Team (alle nutzen ROS2)
-- **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
-- **Greifpunkt-Team**: Greifpunkterkennung → gibt Greifpunkt im Roboterframe aus
-- **Objekterkennung**: hinten angestellt
+## Isaac Sim / Isaac Lab API-Regeln
+- **Nie Isaac-Lab-Klassennamen/-Signaturen raten** — gegen die tatsächlich installierte
+  Version prüfen, bevor Code geschrieben wird (analog zur OmniGraph-Node-Regel auf
+  `experiment/omnigraph-lightweight` — API-Namen/Argumente ändern sich zwischen Isaac-Lab-
+  Versionen).
+- **DOF-Namen/-Zahl nie annehmen** — aus `config/pib_hand_config_v5.py` (fehlt noch) bzw.
+  direkt aus der v5-URDF/USD ableiten, nicht aus dem Ursprungs-Prompt übernehmen (dessen
+  "8 DOFs" bezieht sich auf die 8 realen Servos, nicht 1:1 auf URDF-Joint-Namen — Mapping
+  Servo→Joint-Namen muss explizit hergestellt werden, siehe oben).
+- Script-Node-Sandbox-Gotcha (falls Action-Graph-Code für Sim-Vorbereitung nötig wird):
+  siehe `docs/conventions.md` (geerbt) → Klassen/Instanzen nur in `setup(db)`, nicht auf
+  Modulebene.
 
-## Ziel-Architektur
-```
-Extern (ROS2, ros2_control) → Action Graph (ROS2SubscribeJointState → IsaacArticulationController) → Isaac
-```
-Details: @docs/architecture.md (Abschnitt "Action Graph")
+## Offene Punkte (Start dieses Branches)
+- Isaac Lab installieren.
+- Echte v5-Gelenkstruktur (Namen, Limits, Trägheiten) gegen die im Ursprungs-Prompt
+  behauptete 8-DOF-Beschreibung abgleichen, bevor `ArticulationCfg` geschrieben wird.
+- `config/pib_hand_config_v5.py` (Abhängigkeit von `experiment/omnigraph-lightweight`,
+  dort noch offen).
+- Kontaktsensor-Abdeckung nur `index_right` (Abhängigkeit von
+  `experiment/omnigraph-lightweight`, dort als nächstes geplant).
 
-## Ziele (dieser Branch)
-- **OmniGraph-Migration** ✓ Action Graph ersetzt `pib_bridge.py`, Pickup-/Putdown-Demo verifiziert
-- **Vorzeichen-Fix** ✓ Gelenke direkt am Prim korrigiert (ADR-007), kein Script Node/JOINT_SIGN mehr
-- **v5-Hand-Integration** ✓ Action Graph, ros2_control-Stack, Pickup-/Putdown-Demo für v5
-  fertig und verifiziert; `config/pib_hand_config_v5.py` fehlt noch (siehe `docs/current-sprint.md`)
-- **Sehnendynamik** ✓ Digitaler Zwilling der realen linken Hand (8 Servos, Viergelenk-
-  Kopplung PIP/DIP/IP aus gemessenem MCP-Winkel) — bewusste Script-Node-Ausnahme von
-  ADR-006/007/008, siehe ADR-009
-- **Contact Sensors** ← aktuelles Ziel — Ansatz entschieden (nativer `IsaacContactSensor`-
-  Node, ADR-008), `index_right` verkabelt+verifiziert (v4 und v5), restliche 9 Fingerspitzen
-  offen — nächster konkreter Schritt
-- **Szenen-Erweiterung** ← aktuelles Ziel — weitere Objekte/Umgebung in der USD-Stage
+## Nicht Teil dieses Branches
+Sim-Infrastruktur/Action-Graph/Kontaktsensor-Ausbau selbst — das ist
+`experiment/omnigraph-lightweight`. Team-Integration (Koordinatenrahmen, IK-/Greifpunkt-
+Interface an echter Hardware), LSTM-Gelenkdynamik, AS5600-Sensordaten — `feature/ros2-control`.
 
-Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen
-Branch verworfen — voller Fahrplan dazu auf `feature/ros2-control`. Feinmotorisches Greifen
-per RL ist ebenfalls nicht Teil dieses Branches — siehe `feature/rl-grasping`.
-
-## Schlüsseldateien
-```
-config/pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (v4, verifiziert)
-config/pib_hand_config_v5.py   dasselbe für v5 (folgt, siehe current-sprint.md)
-isaac_sim/start.py             Startroutine: Drives + Limits + Initialpose (vor Play ausführen)
-isaac_sim/setup_stage.py       von start.py genutzt
-isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec), lädt v4
-isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifizierter Arbeitsstand
-isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) + Action Graph inkl. Sehnendynamik (ADR-009)
-isaac_sim/tools/build_finger_coupling_graph.py   Sehnendynamik-Kopplung in v5-Action-Graph einhängen (ADR-009)
-isaac_sim/tools/inspect_action_graph.py          Diagnose: Action-Graph-Knoten+Verbindungen auslesen
-tendondrive/                          Geometrie/Herleitung der Viergelenk-Kopplung (Finger+Daumen)
-ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
-ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
-ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
-ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py    Pickup-Demo (FollowJointTrajectory)
-ros2_ws/src/pib_bringup/pib_bringup/test_client_putdown.py   Putdown-Demo (Umkehrung)
-```
-
-v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab) — überall
-im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
-
-→ Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-009) | Sprint: @docs/current-sprint.md
+→ Sim-/Digitaler-Zwilling-Kontext: `docs/architecture.md`, `docs/decisions.md` (ADR-001–009,
+geerbt von `experiment/omnigraph-lightweight`)
+→ RL-Ursprungs-Prompt + Bewertung: `docs/rl-grasping-notes.md`
+→ Aktueller Stand: `docs/handoff.md`
