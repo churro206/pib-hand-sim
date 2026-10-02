@@ -4,27 +4,20 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-09-27
+## Stand 2026-10-02
 
 ### Zuletzt gearbeitet an
 
-1. **Branch angelegt**, abgezweigt von `experiment/omnigraph-lightweight` direkt nach
-   Abschluss der Sehnendynamik-Arbeit dort (Commit `1d0cd9c`, ADR-009) — der digitale
-   Zwilling (v5-USD, Viergelenk-Kopplung, `ros2_control`-Stack) ist damit vollständig
-   geerbt, kein Neuaufbau nötig.
-2. **`CLAUDE.md` neu geschrieben** für diesen Branch (RL-Grasping-Scope, reale-Hardware-
-   Kontext: nur linke Hand, 8 Servos, STM32 Nucleo). Geerbte Docs (`architecture.md`,
-   `conventions.md`, `decisions.md`, `current-sprint.md`) mit Hinweisblock versehen, dass
-   sie den Sim-Stand zum Abzweigungszeitpunkt beschreiben und dort (auf
-   `experiment/omnigraph-lightweight`) weitergepflegt werden, nicht hier.
-3. **`docs/rl-grasping-notes.md` angelegt**: Ursprungs-Prompt (von Leon mit Gemini
-   vorbereitet) wörtlich festgehalten + Bewertung vor Beginn der Umsetzung — noch **kein**
-   Isaac-Lab-Code geschrieben.
+Keine neue Arbeit seit dem 2026-09-27-Stand — diese Session begann nur mit einer
+Push-Status-Prüfung (beide Branches `experiment/omnigraph-lightweight`/
+`feature/rl-grasping` bestätigt sauber auf `origin`, keine lokalen Commits ausstehend) und
+diesem Handoff-Eintrag. Der unten stehende Stand ist inhaltlich identisch zur letzten
+Session (Branch-Setup, `CLAUDE.md`, `docs/rl-grasping-notes.md`) — siehe Commit `085c5d8`.
 
 ### Offene Punkte
 
 - Isaac Lab ist auf der Entwicklungsmaschine nicht installiert — erster Blocker für jeden
-  Isaac-Lab-Code (`ManagerBasedRLEnvCfg` etc.).
+  Isaac-Lab-Code (`ManagerBasedRLEnvCfg` etc.). Noch nicht angegangen.
 - Der Ursprungs-Prompt geht von "8 DOFs Unterarm+Handgelenk" als direktem Aktionsraum aus —
   das sind die 8 realen Servos, kein 1:1-URDF-Joint-Mapping. Muss beim Schreiben von
   `ArticulationCfg` explizit hergestellt werden, nicht aus dem Prompt übernehmen.
@@ -56,3 +49,8 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
   hier wäre ADR-010, unabhängig davon, was `experiment/omnigraph-lightweight` parallel an
   eigenen ADR-010 etc. bekommt — Branches sind komplett getrennte `decisions.md`-Historien
   ab jetzt).
+- Falls zwischen den Sessions auf `experiment/omnigraph-lightweight` weitergearbeitet wurde
+  (z.B. restliche Kontaktsensoren, `config/pib_hand_config_v5.py`): dort erst `git pull`
+  und den dortigen `docs/handoff.md`-Stand prüfen, bevor hier auf diesem Branch gemerget
+  oder erneut abgezweigt wird — dieser Branch war zum Zeitpunkt dieses Eintrags noch exakt
+  auf dem Stand von Commit `1d0cd9c`.
