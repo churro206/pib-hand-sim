@@ -171,6 +171,9 @@ korrekte Werte vom Prim liest.
 
 ## ADR-008: Fingertip-Kontaktkräfte via native OmniGraph-Nodes statt ArticulationView
 
+> **Ergänzt durch ADR-013** (v5): Ausgabe gebündelt als ein `sensor_msgs/JointState`-Topic
+> statt ein `Float32`-Topic pro Fingerspitze. Sensor- und Reader-Ansatz bleiben wie hier.
+
 **Problem**: ADR-005 sah `ArticulationView.get_net_contact_forces()` in einem Script Node
 vor — bräuchte echten Python-Code im Action Graph, Zielkonflikt mit der "so viel NVIDIA
 wie möglich"-Linie dieses Branches (siehe `docs/architecture.md` → „Offen"). Alternative
@@ -443,6 +446,63 @@ und Geschwindigkeitslimit). Mit dem Rezept liegt ω_n·Δt für alle umgestellte
   nutzt effektiv 0,5–2°) — kleinere Werte erhöhen ω_n·Δt, danach Audit erneut prüfen.
 - Die Experiment-Schalter der Fehlersuche (`SERVO_*_ENABLED`, `FOLLOWER_*`,
   `ARM_GAIN_SCALE`) sind durch die Aktuator-Tabelle ersetzt (Git-Historie: `383c4ef`).
+
+---
+
+## ADR-013: Fingerspitzenkräfte gebündelt als ein zeitgestempeltes JointState-Topic (v5)
+
+**Problem**: ADR-008 sah ein `std_msgs/Float32`-Topic pro Fingerspitze vor. Für alle 10
+Fingerspitzen hieße das 20 Graph-Knoten und 10 Topics ohne gemeinsamen Zeitstempel. Eine
+RL-Policy (und später die echte Hand) braucht pro Schritt **einen** Kraftvektor zu einem
+Zeitpunkt; wie der echte FSR-Treiber publiziert, ist offen — das Format soll generisch sein.
+
+**Entscheidung**: Nur native Nodes (Leon gegen einen Script Node), in `/Graph/ROS_JointStates`:
+
+| Knoten | Typ | Aufgabe |
+|---|---|---|
+| `ReadContact_<finger>` ×10 | `isaacsim.sensors.physics.IsaacReadContactSensor` | Kraft (N, float) je `<Fingertip-Link>/Contact_Sensor` |
+| `FingertipForceArray` | `omni.graph.nodes.ConstructArray` | 10 Werte → `float[]` (`arrayType = auto`) |
+| `FingertipForceToDouble` | `omni.graph.nodes.ToDouble` | `float[]` → `double[]` |
+| `FingertipForceTime` | `isaacsim.core.nodes.IsaacTimeSplitter` | Simulationszeit → `sec`/`nanosec` |
+| `PublisherFingertipForces` | `isaacsim.ros2.bridge.ROS2Publisher` | `sensor_msgs/JointState` auf `/pib/fingertip_forces` |
+
+Nachricht: `name` = `thumb_left, index_left, middle_left, ring_left, pinky_left, thumb_right,
+index_right, middle_right, ring_right, pinky_right`, `effort` = Kraft in N (gleiche
+Reihenfolge), `header.stamp` = Simulationszeit, `position`/`velocity` leer. Reader und
+Publisher hängen parallel an `on_physics_step` (60 Hz) — der Publisher kann den Wert des
+vorigen Physikschritts senden (bewusst: eine `execOut`-Kette würde abreißen, weil `execOut`
+nur feuert, wenn der Sensor Daten hat). Aufbau reproduzierbar per
+`isaac_sim/tools/build_contact_sensors_v5.py` (Sensor-Prims) und
+`isaac_sim/tools/build_fingertip_force_graph_v5.py` (Graph).
+
+**Begründung**: Ein synchroner, selbstbeschreibender Vektor (Namen + Zeitstempel in der
+Nachricht) entspricht dem Beobachtungsvektor einer Policy und braucht kein Topic-Syncing.
+JointState ist ein Standardtyp (kein eigenes Message-Package); `effort` ist semantisch
+zweckentfremdet (Kraft statt Moment), wie schon in ADR-005 geplant.
+
+**Konsequenzen**:
+- Verifiziert: Pickup-Demo, rechte Hand an der Dose ≈ Daumen 42 N / Zeigefinger 25 N /
+  Mittelfinger 16 N / Ringfinger 2 N — Kräftebilanz geht auf; der Daumen-MCP liegt am
+  Stall-Torque (2,94 Nm / ~6,5 cm ≈ 45 N). Topic überlebt Speichern + Neu-Öffnen.
+- `/pib/fingertip_force/<finger>` gibt es in v5 nicht mehr.
+- **Fallstricke beim Aufbau (alle 2026-10-03 aufgetreten):**
+  1. `ConstructArray` wandelt nicht `float` → `double` ("Mismatched array element type …
+     expected 'double', got 'float'") → `ToDouble`-Knoten dahinter.
+  2. Über `og.Controller` gesetzte Werte/Verbindungen landen nur im **laufenden** Graph, nicht
+     in der USD. Beim nächsten Neuaufbau aus der USD verwirft der `ROS2Publisher` seine
+     dynamischen Eingänge ("remove dynamic attributes") → leere Nachrichten. Fix: die
+     dynamischen Publisher-Eingänge (alle JointState-Felder) direkt in der USD anlegen und
+     verbinden; dann meldet er beim Laden "reuse of existing dynamic attributes". Nach jedem
+     Graph-Skript: speichern **und neu öffnen**, erst dann testen.
+  3. Umbenennen/Verschieben von Graph-Knoten im **Stage-Tree** und "Make Compound" arbeiten
+     auf dem laufenden Graph — mit einem davon abweichenden USD-Stand entstand ein Zustand,
+     der bei Play reproduzierbar im Kontaktsensor-Plugin abstürzte (Physik-Warmup). Lösung
+     war ein Neuaufbau aus dem committeten Stand. Compound daher vorerst nicht verwendet.
+  4. `og.Controller.edit(graph, {DELETE_NODES: [...]})` stellt Pfad-Strings den Graph-Pfad
+     voran → Knoten-Objekte übergeben.
+- Für RL: Training in Isaac Lab nutzt diesen Graph nicht (`ContactSensorCfg` über PhysX);
+  das FSR-Modell (Normalkraft, Sättigung, Rauschen, Schwelle, Entprellen) gehört in die
+  Trainingsumgebung.
 
 ---
 

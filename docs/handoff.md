@@ -13,19 +13,21 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 3. **Servo-Aktuatormodell + Self-Collision** (ADR-012): MCP/Rotator/Handgelenk/Unterarm auf ST3215-Datenblatt (2,94 Nm, 270 °/s, 0,588 Nm/°, ζ=1, Armature 5e-3); Self-Collision am `root_joint` an → Tischtest stabil. Action Graph auf `OnPhysicsStep`.
 4. **Werkzeuge**: `test_client_mimic_v5`, `test_client_mimic_load_v5` (Finger gegen Tisch, Diagnose), `isaac_sim/tools/audit_asset.py`; Unterarm-Masse 30 g → 0,229 kg (URDFs + USD). Commit `383c4ef`, Doku `f2c4e67`, origin per Force-Push auf diesen Stand gebracht.
 5. **Schritt 3/4 abgeschlossen**: `setup_stage.py` → `SERVOS` + `V5_ACTUATORS` für alle v5-Servo-Gelenke (Schultern ST3095 9,32 Nm/186 °/s, Rest ST3215), Experiment-Schalter entfernt, v4 zurück auf `0fdbc62`-Werte. Pickup: Arm hält die Dose nur knapp, Tischtest: Ellbogen gibt nach — beides realistisch (Leon).
+6. **Contact Sensors v5 fertig** (ADR-013): 10 `Contact_Sensor`-Prims + Reader, gebündelt als `sensor_msgs/JointState` mit Zeitstempel auf `/pib/fingertip_forces` (`build_contact_sensors_v5.py`, `build_fingertip_force_graph_v5.py`); an der Dose verifiziert, überlebt Neu-Öffnen. Kaputter Zwischenstand liegt lokal als `pib_upperbody_v5.usd.bak-2026-10-03` (gitignored).
 
 ### Offene Punkte
 
 - Nach der Arm-Umstellung bestanden: `audit_asset.py` (keine Warnung), `test_client_mimic_v5 --finger all`; nur Putdown-Demo v5 nicht erneut getestet.
 - Arm/Handgelenk hängen unter Last sichtbar durch (Handgelenk −5,6° in der Tisch-Testpose) — akzeptiert; Stellschraube `SERVO_SATURATION_ERROR_DEG`.
-- Contact Sensors v5: alle 10 Fingerspitzen offen; `index_right`-Reader im Graph zeigt laut Inventur auf den Roboter-Wrapper, kein Sensor-Prim.
+- Compound für die Contact-Knoten nicht gebildet (hatte zusammen mit Stage-Tree-Umbenennen einen Absturz-Stand erzeugt, ADR-013).
 - Warum Self-Collision das Wegfliegen behoben hat, ist nicht erklärt (empirischer Befund).
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster), vorher den halb verkabelten `index_right`-Reader im v5-Graph prüfen.
-2. Putdown-Demo v5 als letzte Regression (`test_client_putdown_v5`).
-3. Optional: `SERVO_SATURATION_ERROR_DEG` kleiner, falls das Durchhängen stört (danach Audit).
+1. Aktuator-Tabelle (`SERVOS`/`V5_ACTUATORS`) nach `config/pib_hand_config_v5.py` verschieben — eine Quelle für `setup_stage.py` und später Isaac Lab (Einheiten Nm/° ↔ Nm/rad an einer Stelle).
+2. `forward_position_controller` in `ros2_ws/src/pib_bringup/config/controllers_v5.yaml` (Streaming-Sollwerte für Policy-Inferenz über ROS).
+3. Putdown-Demo v5 als letzte Regression (`test_client_putdown_v5`).
+4. Optional: `SERVO_SATURATION_ERROR_DEG` kleiner, falls das Durchhängen stört (danach Audit).
 
 ### Wichtige Kontextdetails
 
@@ -37,3 +39,5 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 - Onshape-Massen = Vollmaterial-PLA (1,30 g/cm³) ohne Servos/Infill — bewusst belassen.
 - Robot-Collider stecken in instanzierten `collisions`-Kindern → Viewport-Collider-Anzeige zeigt sie erst mit Instanceable aus (die Links selbst sind nicht instanceable).
 - Leon stellt einfache Stage-/Graph-Änderungen im GUI ein — dafür keine Skripte schreiben.
+- **OmniGraph per Skript**: `og.Controller`-Änderungen stehen nur im laufenden Graph; Persistentes direkt in die USD schreiben, danach speichern + neu öffnen; Knoten nicht im Stage-Tree umbenennen (ADR-013). Script Editor lädt geänderte Dateien nicht neu — immer frisch von der Platte öffnen.
+- RL-Plan nach NVIDIA-Abgleich (Sim-to-Real-Leitfaden): Delta-Gelenkaktionen, kein Rauschen auf Propriozeption, Gains an realer Sprungantwort kalibrieren + Gelenkreibung, Export mit `--export_io_descriptors`, Inferenz-Leiter Lab-Play → Isaac-Sim-Runner → ROS-Weg → echte Hand (Details im Chat-Verlauf, noch nicht im RL-Branch).

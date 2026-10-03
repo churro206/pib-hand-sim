@@ -157,13 +157,15 @@ v5: Roboter-Wrapper `/World/pib_upperbody_urdf_v5`, Articulation Root
 
 ## Offen (aktuelles Ziel dieses Branches)
 
-### Contact Sensors
-Kontaktkräfte pro Fingertip, für Greif-Erkennung. Entschieden (ADR-008): nativer
-`IsaacContactSensor`-Prim pro Fingertip-Link + `Isaac Read Contact Sensor Node` im Action
-Graph, Ausgabe über einen generischen `ROS2 Publisher`-Node (`std_msgs/Float32`) auf
-`/pib/fingertip_force/<finger>`. Verworfen: `ArticulationView.get_net_contact_forces()`
-(Tensor-API) — hätte einen Script Node mit echtem Python-Code gebraucht, Bruch mit dem
-"kein Custom-Python"-Prinzip dieses Branches.
+### Contact Sensors (v5 ✓, ADR-008 + ADR-013)
+Kontaktkräfte pro Fingertip, für Greif-Erkennung. Nativer `IsaacContactSensor`-Prim an allen
+10 Fingertip-Links (`<link>/Contact_Sensor`, radius −1 = ganzes Glied) + je ein
+`ReadContact_<finger>`-Knoten; die 10 Kräfte werden über `ConstructArray` → `ToDouble`
+gebündelt und mit Simulationszeit (`IsaacTimeSplitter`) als `sensor_msgs/JointState` auf
+`/pib/fingertip_forces` publiziert (Reihenfolge/Format: `docs/conventions.md`). Aufbau per
+`build_contact_sensors_v5.py` + `build_fingertip_force_graph_v5.py`. Verworfen:
+`ArticulationView.get_net_contact_forces()` (Tensor-API, bräuchte Script Node) und ein
+Script Node zum Bündeln (Leon: nur native Nodes).
 
 **Bekannter Stolperstein**: Der Onshape-Importer legt Robotik-Meshes standardmäßig als
 `instanceable` an (Performance-Feature für viele parallele Roboter-Instanzen, hier ohne
@@ -171,11 +173,8 @@ Nutzen). Ein `IsaacContactSensor`-Prim lässt sich nicht unter einem Instance-Pr
 („authoring to an instance proxy is not allowed") — vorher `SetInstanceable(False)` auf
 dem jeweiligen Fingertip-Link-Prim setzen.
 
-Bisher nur `index_right` in v4 verkabelt und verifiziert. In v5 stehen Reader- und
-Publisher-Node für `index_right` im Graph, laut letzter Inventur zeigt `csPrim` aber auf den
-Roboter-Wrapper und es gibt keinen `IsaacContactSensor`-Prim — vermutlich unvollständig,
-beim Contact-Sensor-Schritt prüfen. v5: Die Link-Prims sind nicht instanceable, nur ihre
-`visuals`/`collisions`-Kinder (Audit) — Sensor-Prims sollten direkt am Link anlegbar sein.
+v5: Die Link-Prims sind nicht instanceable, nur ihre `visuals`/`collisions`-Kinder — die
+Sensor-Prims ließen sich direkt am Link anlegen. v4: nur `index_right` (Einzel-Topic, ADR-008).
 
 ### Szenen-Erweiterung
 Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody_v4.usd` — Details noch offen.
@@ -185,7 +184,7 @@ v5 läuft dauerhaft parallel zu v4 (nicht ablösend), Repo-Struktur bereits auf 
 gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Action Graph, ros2_control-
 Stack, Pickup-/Putdown-Demo, `config/pib_hand_config_v5.py` und Fingerkopplung (Mimic
 Joints, ADR-011) und das Servo-Aktuatormodell (ADR-012) für v5 sind fertig. Noch offen:
-Kontaktsensoren, Putdown-Regression, ADR zur
+Putdown-Regression, ADR zur
 v5-Reimport-Entscheidung (bisher nur in `docs/current-sprint.md` nacherzählt).
 
 ---

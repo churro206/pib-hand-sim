@@ -66,7 +66,7 @@ export ROS_DOMAIN_ID=0
 |---|---|---|
 | `/joint_states` | `sensor_msgs/JointState` | ← ros2_control (50 Hz, rad), vom `JointStateBroadcaster` — Standard, MoveIt2-kompatibel |
 | `/joint_trajectory_controller/follow_joint_trajectory` | Action `control_msgs/FollowJointTrajectory` | → ros2_control, MoveIt2-kompatibel — so werden Gelenkwinkel-Trajektorien (z.B. vom IK-Team) eingespielt |
-| `/pib/fingertip_force/<finger>` | `std_msgs/Float32` | ← Isaac (Newton), ein Topic pro Fingertip, vom Action Graph publiziert (ADR-008). Bisher nur `index_right` verkabelt, Rest offen — Format kann sich noch ändern (Bündelung zu einem Topic als `sensor_msgs/JointState`, siehe ADR-008). |
+| `/pib/fingertip_forces` | `sensor_msgs/JointState` | ← Isaac, 60 Hz, alle 10 Fingerspitzen in einer Nachricht (v5, ADR-013): `name` = `thumb_left, index_left, middle_left, ring_left, pinky_left, thumb_right, index_right, middle_right, ring_right, pinky_right`, `effort` = Kontaktkraft in **Newton** (gleiche Reihenfolge), `header.stamp` = Simulationszeit, `position`/`velocity` leer. Ersetzt die früheren Einzel-Topics `/pib/fingertip_force/<finger>` (ADR-008). |
 
 **Intern — Hardware-Interface-Bridge (ros2_control ↔ Isaac), nicht für andere Teams gedacht:**
 | Topic | Typ | Richtung |
@@ -129,6 +129,17 @@ Genutzt von `start.py`, um `setup_stage.py` zu laden.
 await app.next_update_async()
 ```
 (Kein Standalone-Modus mehr auf diesem Branch — `_launch_helper.py` wurde entfernt.)
+
+### Action Graph per Skript ändern — USD vs. laufender Graph (ADR-013)
+- Über `og.Controller` (`edit`, `connect`, `attribute(...).set`) gesetzte Werte und
+  Verbindungen landen im **laufenden** Graph, nicht zuverlässig in der USD. Was beim nächsten
+  Öffnen gelten muss — vor allem dynamische Eingänge des `ROS2Publisher` — direkt in der USD
+  anlegen (`prim.CreateAttribute(..., custom=True)`, `attr.SetConnections([...])`).
+- Nach jedem Graph-Skript: **speichern und Stage neu öffnen**, erst dann testen.
+- Graph-Knoten nicht im Stage-Tree umbenennen/verschieben und keinen Compound bilden, solange
+  der laufende Graph vom USD-Stand abweichen kann.
+- `DELETE_NODES` mit Knoten-Objekten (`og.Controller.node(path)`), nicht mit Pfad-Strings.
+- Werkzeug zum Prüfen: `isaac_sim/tools/inspect_action_graph.py` (liest die USD).
 
 ### Script Node (Action Graph) — Modulebene vs. setup()/compute()
 Derzeit ist **kein** Script Node im Graph (die Sehnendynamik-Kopplung aus ADR-009 ist durch

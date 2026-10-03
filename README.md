@@ -18,8 +18,10 @@ Der volle Stand liegt weiterhin auf `feature/ros2-control`.
 | USD-Stage mit Action Graph (ROS2 Subscribe/Publish Joint State + Articulation Controller) | ✓ läuft | ✓ läuft |
 | ros2_control-Stack (JTC, JointStateBroadcaster, TopicBasedSystem) | ✓ end-to-end verifiziert | ✓ end-to-end verifiziert |
 | Pickup-Demo (Dose greifen und heben) | ✓ physikalisch verifiziert | ✓ läuft |
-| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ | ✓ läuft, Dose kippt gelegentlich um |
-| Contact Sensors (Fingertip-Kontaktkraft) | nur `index_right` verkabelt | offen |
+| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ | ✓ läuft, Dose kippt gelegentlich um (mit Servo-Modell nicht erneut getestet) |
+| Fingerkopplung PIP/DIP/IP folgen dem MCP (PhysX Mimic Joints, ADR-011) | — | ✓ |
+| Servo-Aktuatormodell ST3215/ST3095 nach Datenblatt (ADR-012) | — | ✓ |
+| Contact Sensors (Fingertip-Kontaktkraft) | nur `index_right` (Einzel-Topic) | ✓ alle 10, gebündelt auf `/pib/fingertip_forces` (ADR-013) |
 
 ---
 
@@ -166,36 +168,29 @@ Sequenz funktioniert grundsätzlich, Feinschliff der Absetz-Trajektorie steht no
   └── topic_based_ros2_control
         ↕  /pib/hw/joint_states (rad) + /pib/hw/joint_commands (rad)
 [Isaac Sim]
-  └── Action Graph (Teil der USD-Stage, kein externes Skript)
-        ROS2SubscribeJointState → Script Node (Vorzeichen-Invertierung)
-          → IsaacArticulationController
+  └── Action Graph (Teil der USD-Stage, kein externes Skript), Trigger pro Physikschritt
+        ROS2SubscribeJointState → IsaacArticulationController
         Artikulation → ROS2PublishJointState
-  └── PhysX-Physik-Simulation
+        (v5) 10 × IsaacReadContactSensor → ConstructArray → ToDouble → ROS2Publisher
+             (sensor_msgs/JointState) → /pib/fingertip_forces
+  └── PhysX-Physik-Simulation (v5: Mimic Joints für die Fingerkopplung, Servo-Grenzen)
 ```
 
 ### Der Action Graph im Detail
 
-Liegt vollständig in `isaac_sim/usd/pib_upperbody_v4.usd` (Window → Graph Editors
-→ Action Graph zum Ansehen/Bearbeiten). Vier Nodes:
+Liegt vollständig in der jeweiligen USD (Window → Graph Editors → Action Graph zum
+Ansehen/Bearbeiten), `/Graph/ROS_JointStates`:
 
 1. **`ROS2SubscribeJointState`** — `topicName = /pib/hw/joint_commands`
-2. **Script Node** — invertiert `positionCommand` (Onshape-URDF und Isaacs importierte
-   Gelenkachsen sind bei diesem Modell vorzeicheninvertiert; ohne diesen Schritt schließt
-   sich die Hand in die falsche Richtung):
-   ```python
-   def compute(db: og.Database):
-       db.outputs.jointNames = db.inputs.jointNames
-       db.outputs.positionCommand = [-p for p in db.inputs.positionCommand]
-   ```
-3. **`IsaacArticulationController`** — `targetPrim` = Artikulations-Root des Roboters
-4. **`ROS2PublishJointState`** — `topicName = /pib/hw/joint_states`
+2. **`IsaacArticulationController`** — `targetPrim` = Artikulations-Root (v5: `root_joint`)
+3. **`ROS2PublishJointState`** — `topicName = /pib/hw/joint_states`
 
-**Bekannter Kompromiss:** `ROS2PublishJointState` liest den Gelenkzustand direkt aus dem
-Prim (Isaac-Konvention) — dort gibt es keinen Punkt, um die Vorzeichen-Invertierung
-gegenzurechnen. Die Bewegung selbst ist korrekt, aber `/pib/hw/joint_states`,
-`/joint_states` und die Action-Feedback-Werte (Konsolenausgabe von `test_client_pickup`) zeigen
-gespiegelte Werte. `controllers.yaml` hat keine Toleranz-Constraints gesetzt, daher bricht
-dadurch nichts ab — nur die Logausgabe ist verwirrend, nicht die tatsächliche Bewegung.
+Kein Script Node: Die Vorzeichen-Invertierung zwischen Onshape und Isaac ist seit ADR-007
+direkt an den Gelenk-Prims korrigiert, `/pib/hw/joint_states` zeigt korrekte Werte. v5
+zusätzlich: Trigger `OnPhysicsStep` statt `OnPlaybackTick`, und der Kontaktkraft-Zweig
+(ADR-013). Die Fingerkopplung ist keine Graph-Logik, sondern eine PhysX-Zwangsbedingung
+(Mimic Joints, gesetzt von `start.py`, ADR-011) — die ROS2-Werte für `distal`/`tip` sind
+deshalb wirkungslos, gesteuert wird über `proximal`. Details: `docs/architecture.md`.
 
 `velocityCommand`/`effortCommand` (an `ROS2SubscribeJointState`/`IsaacArticulationController`)
 bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces: [position]`.
@@ -206,10 +201,11 @@ bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces:
 
 | Topic | Typ | Richtung | Beschreibung |
 |---|---|---|---|
-| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control | Ist-Positionen aller 44 DOFs, 50 Hz, rad (Isaac-Konvention, siehe Kompromiss oben) |
+| `/joint_states` | `sensor_msgs/JointState` | ← ros2_control | Ist-Positionen aller 44 DOFs, 50 Hz, rad |
 | `/joint_trajectory_controller/follow_joint_trajectory` | Action `control_msgs/FollowJointTrajectory` | → ros2_control | Trajektorie mit Zeitpunkten, MoveIt2-kompatibel |
 | `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad) | Von `topic_based_ros2_control`, gelesen vom Action Graph |
 | `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad) | Vom Action Graph publiziert, gelesen von `topic_based_ros2_control` |
+| `/pib/fingertip_forces` | `sensor_msgs/JointState` | ← Isaac (v5) | Kontaktkraft aller 10 Fingerspitzen in **N** in `effort`, Fingernamen in `name`, Simulationszeit in `header.stamp`, 60 Hz (Reihenfolge: `docs/conventions.md`) |
 
 ---
 
@@ -220,8 +216,8 @@ bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces:
 | `ModuleNotFoundError: rclpy._rclpy_pybind11` | ROS2 Jazzy nutzt Python 3.12, Isaac Sim 3.11. ROS2 **vor** Isaac Sim in derselben Shell sourcen — Isaacs eigene rclpy-Version greift dann automatisch. |
 | `controller_manager` wartet ewig auf `/robot_description` | Jazzy-Breaking-Change: ros2_control subscribed Topic statt Parameter. Gelöst durch `robot_state_publisher` in `pib_sim.launch.py`. |
 | `Package 'pib_bringup' not found` | `ros2_ws/install/setup.bash` wurde in dieser Shell nicht gesourced — `cd` ändert daran nichts, `AMENT_PREFIX_PATH` fehlt der Eintrag. |
-| Hand schließt in falsche Richtung / läuft in Limits | Vorzeichen-Script-Node zwischen `ROS2SubscribeJointState` und `IsaacArticulationController` fehlt oder ist falsch verkabelt (siehe oben). |
-| `/joint_states`-Werte wirken gespiegelt/falsch | Bekannter Kompromiss (siehe oben) — Bewegung im Viewport prüfen, nicht nur die Konsole. |
+| Hand schließt in falsche Richtung | Nach einem Onshape-Neuimport `isaac_sim/tools/flip_joint_sign.py` erneut ausführen (ADR-007). |
+| `/pib/fingertip_forces` leer oder Graph-Änderung nach dem Neu-Öffnen weg | Per Skript gesetzte OmniGraph-Werte stehen nur im laufenden Graph — nach Graph-Skripten speichern **und neu öffnen**, Knoten nicht im Stage-Tree umbenennen (ADR-013, `docs/conventions.md`). |
 | Isaac Sim startet aber ROS2 nicht gefunden | ROS2 muss **vor** Isaac Sim gesourced sein: `source /opt/ros/jazzy/setup.bash && ~/isaacsim/isaac-sim.sh` |
 
 ---
@@ -231,10 +227,11 @@ bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces:
 ```
 config/
   pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (für start.py)
+  pib_hand_config_v5.py   dasselbe für v5
 
 isaac_sim/
-  start.py                Session-Setup: Drives, Limits, T-Pose (vor Play ausführen)
-  setup_stage.py           von start.py genutzt
+  start.py                Session-Setup: Drives, Mimic Joints, Limits, T-Pose (vor Play ausführen)
+  setup_stage.py           von start.py genutzt — v5: Servo-Aktuatortabelle, MIMIC_JOINTS
   autostart.py             vollautomatischer Start ohne Script Editor (--exec)
   usd/
     pib_upperbody_v4.usd   Roboter (v4) + Action Graph
@@ -242,6 +239,9 @@ isaac_sim/
   tools/
     dump_pose.py           Nimmt Drive-Targets der aktuell posierten Gelenke als Waypoint
                             auf → isaac_sim/tools/_pose_dump.json (gitignored)
+    audit_asset.py         Asset-Inspektion: Massen, Collider, Antriebe, ω_n·Δt/ζ (nur lesend)
+    inspect_action_graph.py   Graph-Inventur aus der USD
+    build_contact_sensors_v5.py, build_fingertip_force_graph_v5.py   Kontaktsensoren v5
 
 ros2_ws/src/
   pib_description_v4/     URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
@@ -255,6 +255,8 @@ ros2_ws/src/
     pib_bringup/test_client_putdown.py      Putdown-Demo v4 (Umkehrung)
     pib_bringup/test_client_pickup_v5.py    Pickup-Demo v5, aus dump_pose.py-Sequenz
     pib_bringup/test_client_putdown_v5.py   Putdown-Demo v5 (Umkehrung)
+    pib_bringup/test_client_mimic_v5.py     Mimic-Kopplung ohne Last (nur MCP kommandiert)
+    pib_bringup/test_client_mimic_load_v5.py  Finger gegen Tisch, mit Diagnose
   topic_based_ros2_control/   Hardware-Interface-Bridge (Drittanbieter-Paket)
 
 scripts/
@@ -267,8 +269,8 @@ scripts/
 
 ### Winkel
 - ros2_control-Stack arbeitet durchgehend in **Radiant**
-- `/pib/hw/joint_commands` und Trajektorie-Ziele: "echte"/URDF-Konvention (0°–90° Flexion positiv)
-- Innerhalb der Simulation (nach dem Vorzeichen-Script-Node): Isaac-Konvention, invertiert
+- Überall dieselbe Konvention (seit ADR-007): 0° = T-Pose/offen, positiv = Flexion/Heben/Vorne
+- Am USD-Gelenk-Prim: Drive-Stiffness in Nm/°, Damping in Nm·s/°, Geschwindigkeit in °/s
 
 ### ROS2
 - `ROS_DOMAIN_ID=0` — Projektstandard

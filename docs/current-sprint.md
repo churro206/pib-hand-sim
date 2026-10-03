@@ -23,7 +23,7 @@ verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 - [x] `config/pib_hand_config_v4.py`/`isaac_sim/setup_stage.py` angepasst
 - [x] Pickup-/Putdown-Demo als Regressionscheck verifiziert
 
-## Contact Sensors ← aktuell
+## Contact Sensors ✓ (v5)
 
 **Ziel**: Kontaktkräfte pro Fingertip, für Greif-Erkennung nutzbar.
 
@@ -33,16 +33,13 @@ verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
       Contact Sensor Node` + generischer `ROS2 Publisher`-Node (`std_msgs/Float32`) auf
       `/pib/fingertip_force/index_right` — Kraftwerte kommen korrekt an (~1-2 N beim
       Greifen der Testdose)
-- [ ] **v5 `index_right` prüfen**: Reader- und Publisher-Node stehen im v5-Graph, laut
-      letzter Inventur zeigt `csPrim` aber auf den Roboter-Wrapper und es gibt keinen
-      `IsaacContactSensor`-Prim — vermutlich unvollständig
-- [ ] Alle Fingerspitzen (v5: 10, v4: restliche 9) nach demselben Muster verkabeln (ADR-008:
-      Sensor-Prim am Fingertip-Link, `Isaac Read Contact Sensor Node` + `ROS2 Publisher`).
-      v5: Links selbst sind nicht instanceable, nur ihre `visuals`/`collisions`-Kinder
-      (Audit) — `SetInstanceable(False)` am Link vermutlich nicht nötig (Leon: "FSR an den
-      anderen Fingern")
-- [ ] Ggf. auf gebündeltes Topic/Array umstellen, falls Einzel-Topics pro Finger auf Dauer
-      unhandlich werden (`ConstructArray` + `ROS2PublishJointState`, siehe ADR-008)
+- [x] v5: alle 10 Fingerspitzen — Sensor-Prims (`build_contact_sensors_v5.py`), 10 Reader,
+      gebündelt als `sensor_msgs/JointState` mit Zeitstempel auf `/pib/fingertip_forces`
+      (`build_fingertip_force_graph_v5.py`, ADR-013); verifiziert an der Dose (Daumen ≈42 N,
+      Zeige ≈25 N, Mittel ≈16 N, Ring ≈2 N), überlebt Speichern + Neu-Öffnen
+- [ ] Optional: die Contact-Knoten als Compound zusammenfassen — erst auf einem frisch
+      geöffneten, funktionierenden Stand probieren (ADR-013, Fallstrick 3)
+- [ ] v4: restliche 9 Fingerspitzen — v4 vorerst nicht weiterverfolgt
 
 ## Szenen-Erweiterung ← aktuell
 
@@ -119,7 +116,7 @@ weiter oben in dieser Session):
       Servo-Gains (ADR-012) kann die Greifpose anders ausfallen
 - [ ] ADR schreiben zur v5-Reimport-Entscheidung (`_v4`/`_v5`-Namensschema, maxForce-Fix,
       Erkenntnis dass dieser Import-Weg über `onshape-to-robot`+URDF lief statt über den
-      direkten Onshape-Importer wie beim v4-Aufbau) — nächste freie Nummer ist ADR-013
+      direkten Onshape-Importer wie beim v4-Aufbau) — nächste freie Nummer ist ADR-014
 
 ## Fingerkopplung ✓ (ADR-009 → ADR-010 → ADR-011)
 

@@ -45,7 +45,10 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
 - Isaac Sim 5.1 (omni.physx 107.3) hat **keine** Mimic-Compliance (`naturalFrequency`/
   `dampingRatio`) und kein `solveArticulationContactLast` — beides nur in 6.0-Docs
 - OmniGraph-Live-Werte nur über `og.Controller.get()` lesbar, nicht über `pxr.Usd`
-  (Graph läuft `fabricCacheBacking=StageWithoutHistory`)
+  (Graph läuft `fabricCacheBacking=StageWithoutHistory`) — umgekehrt landen per
+  `og.Controller` gesetzte Werte/Verbindungen nicht zuverlässig in der USD: Persistentes
+  (z.B. dynamische `ROS2Publisher`-Eingänge) direkt in der USD authoren, nach Graph-Skripten
+  speichern **und neu öffnen**; Graph-Knoten nicht im Stage-Tree umbenennen (ADR-013)
 - Script Node (Action Graph), falls je wieder nötig: Klassen/Instanzen **nie** auf Modulebene des Skript-Texts anlegen, nur innerhalb `setup(db)` als Closures + `db.per_instance_state` — sonst `NameError` beim Methodenaufruf trotz sichtbarem `import` darüber (getrennte globals/locals im Sandbox-Exec, siehe ADR-009, `docs/conventions.md`)
 - Einfache, einmalige Stage-/Graph-Änderungen macht Leon im GUI — Skripte nur für viele
   gleichartige Wiederholungen oder Diagnose; Diagnose-Skripte schreiben zusätzlich nach
@@ -72,8 +75,8 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
 - **Physik-Tuning nach NVIDIA** ✓ weitgehend (ADR-012, Plan in `docs/current-sprint.md`):
   Servo-Aktuatormodell (ST3215/ST3095) für alle v5-Servo-Gelenke, Self-Collision an,
   Tischtest stabil; Restvalidierung (Mimic-Freitest, Audit, Putdown) offen
-- **Contact Sensors** ← offen — Ansatz entschieden (nativer `IsaacContactSensor`-Node,
-  ADR-008), `index_right` in v4 verifiziert, alle 10 Fingerspitzen in v5 offen
+- **Contact Sensors** ✓ (v5) — alle 10 Fingerspitzen, gebündelt als `sensor_msgs/JointState`
+  mit Zeitstempel auf `/pib/fingertip_forces` (ADR-008 + ADR-013)
 - **Szenen-Erweiterung** — weitere Objekte/Umgebung in der USD-Stage
 
 Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen
@@ -92,6 +95,9 @@ isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifiziert
 isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) + Action Graph (OnPhysicsStep), Self-Collision an
 isaac_sim/tools/audit_asset.py       Asset-Inspektion: Massen USD/PhysX/URDF, Collider, Antriebe,
                                      effektive Gelenkträgheit, ω_n·Δt/ζ nach NVIDIA (nur lesend)
+isaac_sim/tools/inspect_action_graph.py        Graph-Inventur aus der USD (Knoten, Verbindungen, Sensoren)
+isaac_sim/tools/build_contact_sensors_v5.py    10 Fingertip-Kontaktsensor-Prims anlegen (ADR-013)
+isaac_sim/tools/build_fingertip_force_graph_v5.py  Kraft-Bündel-Graph → /pib/fingertip_forces
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
 ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
@@ -105,4 +111,4 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011, ADR-012) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–013) | Sprint: @docs/current-sprint.md
