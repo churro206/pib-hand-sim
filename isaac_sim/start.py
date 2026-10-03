@@ -50,7 +50,8 @@ def _load_setup_stage():
 
 def run(stg=None) -> None:
     """
-    Session-Startroutine: configure_drives → set_joint_limits → set_initial_pose.
+    Session-Startroutine: configure_drives → configure_mimic_joints → set_joint_limits
+    → set_initial_pose.
 
     stg: USD Stage. Wenn None wird via omni.usd.get_context() ermittelt (Script Editor).
     """
@@ -60,9 +61,10 @@ def run(stg=None) -> None:
 
     _ss = _load_setup_stage()
     _ss.configure_drives(stg)
+    _ss.configure_mimic_joints(stg)
     _ss.set_joint_limits(stg)
     _ss.set_initial_pose(stg)
-    print("[start] Session-Setup abgeschlossen — Drives, Limits, Initialpose gesetzt.")
+    print("[start] Session-Setup abgeschlossen — Drives, Mimic Joints, Limits, Initialpose gesetzt.")
 
 
 # ── Script-Editor-Block ───────────────────────────────────────────────────────

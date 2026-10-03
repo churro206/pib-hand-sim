@@ -254,8 +254,8 @@
   <link name="urdf_forearm_left">
     <inertial>
       <origin xyz="0.00111195 -0.000423246 0.0470523" rpy="0 0 0"/>
-      <mass value="0.03"/>
-      <inertia ixx="8.98388e-05" ixy="1.12357e-07" ixz="4.73652e-07" iyy="9.33127e-05" iyz="5.11857e-07" izz="3.72687e-05"/>
+      <mass value="0.229"/>
+      <inertia ixx="0.00068577" ixy="8.57658e-07" ixz="3.61554e-06" iyy="0.000712287" iyz="3.90718e-06" izz="0.000284484"/>
     </inertial>
     <!-- Part urdf_forearm_left -->
     <visual>
@@ -926,8 +926,8 @@
   <link name="urdf_forearm_right">
     <inertial>
       <origin xyz="-0.00110617 0.000423086 -0.0470521" rpy="0 0 0"/>
-      <mass value="0.03"/>
-      <inertia ixx="8.98187e-05" ixy="1.15516e-07" ixz="4.73325e-07" iyy="9.3292e-05" iyz="5.14023e-07" izz="3.72664e-05"/>
+      <mass value="0.229"/>
+      <inertia ixx="0.000685616" ixy="8.81772e-07" ixz="3.61305e-06" iyy="0.000712129" iyz="3.92371e-06" izz="0.000284467"/>
     </inertial>
     <!-- Part urdf_forearm_right -->
     <visual>

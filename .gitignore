@@ -25,3 +25,6 @@ runs/
 
 # Zwischenergebnis von isaac_sim/tools/dump_pose.py
 isaac_sim/tools/_pose_dump.json
+
+# Diagnose-Ausgaben der isaac_sim/tools/-Skripte (Script-Editor-Konsole nicht kopierbar)
+isaac_sim/tools/_*.txt
