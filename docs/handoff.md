@@ -16,15 +16,15 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ### Offene Punkte
 
-- Nach der Arm-Umstellung nicht erneut gelaufen: `test_client_mimic_v5 --finger all`, `audit_asset.py` (erwartet: keine "zu steif"-Warnung, Schwelle jetzt ω_n·Δt > 2), Putdown-Demo v5.
+- Nach der Arm-Umstellung bestanden: `audit_asset.py` (keine Warnung), `test_client_mimic_v5 --finger all`; nur Putdown-Demo v5 nicht erneut getestet.
 - Arm/Handgelenk hängen unter Last sichtbar durch (Handgelenk −5,6° in der Tisch-Testpose) — akzeptiert; Stellschraube `SERVO_SATURATION_ERROR_DEG`.
 - Contact Sensors v5: alle 10 Fingerspitzen offen; `index_right`-Reader im Graph zeigt laut Inventur auf den Roboter-Wrapper, kein Sensor-Prim.
 - Warum Self-Collision das Wegfliegen behoben hat, ist nicht erklärt (empirischer Befund).
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Restvalidierung: `audit_asset.py` (Play), `test_client_mimic_v5 --finger all`, `test_client_putdown_v5`.
-2. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster), vorher den halb verkabelten `index_right`-Reader im v5-Graph prüfen.
+1. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster), vorher den halb verkabelten `index_right`-Reader im v5-Graph prüfen.
+2. Putdown-Demo v5 als letzte Regression (`test_client_putdown_v5`).
 3. Optional: `SERVO_SATURATION_ERROR_DEG` kleiner, falls das Durchhängen stört (danach Audit).
 
 ### Wichtige Kontextdetails
