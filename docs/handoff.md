@@ -4,34 +4,37 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-09-06
+## Stand 2026-10-03
 
 ### Zuletzt gearbeitet an
 
-1. **v4/v5-Namensschema repo-weit durchgezogen**: `isaac_sim/usd/pib_upperbody.usd` → `pib_upperbody_v4.usd`, `config/pib_hand_config.py` → `pib_hand_config_v4.py`, `pib_upperbody_urdf/` → `pib_upperbody_urdf_v4/`, `ros2_ws/src/pib_description/` → `pib_description_v4/`. Dabei gefunden: `pib_upperbody.usd` war seit ADR-007 stale — der echte v4-Stand (Contact-Sensor-Rebuild + Tisch/Korb/Tasse) lag in `pib_upperbody_contact_sensors_assets.usd`, das ist jetzt `pib_upperbody_v4.usd`.
-2. **v5-Hand-URDF importiert und in die Szene eingepflegt**: `isaac_sim/usd/pib_upperbody_v5.usd` = Kopie von v4, alter Roboter-Prim gelöscht, v5-URDF (`pib_upperbody_urdf_v5/robot.urdf`) reinimportiert (Convex Hull, Static Base, Instanceable aus), Tisch/Korb/Tasse aus v4 übernommen.
-3. **`isaac_sim/setup_stage.py` gefixt** (gilt für v4 und v5): `configure_drives()` setzt jetzt `physics:maxForce=inf` auf allen Drives (Isaac-Importer hatte für v5 den URDF-`effort`-Wert als Kappung übernommen, 10 Nm an der Schulter reichte nicht gegen die Trägheit). `set_initial_pose()` setzt alle Targets auf 0° (Ellbogen-30°-Sonderfall entfernt, war nie begründet).
-4. Nach dem maxForce-Fix schwangen manche v5-Gelenke — Ursache war **Self-Collision**, nicht Damping/Solver. Deaktiviert auf `root_joint` (v5s Articulation Root sitzt dort, nicht auf dem Wrapper-Xform wie bei v4). Alles committed (`877f714`) und gepusht.
+1. **Sehnendynamik verworfen, Branch auf `0fdbc62` zurückgesetzt** — `1d0cd9c` (Script Node, ADR-009) lebt im Tag `backup/sehnendynamik-1d0cd9c` und auf `feature/rl-grasping`; Vorsession-Experimente (Kraft-Rückwirkung, Mimic-Vorprüfungen, `tendondrive/PROMPT_*.md`) liegen nur in `stash@{0}`.
+2. **PhysX Mimic Joints** (ADR-011): `isaac_sim/setup_stage.py` → `MIMIC_JOINTS` + `configure_mimic_joints()`, von `start.py` jede Session gesetzt; 18 Folgegelenke passiv, gearing=-1.
+3. **Servo-Aktuatormodell + Self-Collision** (ADR-012): MCP/Rotator/Handgelenk/Unterarm auf ST3215-Datenblatt (2,94 Nm, 270 °/s, 0,588 Nm/°, ζ=1, Armature 5e-3); Self-Collision am `root_joint` an → Tischtest stabil. Action Graph auf `OnPhysicsStep`.
+4. **Werkzeuge**: `test_client_mimic_v5`, `test_client_mimic_load_v5` (Finger gegen Tisch, Diagnose), `isaac_sim/tools/audit_asset.py`; Unterarm-Masse 30 g → 0,229 kg (URDFs + USD). Commit `383c4ef`, Doku auf ADR-010/011/012 nachgezogen.
 
 ### Offene Punkte
 
-- `config/pib_hand_config_v5.py` fehlt noch — DOF-Namen liegen aus der URDF vor, aber Limits/`ROBOT_PRIM_PATH`/Drive-Werte müssen gegen die echte Isaac-Stage verifiziert werden, nicht aus der URDF übernommen.
-- `ros2_ws/src/pib_description_v5/` fehlt — die v4-URDF hat 8 handgepflegte `<ros2_control>`-Tags gegenüber dem rohen Export, kein reiner Kopiervorgang.
-- Action Graph und Contact Sensors sind für v5 noch nicht verkabelt.
-- ADR-009 noch nicht geschrieben (v5-Reimport-Entscheidung, `_v4`/`_v5`-Schema, maxForce-/Self-Collision-Fund) — Leon wollte das bewusst erst nach dem Einpflegen machen.
+- **Arm/Kopf noch nicht auf das Aktuatormodell umgestellt**: `shoulder_*` (ST3095), `upper_arm_*`/`elbow_*`/`head_*` (ST3215) stehen auf 3000–5000 Nm/°, `maxForce=inf` — Audit: ω_n·Δt 26–95.
+- `setup_stage.py` hat sieben Experiment-Schalter (`SERVO_*_ENABLED`, `FOLLOWER_*`, `ARM_GAIN_SCALE`) aus der Fehlersuche — sollen durch eine Aktuator-Tabelle ersetzt werden.
+- Pickup-/Putdown-Demo v5 mit Mimic Joints + Self-Collision nicht erneut getestet.
+- Contact Sensors v5: alle 10 Fingerspitzen offen; `index_right`-Reader im Graph zeigt laut Inventur auf den Roboter-Wrapper, kein Sensor-Prim.
+- Warum Self-Collision das Wegfliegen behoben hat, ist nicht erklärt (empirischer Befund).
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Test-Trajektorien für v5 aufnehmen (`dump_pose.py`-Workflow, analog zu v4).
-2. Contact Sensors für v5 verkabeln (`index_right`-Muster aus ADR-008) — `SetInstanceable(False)` vermutlich **nicht** nötig, da Instanceable beim v5-Import schon deaktiviert war, aber gegenprüfen.
-3. Action Graph für v5 aufbauen (`ROS2SubscribeJointState`/`IsaacArticulationController`/`ROS2PublishJointState`) — `targetPrim` **muss** auf `root_joint` zeigen, nicht auf den Wrapper-Xform (anders als bei v4).
-4. `config/pib_hand_config_v5.py` schreiben — Voraussetzung für `set_joint_limits()`/`set_initial_pose()` mit v5-Namen und für die ros2_control-Seite.
+1. Schritt 3/4 des NVIDIA-Plans: Aktuator-Tabelle in `setup_stage.py` (ST3095 `shoulder_*` 9,32 Nm/186 °/s; ST3215 Rest 2,94 Nm/270 °/s), Stiffness = maxForce/5°, Damping ζ=1 mit I_eff = M_ii + Armature aus `_asset_audit.txt`. Vorab durchgerechnet: Schulter vert. 1,864/0,062, horiz. 1,864/0,126, Oberarm 0,588/0,035, Ellbogen 0,588/0,044, Kopf 0,588/0,021 (Nm/° bzw. Nm·s/°).
+2. Danach `audit_asset.py` (Play) + `test_client_mimic_load_v5 --reset` + `--finger fingers_left` als Regression.
+3. Pickup-/Putdown-Demo v5 (`test_client_pickup_v5`/`_putdown_v5`) als Regression.
+4. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster).
 
 ### Wichtige Kontextdetails
 
-- **v5-Joint-Namen bewusst ohne `dof_`-Präfix gelassen** (Onshape-Assembly-Konvention, kein Re-Export nur für Namensangleich, Leons Entscheidung) — Daumen-Mittelgelenk heißt `tip` statt `distal` wie bei v4. Nie versuchen anzugleichen.
-- **v5s Articulation Root sitzt auf `root_joint`** (ein `PhysicsFixedJoint`-Prim), nicht auf dem Wrapper-Xform wie bei v4 — anderes, aber gültiges Muster des neueren Isaac-URDF-Importers. Beim Action-Graph-Verkabeln unbedingt beachten.
-- **Instanceable beim v5-Import deaktiviert** → der ADR-008-Stolperstein (`SetInstanceable(False)` pro Fingerspitze nötig für Contact Sensors) entfällt für v5 komplett, war für v4 nötig.
-- **maxForce=inf gilt jetzt für v4 und v5 gleichermaßen** (`configure_drives()` ist rein namens-generisch, kein Config-Bezug) — v4 lief nur zufällig nie in den Bug, weil dort nie explizit ein `maxForce` gesetzt wurde (USD-Schema-Default ist `inf`).
-- **`isaac_sim/usd/configuration/`** (neu im Repo) ist eine Live-Dependency von `pib_upperbody_v5.usd` (Isaac-Importer-Sublayer-Struktur, ähnlich `pib_upperbody_urdf_v5/robot/configuration/`) — nicht löschen/verschieben, ohne die USD vorher zu flattenen.
-- Schwing-Debugging-Reihenfolge fürs nächste Mal: **maxForce-Kappung → Self-Collision → Solver-Iterationen → Damping-Retuning**, in dieser Priorität (billigster/nicht-invasivster Test zuerst).
+- **Einheiten**: Angular-Drive-Stiffness/Damping am Prim sind pro **Grad** (USD-Schema) — 500 Nm/° ≈ 28.650 Nm/rad; `maxJointVelocity` in °/s. PhysX-Massenmatrix enthält die Armature **nicht**.
+- **Isaac Sim 5.1** hat keine Mimic-Compliance (`naturalFrequency`/`dampingRatio`) und kein `solveArticulationContactLast` — die NVIDIA-Tutorials dazu sind 6.0.
+- Zeitschritt 60 → 240 Hz brachte nichts; Ursache waren die Gains (ω_n·Δt ≫ 1), nicht Δt.
+- Warnung `'NoneType' object has no attribute 'create_articulation_view'` einmal pro Play ist harmlos (erster Physikschritt vor Sim-View-Erzeugung).
+- Akzeptiert (Leon: "reale Gelenke auch nicht perfekt"): Handgelenk hängt in der Tisch-Testpose 2,7–5,4° durch, Daumen/Zeigefinger blockieren sich bei voller Beugung (~70°), übrige Finger stoppen ~88,5°.
+- Onshape-Massen = Vollmaterial-PLA (1,30 g/cm³) ohne Servos/Infill — bewusst belassen.
+- Robot-Collider stecken in instanzierten `collisions`-Kindern → Viewport-Collider-Anzeige zeigt sie erst mit Instanceable aus (die Links selbst sind nicht instanceable).
+- Leon stellt einfache Stage-/Graph-Änderungen im GUI ein — dafür keine Skripte schreiben.

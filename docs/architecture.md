@@ -14,6 +14,11 @@ RoboCup 2027 @Home. Mehrere Gruppen:
 
 Alle Teams nutzen **ROS2**. Auf diesem Branch noch nicht angegangen (siehe „Offen" unten).
 
+**RL-Grasping**: Feinmotorisches Greifen (Force Closure) per Reinforcement Learning in
+Isaac Lab, aufbauend auf dem digitalen Zwilling dieses Branches — eigener Branch
+`feature/rl-grasping`, eigenes `CLAUDE.md`. Nicht Teil dieses Branches, siehe dort für
+Details.
+
 **v4/v5**: Seit der v5-Hand-Baugruppe läuft alles Folgende doppelt, für v4 (verifiziert,
 Referenz-Implementierung) und v5 (im Aufbau) parallel — nicht ablösend. Durchgängiges
 Namensschema: `_v4`-Suffix bzw. `_v5`-Suffix auf jeder Ebene (USD, Config, ROS2-Package).
@@ -72,6 +77,25 @@ die anfangs noch einen Script Node brauchte, ist seit ADR-007 keine Laufzeit-Kom
 mehr, sondern eine einmalige Korrektur direkt an den Gelenk-Prims — kein Custom-Code mehr
 im Action Graph selbst.
 
+### v5-Besonderheiten
+Gilt **nur für `pib_upperbody_v5.usd`** — für v4 bleibt der obige Aufbau unverändert gültig.
+
+- **Trigger `OnPhysicsStep`** (`isaacsim.core.nodes.OnPhysicsStep`) statt `OnPlaybackTick`
+  für alle Nodes in `/Graph/ROS_JointStates` — Kommandos/Zustände laufen im Physiktakt,
+  auch wenn die Simulation unter 60 FPS rendert. Funktioniert nur zusammen mit dem
+  Graph-Prim auf `evaluationMode=Standalone` **und** `pipelineStage=pipelineStageOnDemand`
+  (sonst Fehler „Physics OnSimulationStep node detected in a non on-demand Graph").
+  Nebenwirkung: beim ersten Physikschritt nach Play meldet `ArticulationController` einmal
+  `'NoneType' object has no attribute 'create_articulation_view'` (Physics-Sim-View noch nicht
+  angelegt) und initialisiert sich im nächsten Schritt selbst — harmlos. Der Physics
+  Inspector ist mit dieser Graph-Konfiguration unzuverlässig.
+- **Kein Script Node.** Die Fingerkopplung (PIP/DIP/IP folgen dem MCP) ist keine
+  Laufzeitlogik im Graph mehr, sondern eine PhysX-Zwangsbedingung direkt an den
+  Gelenk-Prims (Mimic Joints, ADR-011). Der zwischenzeitliche `FingerCoupling`-Script-Node
+  (ADR-009) und die explizite Kraft-Rückwirkung (ADR-010) sind ersetzt bzw. verworfen.
+- **`targetPrim` = `root_joint`** (Articulation Root von v5 ist ein `PhysicsFixedJoint`,
+  nicht der Wrapper-Xform wie bei v4).
+
 ---
 
 ## Layer 1 — Isaac-Setup
@@ -79,15 +103,37 @@ im Action Graph selbst.
 | Datei | Verantwortung |
 |---|---|
 | `config/pib_hand_config_v4.py` | DOF-Namen, Indizes, `ROBOT_PRIM_PATH`, Joint-Limits |
-| `isaac_sim/setup_stage.py` | Physics Scene, Boden/Licht, Joint-Drives (Stiffness/Damping), Initialpose |
+| `config/pib_hand_config_v5.py` | dasselbe für v5 (Namen ohne `dof_`-Präfix) |
+| `isaac_sim/setup_stage.py` | Physics Scene, Boden/Licht, Joint-Drives (Stiffness/Damping/maxForce), Servo-Aktuatormodell (Armature, maxJointVelocity, ADR-012), Mimic Joints (`MIMIC_JOINTS`, ADR-011), Limits, Initialpose |
 | `isaac_sim/start.py` | Bündelt `setup_stage`-Aufrufe, vor Play im Script Editor ausführen |
 | `isaac_sim/autostart.py` | Vollautomatisch: USD laden → `start.py` → Play (`--exec`, kein Script Editor nötig) |
 
 Läuft jede Session neu (PhysX cached Drive-Stiffness/Damping nicht zwischen Sessions).
+Was dagegen dauerhaft in der USD steht (GUI-Änderungen, gespeichert): Action-Graph-Aufbau,
+Self-Collision am Articulation Root, korrigierte Unterarm-Masse (v5).
+
+### Servo-Aktuatormodell (v5, ADR-012)
+Nach NVIDIAs Articulation Stability Guide / Tuning-Reihe: `maxForce` = Stall-Torque,
+`maxJointVelocity` = Leerlaufdrehzahl (Datenblatt, 12 V), Stiffness = `maxForce` / 5°
+(Robotiq-Rezept), Damping kritisch (ζ=1) mit Armature als Trägheit.
+
+| Servo | Gelenke | maxForce | maxJointVelocity | Stand |
+|---|---|---|---|---|
+| ST3215 | MCP (`*_proximal`), `thumb_*_rotator`, `wrist_*`, `forearm_*` | 2,94 Nm | 270 °/s | umgesetzt |
+| ST3215 | `upper_arm_*`, `elbow_*`, `head_*` | 2,94 Nm | 270 °/s | **offen** (noch 3000–5000 Nm/°, `maxForce=inf`) |
+| ST3095 | `shoulder_vertical_*`, `shoulder_horizontal_*` | 9,32 Nm | 186 °/s | **offen** |
+| – | Mimic-Folgegelenke (`distal`/`tip`) | passiv | 500 °/s | Armature 5e-4 |
+
+Prüfen mit `isaac_sim/tools/audit_asset.py` (effektive Gelenkträgheit aus der Massenmatrix,
+ω_n·Δt, ζ, Schwerkraftmoment). Armature 5e-3 kg·m² ist eine Annahme (Rotorträgheit und
+Übersetzung des ST3215 nicht im Datenblatt).
 
 ### Physikalisch validiert
 Pickup-/Putdown-Demo bewegen den Roboter korrekt, Kontakt und Reibung mit dem Zylinder
-funktionieren (siehe `ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py`).
+funktionieren (siehe `ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py`). v5 mit
+Mimic Joints: `test_client_mimic_v5` (Kopplung frei, Δ ≤ 0,2°) und
+`test_client_mimic_load_v5` (Finger gegen Tisch: stabiler Stall, Kopplung ≤ 0,1°, kein
+Ausbrechen) — Pickup-/Putdown-Regression mit Mimic Joints steht noch aus.
 
 ---
 
@@ -96,9 +142,10 @@ funktionieren (siehe `ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py`
 ROBOT_PRIM_PATH = /World/pib_upperbody_URDF/pib_upperbody_URDF   (aus config/pib_hand_config_v4.py)
 DOFs: 14 Body + 15 linke Hand + 15 rechte Hand = 44 gesamt
 ```
-v5-Prim-Pfad/DOF-Struktur noch offen — v5 hat dieselbe DOF-Aufteilung, aber andere
-Gelenk-/Link-Namen (kein `dof_`-Präfix, Daumen-Mittelgelenk heißt `tip` statt `distal`),
-siehe `docs/current-sprint.md`.
+v5: Roboter-Wrapper `/World/pib_upperbody_urdf_v5`, Articulation Root
+`/World/pib_upperbody_urdf_v5/root_joint`, dieselbe DOF-Aufteilung, andere Namen (kein
+`dof_`-Präfix, Daumen-Mittelgelenk heißt `tip` statt `distal`). 18 der 44 DOFs (Finger-
+`distal`/`tip`, `thumb_*_tip`) sind passive Mimic-Folgegelenke.
 
 ---
 
@@ -118,20 +165,22 @@ Nutzen). Ein `IsaacContactSensor`-Prim lässt sich nicht unter einem Instance-Pr
 („authoring to an instance proxy is not allowed") — vorher `SetInstanceable(False)` auf
 dem jeweiligen Fingertip-Link-Prim setzen.
 
-Bisher nur `index_right` verkabelt und verifiziert. Restliche 9 Fingerspitzen offen, siehe
-`docs/current-sprint.md`.
+Bisher nur `index_right` in v4 verkabelt und verifiziert. In v5 stehen Reader- und
+Publisher-Node für `index_right` im Graph, laut letzter Inventur zeigt `csPrim` aber auf den
+Roboter-Wrapper und es gibt keinen `IsaacContactSensor`-Prim — vermutlich unvollständig,
+beim Contact-Sensor-Schritt prüfen. v5: Die Link-Prims sind nicht instanceable, nur ihre
+`visuals`/`collisions`-Kinder (Audit) — Sensor-Prims sollten direkt am Link anlegbar sein.
 
 ### Szenen-Erweiterung
 Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody_v4.usd` — Details noch offen.
 
 ### v5-Hand-Integration
 v5 läuft dauerhaft parallel zu v4 (nicht ablösend), Repo-Struktur bereits auf `_v4`/`_v5`
-gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Noch offen: `pib_hand_config_v5.py`
-(DOF-Namen/Limits gegen die echte Stage verifizieren, nicht nur aus der URDF übernehmen),
-`isaac_sim/usd/pib_upperbody_v5.usd` flatten + Action Graph/Contact Sensors aufbauen,
-`ros2_ws/src/pib_description_v5/` (inkl. handgepflegter `<ros2_control>`-Tags, analog zu
-`pib_description_v4`). v5-Gelenkachsen sind laut Import bereits korrekt orientiert —
-`flip_joint_sign.py` (ADR-007) vermutlich nicht nötig, aber noch nicht gegengeprüft.
+gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Action Graph, ros2_control-
+Stack, Pickup-/Putdown-Demo, `config/pib_hand_config_v5.py` und Fingerkopplung (Mimic
+Joints, ADR-011) für v5 sind fertig. Noch offen: Physik-Tuning für Arm/Kopf (ADR-012),
+Kontaktsensoren, Pickup-/Putdown-Regression mit Mimic Joints, ADR zur
+v5-Reimport-Entscheidung (bisher nur in `docs/current-sprint.md` nacherzählt).
 
 ---
 

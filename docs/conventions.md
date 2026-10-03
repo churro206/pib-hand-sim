@@ -12,7 +12,16 @@
   bis ADR-007 waren Onshape/URDF und die importierten USD-Gelenkachsen vorzeicheninvertiert,
   behoben durch `isaac_sim/tools/flip_joint_sign.py` (einmalig gegen die Prims ausgeführt,
   siehe `docs/decisions.md`)
-- Gelenk-Limits nach `set_joint_limits()` (`setup_stage.py`): Hand [0°, 90°], Ellbogen [-45°, 90°], Handgelenk [0°, 90°]
+- Gelenk-Limits nach `set_joint_limits()` (`setup_stage.py`): Hand [0°, 90°], Ellbogen [-45°, 90°],
+  Handgelenk v4 [0°, 90°] / v5 [-90°, 30°] (v5-Werte aus der v5-URDF, siehe `_BODY_LIMITS`)
+
+### Einheiten am Gelenk-Prim (USD/PhysX-Schema)
+- Angular-Drive `stiffness` in **Nm/°**, `damping` in **Nm·s/°**, `targetPosition` in **°**
+- `physxJoint:maxJointVelocity` in **°/s**, `physxJoint:armature` in **kg·m²**
+- ROS2-Topics dagegen durchgehend **rad** bzw. rad/s
+- Für Eigenfrequenz/Dämpfung (ω_n = √(k/I), ζ = d/(2√(k·I))) Stiffness/Damping ×180/π
+  auf rad umrechnen; I = Diagonale der Massenmatrix **plus** Armature (PhysX zählt die
+  Armature nicht in die Massenmatrix)
 - Kein Clip im Code — Gelenklimits kommen aus den USD-Joint-Limits selbst
 
 ### Verifizierte Vorzeichen-Referenzen
@@ -65,16 +74,34 @@ export ROS_DOMAIN_ID=0
 | `/pib/hw/joint_commands` | `sensor_msgs/JointState` | → Isaac (rad), gelesen vom Action Graph |
 | `/pib/hw/joint_states` | `sensor_msgs/JointState` | ← Isaac (rad), vom Action Graph publiziert — Rohwert auf Hardware-Interface-Ebene, entspricht inhaltlich `/joint_states`, aber ohne den ros2_control-Layer davor |
 
+**v5 only (ADR-011)**: `{index,middle,ring,pinky}_{left,right}_distal`/`_tip` und
+`thumb_{left,right}_tip` (18 von 44 Gelenken) sind passive Mimic-Folgegelenke ohne eigenen
+Antrieb (Stiffness/Damping 0) — ihre Werte in `/pib/hw/joint_commands` laufen zwar weiter
+durch den Graph, haben aber **keine Wirkung**. Ihre Stellung ergibt sich aus der
+PhysX-Zwangsbedingung (`θ_folge = θ_referenz`, PIP←MCP, DIP←PIP, Daumen-IP←MCP), wie auf
+der realen Hand (ein Servo pro Finger am MCP, PIP/DIP über Koppelstangen). Steuern also
+nur über `proximal`. `/pib/hw/joint_states` liefert für die Folgegelenke die echten
+(gekoppelten) Ist-Werte.
+
 Winkeleinheit durchgehend **Radiant** — kein separater `deg`/`rad`-Umschalter mehr (`config/server_config.py` existiert auf diesem Branch nicht).
 
 ### Workflow
 ```
 USD laden (enthält Action Graph) → start.py → Play
   → Action Graph läuft automatisch mit
-ros2 launch pib_bringup pib_sim.launch.py
-ros2 run pib_bringup test_client_pickup     # oder test_client_putdown
+ros2 launch pib_bringup pib_sim.launch.py          # v5: pib_sim_v5.launch.py
+ros2 run pib_bringup test_client_pickup     # oder test_client_putdown (v5: *_v5)
+
+# v5 Mimic-/Lasttests (nach colcon build --packages-select pib_bringup):
+ros2 run pib_bringup test_client_mimic_v5 --finger all        # Kopplung ohne Last
+ros2 run pib_bringup test_client_mimic_load_v5 --reset        # Finger gegen Tisch
+ros2 run pib_bringup test_client_mimic_load_v5 --finger fingers_left --reset
 ```
-`start.py` erneut ausführen = hot-reload für Drives/Limits (kein Isaac-Neustart nötig).
+`start.py` erneut ausführen = hot-reload für Drives/Limits/Mimic (kein Isaac-Neustart
+nötig), danach Stop → Play, damit PhysX die Änderungen übernimmt.
+
+Asset-Diagnose: `isaac_sim/tools/audit_asset.py` im Script Editor (nach `start.py`, auf
+Play) → `isaac_sim/tools/_asset_audit.txt`.
 Der Action Graph selbst braucht kein erneutes Ausführen — er ist Teil der Stage und lebt
 mit Play/Stop.
 
@@ -102,6 +129,37 @@ Genutzt von `start.py`, um `setup_stage.py` zu laden.
 await app.next_update_async()
 ```
 (Kein Standalone-Modus mehr auf diesem Branch — `_launch_helper.py` wurde entfernt.)
+
+### Script Node (Action Graph) — Modulebene vs. setup()/compute()
+Derzeit ist **kein** Script Node im Graph (die Sehnendynamik-Kopplung aus ADR-009 ist durch
+Mimic Joints ersetzt, ADR-011). Die Regel bleibt für jeden künftigen Script Node gültig:
+
+**Nie** Klassen/Instanzen mit echten Berechnungen auf Modulebene eines Script-Node-Skripts
+anlegen (z.B. `import numpy as np` gefolgt von `MEIN_OBJEKT = MeineKlasse(...)` direkt
+danach). Beobachteter Fehler (ADR-009): `NameError: name 'np' is not defined` beim Aufruf
+einer Methode, obwohl der `import` sichtbar direkt darüber steht. Ursache: Isaac Sims
+Script-Node-Sandbox execut Top-Level-Code offenbar mit getrennten globals-/locals-Dicts —
+der `import` landet nur im locals-Dict, Methoden einer auf Modulebene definierten Klasse
+bekommen aber das (numpy-lose) globals-Dict als `__globals__`. Klassischer Python-
+Fallstrick bei `exec()` mit getrennten globals/locals.
+
+**Fix**: Klasse(n) und Instanzen als Closures innerhalb von `setup(db)` definieren,
+Instanzen in `db.per_instance_state` ablegen, `compute(db)` greift nur noch darauf zu:
+```python
+def setup(db):
+    import numpy as np
+
+    class Foo:
+        def bar(self):
+            return np.array(...)  # funktioniert -- echte Closure ueber setup()s Frame
+
+    db.per_instance_state.foo = Foo()
+
+def compute(db):
+    result = db.per_instance_state.foo.bar()
+```
+Referenzimplementierung (nicht mehr im Baum, Git-Historie): `isaac_sim/tools/finger_coupling_script_node.py`
+in Commit `1d0cd9c` (auch auf `feature/rl-grasping`).
 
 ## Commit-Konventionen
 - Keine automatischen Commits — Leon schaut erst drüber

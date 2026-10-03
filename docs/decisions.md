@@ -210,6 +210,235 @@ gebündelt in einer Nachricht laufen sollen.
 
 ---
 
+## ADR-009: Sehnendynamik-Kopplung via Script Node (bewusste Ausnahme von ADR-006/007/008)
+
+> **Ersetzt durch ADR-011:** Der Script Node koppelte nur die Soll-Winkel; PIP/DIP blieben
+> eigene Antriebe mit `maxForce=inf`, ihre Last floss nicht zum MCP. Branch auf den Stand
+> davor zurückgesetzt, Kopplung jetzt über PhysX Mimic Joints. Der Commit (`1d0cd9c`) lebt
+> auf `feature/rl-grasping` und im Tag `backup/sehnendynamik-1d0cd9c` weiter. Als
+> historischer Kontext stehen gelassen — die Script-Node-Regel (Closures in `setup(db)`)
+> gilt weiterhin.
+
+**Problem**: Die reale linke Hand (Prototyp, Unterarm + Hand) hat nur **8 Servos**
+(Handgelenk, Unterarmdrehung, Daumen-Rotator, sowie je ein Servo pro Finger/Daumen-MCP) —
+gesteuert über einen STM32 Nucleo. PIP/DIP (bzw. Daumen-IP) sind **nicht** unabhängig
+aktuiert, sondern folgen dem MCP rein mechanisch über zwei Kopplungsstangen (Viergelenk-
+getriebe pro Stufe). Die Simulation bildete bisher jedes Fingerglied als unabhängig
+positionsgesteuertes Gelenk ab (`servo_pose_to_joints()` in `config/pib_hand_config_v4.py`:
+lineare 1:1-Näherung) — kinematisch falsch und unbrauchbar als digitaler Zwilling für
+späteres Sim-to-Real-RL-Training (siehe `feature/rl-grasping`).
+
+**Entscheidung**: Ein Script Node (`FingerCoupling`) im bestehenden Action Graph
+(`/Graph/ROS_JointStates` in `pib_upperbody_v5.usd`) berechnet PIP/DIP/IP-Zielwinkel jeden
+Tick aus dem **gemessenen** Ist-Winkel des jeweils vorgelagerten Gelenks — geschlossener
+Regelkreis, kein Verlass auf den befehligten Soll-Wert. Formel: analytische Viergelenk-
+Kopplung (geschlossene Lösung, keine LUT, keine Nullstellensuche im Regelkreis), hergeleitet
+und validiert in `tendondrive/finger_analytisch.py` (Finger, r=7mm) und
+`tendondrive/daumen_analytisch.py` (Daumen, r=7,4mm) — siehe dort für die geometrische
+Herleitung der Schließbedingung. Ein neuer `IsaacArticulationState`-Node liefert die Ist-
+Winkel (`MeasuredJointState`, 18 Gelenke: `{finger}_{side}_proximal`/`_distal` +
+`thumb_{side}_proximal`). MCP selbst bleibt normale ROS2-Positions-Drive wie bisher, keine
+Sehnenkraft/Effort-Steuerung — reine kinematische Umleitung der Positions-Commands für 18
+von 44 Gelenken (4 Finger × 2-stufig + Daumen × 1-stufig, je beide Seiten).
+
+Geprüfte Alternative: natives PhysX Fixed-Tendon-Schema (`PhysxTendonAxisAPI`/
+`PhysxTendonAxisRootAPI`, in Isaac Sim 5.1 vorhanden) — verworfen, weil dessen Gearing ein
+**linearer** Koeffizient pro Achse ist. Die reale Kopplung ist stark nichtlinear
+(Übersetzung dPIP/dMCP läuft von 0,6 bis 1,667 über den Bewegungsbereich 0°–90°) und lässt
+sich damit nicht exakt abbilden, nur linear annähern.
+
+**Begründung**: Bewusste, begründete Ausnahme von der ADR-006/007/008-Linie ("kein Custom-
+Python im Action Graph") — das eigentliche Kriterium dahinter (Action Graph bleibt Teil der
+Stage, kein externer Prozess, kein Skript-Editor-Lauf pro Session nötig) ist weiterhin
+erfüllt. Für eine echte Sehnenkraft-Berechnung gäbe es ohnehin keinen nativen Node; die
+Alternative (Fixed Tendon) kann die nichtlineare Geometrie nicht exakt genug abbilden.
+
+**Konsequenzen**:
+- Neue Tools: `isaac_sim/tools/build_finger_coupling_graph.py` (einmaliger Graph-Aufbau,
+  fügt `MeasuredJointState`+`FingerCoupling` hinzu, hängt `ArticulationController.inputs:
+  jointNames`/`positionCommand` von `SubscriberJointState` auf `FingerCoupling` um),
+  `isaac_sim/tools/patch_finger_coupling_script.py` (gezielter Patch nur des Skript-Texts,
+  ohne Knoten neu anzulegen), `isaac_sim/tools/inspect_action_graph.py` (Diagnose: listet
+  Action-Graph-Knoten inkl. tatsächlicher Attribut-Verbindungen, schreibt nach
+  `isaac_sim/tools/_action_graph_inventory.txt`, gitignored).
+- `/pib/hw/joint_commands` liefert weiterhin Werte für alle 44 DOFs, aber `distal`/`tip`
+  (Daumen: `tip`) der 4 Finger + Daumen, beide Seiten (18 Gelenke), werden vom Script Node
+  **überschrieben** — eingehende ROS2-Werte für diese Gelenke werden ignoriert. `docs/
+  conventions.md` Topic-Tabelle entsprechend ergänzt.
+- **Zwei Bugs beim Erstaufbau gefunden, beide gefixt:**
+  1. `NameError: name 'np' is not defined` beim Aufruf der `FourBar`-Methoden, obwohl
+     `import numpy as np` direkt über der Klassendefinition auf Modulebene stand. Ursache:
+     Isaac Sims Script-Node-Sandbox execut den Skript-Text offenbar mit getrennten
+     globals-/locals-Dicts — der `import` landet nur im locals-Dict, aber Methoden einer
+     auf Modulebene definierten Klasse bekommen als `__globals__` das (numpy-lose)
+     globals-Dict. Klassischer Python-Fallstrick bei `exec()` mit getrennten globals/
+     locals. **Fix**: Klasse und Instanzen als Closures innerhalb von `setup(db)` anlegen,
+     Instanzen in `db.per_instance_state` ablegen — schließt korrekt über `setup()`s
+     eigenen Laufzeit-Namensraum, unabhängig vom Sandbox-Mechanismus. Gilt für **jeden**
+     künftigen Script Node auf diesem Branch — siehe neue Regel in `CLAUDE.md`.
+  2. Ziel-Gelenkname `thumb_{side}_distal` war falsch — v5-Namensschema nennt das
+     Daumenmittelgelenk `tip`, nicht `distal` (dokumentierte Abweichung, siehe
+     `docs/conventions.md`, war beim Schreiben übersehen worden). Führte zu einer
+     `ArticulationController`-Warnung (`OmniGraph Warning: 'thumb_left_distal'`), die
+     augenscheinlich den **kompletten** `positionCommand`-Batch blockierte — auch
+     unbeteiligte Gelenke wie `wrist_left` bewegten sich währenddessen nicht, was die
+     Fehlersuche zunächst in eine falsche Richtung lenkte (sah wie ein grundsätzliches
+     Verkabelungs-/Physics-Problem aus, war aber ein einzelner falscher Name).
+- End-to-end über den echten `ros2_control`-Stack verifiziert (`FollowJointTrajectory`-
+  Goals gegen `index_left_proximal`, `thumb_left_proximal`, `wrist_left` als Kontrolltest,
+  sowie alle 10 Finger-/Daumen-MCPs beider Hände gleichzeitig auf 90° — der einzige exakte
+  Punkt der Kopplungskurve, leicht auf einen Blick prüfbar).
+- Geometrie wird für **beide** Hände als identisch/gespiegelt angenommen (Kopplung läuft
+  für `left` und `right` symmetrisch) — nicht separat verifiziert, da real aktuell nur die
+  **linke** Hand als Hardware-Prototyp existiert.
+- Kontaktsensor-Erweiterung (restliche 9 Fingerspitzen, ADR-008-Muster) und
+  `config/pib_hand_config_v5.py` bleiben offen, siehe `docs/current-sprint.md`.
+- RL-Grasping-Vorhaben (Isaac Lab) auf neuem Branch `feature/rl-grasping` — Aktionsraum
+  dort **muss** die 8 realen Servo-DOFs sein, PIP/DIP/IP intern über dieselbe `FourBar`-
+  Formel berechnet (nicht lernbar), sonst lernt die Policy real unerreichbare Posen.
+
+---
+
+## ADR-010: Explizite Kraft-Rückwirkung PIP/DIP → MCP (verworfen)
+
+> **Verworfen, ersetzt durch ADR-011.** Nie committet; Code und Herleitung liegen nur lokal
+> (`git stash` vom 2026-10-03: `isaac_sim/tools/build_coupling_reflection_graph.py`,
+> `tendondrive/PROMPT_kopplung_rueckwirkung.md`, `tendondrive/PROMPT_rueckwirkung_instabilitaet.md`).
+
+**Problem**: In ADR-009 waren PIP/DIP eigene PD-Antriebe mit `maxForce=inf` — eine Kraft an
+der Fingerspitze belastete den MCP-Servo nicht. Geschätzt war die Fingerspitze dadurch bei
+90° um Faktor ~6,9 zu stark (183,6 N statt ~26,7 N real).
+
+**Entscheidung (Versuch)**: Der Script Node berechnet zusätzlich das Moment der PIP/DIP-
+Antriebe und gibt es über die Kopplungs-Jacobian (`-J·τ`) als `effortCommand` an einen
+zweiten `IsaacArticulationController` auf dem MCP. Vorab verifiziert: `maxForce` begrenzt
+nur die PD-Kraft, nicht einen separat vorgegebenen Effort; zwei Controller auf demselben
+Gelenk koexistieren.
+
+**Ergebnis**: Beim Tischtest bis zu −2025 Nm Effort am MCP, PIP knickte auf −87,8° durch,
+MCP bewegte sich trotzdem nicht messbar anders als ohne Rückwirkung (82,7°). Eigene
+Stabilitätsrechnung: Die Rückführung wirkt am MCP wie eine explizite Feder mit
+J₁²·k ≈ 1050 Nm/rad; bei ~5·10⁻⁵ kg·m² Fingerträgheit ist eine explizite Feder nur bis
+≈0,4 Nm/rad (Δt = 1/60 s) stabil — strukturell instabil, nicht durch Abstimmen zu retten.
+
+**Konsequenzen**: Verworfen zugunsten einer impliziten Kopplung im Solver (ADR-011).
+
+---
+
+## ADR-011: Fingerkopplung über PhysX Mimic Joints (ersetzt ADR-009/010)
+
+**Problem**: PIP/DIP (Finger) bzw. IP (Daumen) haben am realen Prototyp keinen Motor — sie
+folgen dem MCP über Viergelenk-Koppelstangen, und der eine MCP-Servo (ST3215, 2,94 Nm)
+trägt die Last aller Glieder. ADR-009 bildete nur die Winkel nach, nicht den Lastfluss;
+ADR-010 (explizite Rückwirkung) war instabil.
+
+**Entscheidung**: `PhysxMimicJointAPI` am Folgegelenk — eine Zwangsbedingung im PhysX-
+Solver, Kopplungskraft wird implizit im selben Schritt berechnet und an den MCP
+weitergegeben. Stufe 1, linear:
+
+| Folgegelenk | Referenz | gearing | offset |
+|---|---|---|---|
+| `{index,middle,ring,pinky}_{side}_distal` (PIP) | `…_proximal` (MCP) | −1 | 0 |
+| `{index,middle,ring,pinky}_{side}_tip` (DIP) | `…_distal` (PIP, Kette) | −1 | 0 |
+| `thumb_{side}_tip` (IP) | `thumb_{side}_proximal` | −1 | 0 |
+
+PhysX-Formel (aus `generatedSchema.usda`, nicht geraten): `q_folge + gearing·q_ref + offset = 0`
+→ `gearing = −1` heißt `q_folge = q_ref`. Instanzname = Achse des Gelenks (`rotZ`, aus
+`physics:axis` gelesen). Hart (nicht nachgiebig) — Isaac Sim 5.1 hat ohnehin keine
+Mimic-Compliance. Folgegelenke passiv (Stiffness/Damping 0), mit Armature 5·10⁻⁴ kg·m² und
+`maxJointVelocity` 500 °/s (reale Kopplung bis 1,67× MCP-Geschwindigkeit). Gesetzt jede
+Session von `start.py` → `setup_stage.configure_mimic_joints()`; Gearing/Offset stehen nur in
+`setup_stage.py` → `MIMIC_JOINTS` (Vorbereitung für eine adaptive Stufe 2).
+
+Fixed Tendons waren in ADR-009 wegen ihres linearen Gearings verworfen worden — Mimic
+Joints sind in Stufe 1 genauso linear. Für sie spricht: NVIDIAs Referenzweg für
+linkage-getriebene Hände, und laut PhysX-Doku lassen sich Gearing/Offset zwischen
+Simulationsschritten ändern (Voraussetzung für eine adaptive Stufe 2). Verworfen: Script
+Node (ADR-009) und explizite Rückwirkung (ADR-010).
+
+**Begründung**: Implizite Kopplung ist stabil gegen harten Kontakt, gibt die Last physikalisch
+an den MCP weiter und braucht keinen Custom-Python im Action Graph (zurück auf der Linie von
+ADR-006/007/008). NVIDIA nutzt denselben Ansatz für linkage-getriebene Hände (Inspire Hand,
+Isaac-Sim-Tuning-Tutorials).
+
+**Konsequenzen**:
+- Branch auf `0fdbc62` zurückgesetzt (vor ADR-009), `FingerCoupling`/`MeasuredJointState`
+  sind nicht mehr im Graph.
+- ROS2-Werte für die 18 Folgegelenke in `/pib/hw/joint_commands` sind wirkungslos (siehe
+  `docs/conventions.md`); gesteuert wird nur über `proximal`.
+- Bekannter Preis der Linearisierung: Winkelfehler in der Bewegungsmitte gegenüber der realen
+  Viergelenk-Kurve bis ~10° (PIP), ~22° (DIP über die Kette), ~8° (Daumen-IP); exakt bei 0° und
+  90°. Kraftgrenze an der Fingerspitze bei 90° etwa doppelt so hoch wie real (Schätzung).
+- Stufe 2 (adaptiv: Gearing/Offset jeden Schritt aus der Viergelenk-Formel linearisieren)
+  offen; ob Isaac eine Laufzeitänderung an PhysX weitergibt, ist nicht getestet. Die
+  Viergelenk-Herleitung (`tendondrive/`) liegt in `1d0cd9c`.
+- Verifiziert: alle 10 MCPs frei 0°→45°→90°→0° mit Δ ≤ 0,2° (`test_client_mimic_v5`);
+  Finger gegen den Tisch mit Kopplung ≤ 0,1° unter Last (`test_client_mimic_load_v5`, nach
+  ADR-012).
+- `feature/rl-grasping` basiert noch auf ADR-009: Aktionsraum dort bleibt die 8 Servo-DOFs;
+  ob Isaac Lab die Mimic Joints aus der USD übernimmt, ist ungeprüft.
+
+---
+
+## ADR-012: Physik-Tuning nach NVIDIA — Servo-Aktuatormodell, Self-Collision, OnPhysicsStep
+
+**Problem**: Mit Mimic Joints (ADR-011) chatterte der Finger beim Tischkontakt (±10°), später
+brach der ganze linke Arm aus (Gelenke drehten sich mehrere tausend Grad, Limits wirkungslos,
+NaN in `/pib/hw/joint_states`). Ursachen laut Analyse (Schema, Audit):
+- Antriebe standen auf 500–5000 Nm/**°** (Einheit pro Grad, laut USD-Schema) — an MCP,
+  Handgelenk, Unterarm mit `maxForce` 2,94 Nm kombiniert: Sättigung schon bei ~0,006°
+  Fehler, der Antrieb wirkte wie ein Relais (±2,94 Nm). Eigenfrequenz × Zeitschritt
+  (NVIDIA-Kriterium, soll nicht ≫ 1 sein) lag bei ~25–400.
+- Keine realistischen Geschwindigkeitsgrenzen (Importer: 10 rad/s = 573 °/s aus der URDF).
+- Self-Collision am Articulation Root aus.
+
+**Entscheidung**: Vorgehen nach NVIDIAs Tuning-Reihe (Inspire Hand: Asset inspizieren →
+Collider-Paare → Antriebsgrenzen → Gains) und Articulation Stability Guide:
+
+1. **Servo-Aktuatormodell aus Datenblättern** (12 V): ST3215 (alle Servo-Gelenke außer
+   Schultern) 2,94 Nm Stall, 270 °/s Leerlauf; ST3095-C002 (`shoulder_*`) 9,32 Nm, 186 °/s.
+   `maxForce` = Stall-Torque, `maxJointVelocity` = Leerlaufdrehzahl, Stiffness =
+   `maxForce`/5° (Robotiq-Rezept, 0,087 rad), Damping kritisch (ζ = 1) mit der effektiven
+   Gelenkträgheit, Armature 5·10⁻³ kg·m² (Annahme — Rotorträgheit/Übersetzung nicht im
+   Datenblatt). **Umgesetzt** für MCP, Daumen-Rotator, Handgelenk, Unterarm; **offen** für
+   Oberarm, Ellbogen, Kopf, Schultern (dort noch 3000–5000 Nm/°, `maxForce=inf`).
+2. **Self-Collision an** am `root_joint` — empirisch der entscheidende Schritt: danach kein
+   Wegfliegen und kein Schwingen mehr beim Tischtest. Den Mechanismus erklären die Daten nicht.
+   Collision Groups vorerst nicht nötig (direkt verbundene Glieder filtert PhysX selbst; die
+   Überlappungen Daumen↔Handfläche und Handfläche↔Unterarm in Ruhe stören nicht).
+3. **Action-Graph-Trigger `OnPhysicsStep`** statt `OnPlaybackTick` (Sim läuft oft < 60 FPS;
+   Graph-Prim braucht dafür `evaluationMode=Standalone` + `pipelineStage=pipelineStageOnDemand`).
+4. **Asset-Audit** (`isaac_sim/tools/audit_asset.py`) statt Annahmen: Massen USD = PhysX =
+   URDF (Onshape) für alle 47 Links, effektive Gelenkträgheit aus der Massenmatrix.
+
+Geprüft, ohne Wirkung oder nicht verfügbar:
+- Zeitschritt 60 → 240 Hz: keine Verbesserung (bei ω_n·Δt ~ 100–400 erwartbar).
+- Mimic-Compliance (`naturalFrequency`/`dampingRatio`) und `solveArticulationContactLast`:
+  gibt es in Isaac Sim 5.1 / omni.physx 107.3 nicht (nur 6.0-Docs).
+- Dämpfung der Folgegelenke: von NVIDIA nicht gestützt, nicht umgesetzt.
+
+**Begründung**: So nah wie möglich an NVIDIA-Praxis und bewährten Projekten (Robotiq-2F-85-
+Beispiel; SO-ARM100 in Isaac Lab nutzt ebenfalls ST3215 mit `effort_limit` = Stall-Torque
+und Geschwindigkeitslimit). Mit dem Rezept liegt ω_n·Δt für alle umgestellten Gelenke bei
+~0,4–1,4.
+
+**Konsequenzen**:
+- Verifiziert (Tischtest): `index_left` bleibt bei MCP ≈10° stabil am Tisch stehen
+  (Spannweite 0,0°, Kopplung ≤ 0,1°, Arm-Drift ≤ 2,4°); vier Finger gleichzeitig: das
+  Handgelenk gibt nach (Reaktionsmoment > 2,94 Nm) und die Hand kippt — realistisch.
+- Bewusst akzeptiert („reale Gelenke sind auch nicht perfekt"): Handgelenk hängt in der
+  Tisch-Testpose 2,7–5,4° durch (weiche Servo-Gains); mit Self-Collision blockieren sich
+  Daumen und Zeigefinger bei voller Beugung ohne Daumenrotation (~70°), die übrigen Finger
+  stoppen bei ~88,5° (Convex Hull der Handfläche).
+- Massen aus Onshape sind Vollmaterial-PLA (1,30 g/cm³), ohne Servos/Infill — bewusst so
+  belassen; einziger Fix: Unterarm-Override 30 g → 0,229 kg (URDF + USD, gegen Onshape
+  verifiziert).
+- `setup_stage.py` enthält Experiment-Schalter (`SERVO_*_ENABLED`, `FOLLOWER_*`,
+  `ARM_GAIN_SCALE`) aus der Fehlersuche — werden beim Umstellen von Arm/Kopf durch eine
+  Aktuator-Tabelle ersetzt.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]
