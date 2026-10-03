@@ -400,8 +400,10 @@ Collider-Paare → Antriebsgrenzen → Gains) und Articulation Stability Guide:
    `maxForce` = Stall-Torque, `maxJointVelocity` = Leerlaufdrehzahl, Stiffness =
    `maxForce`/5° (Robotiq-Rezept, 0,087 rad), Damping kritisch (ζ = 1) mit der effektiven
    Gelenkträgheit, Armature 5·10⁻³ kg·m² (Annahme — Rotorträgheit/Übersetzung nicht im
-   Datenblatt). **Umgesetzt** für MCP, Daumen-Rotator, Handgelenk, Unterarm; **offen** für
-   Oberarm, Ellbogen, Kopf, Schultern (dort noch 3000–5000 Nm/°, `maxForce=inf`).
+   Datenblatt). Für **alle** v5-Servo-Gelenke umgesetzt (`setup_stage.py` → `SERVOS`,
+   `V5_ACTUATORS`); die Nenn-Trägheit pro Gelenkgruppe für die Dämpfung stammt aus dem Audit
+   (Massenmatrix-Diagonale in der T-Pose). ω_n·Δt danach 0,44–1,36, ζ = 1. v4 bleibt bewusst
+   auf den Referenzwerten von `0fdbc62` (500–5000 Nm/°, `maxForce=inf`).
 2. **Self-Collision an** am `root_joint` — empirisch der entscheidende Schritt: danach kein
    Wegfliegen und kein Schwingen mehr beim Tischtest. Den Mechanismus erklären die Daten nicht.
    Collision Groups vorerst nicht nötig (direkt verbundene Glieder filtert PhysX selbst; die
@@ -433,9 +435,14 @@ und Geschwindigkeitslimit). Mit dem Rezept liegt ω_n·Δt für alle umgestellte
 - Massen aus Onshape sind Vollmaterial-PLA (1,30 g/cm³), ohne Servos/Infill — bewusst so
   belassen; einziger Fix: Unterarm-Override 30 g → 0,229 kg (URDF + USD, gegen Onshape
   verifiziert).
-- `setup_stage.py` enthält Experiment-Schalter (`SERVO_*_ENABLED`, `FOLLOWER_*`,
-  `ARM_GAIN_SCALE`) aus der Fehlersuche — werden beim Umstellen von Arm/Kopf durch eine
-  Aktuator-Tabelle ersetzt.
+- Mit dem Servo-Arm (2,94 Nm Ellbogen/Oberarm, 9,32 Nm Schulter) ist jetzt der Arm das
+  schwächste Glied: Beim Tischtest drückt der Finger die Hand weg (Ellbogen gibt ~5° nach)
+  statt am Tisch zu stallen; bei der Pickup-Demo hält der ausgestreckte Arm die Dose nur
+  knapp und hängt sichtbar durch — laut Leon realistisch im Vergleich zum Laborroboter.
+- Stellschraube, falls das Durchhängen stört: `SERVO_SATURATION_ERROR_DEG` (5°; SO-ARM100
+  nutzt effektiv 0,5–2°) — kleinere Werte erhöhen ω_n·Δt, danach Audit erneut prüfen.
+- Die Experiment-Schalter der Fehlersuche (`SERVO_*_ENABLED`, `FOLLOWER_*`,
+  `ARM_GAIN_SCALE`) sind durch die Aktuator-Tabelle ersetzt (Git-Historie: `383c4ef`).
 
 ---
 

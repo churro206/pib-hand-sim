@@ -3,8 +3,9 @@ setup_stage.py — Stage-Setup für pib in Isaac Sim.
 
 Im Script Editor ausführen um:
   1. Physics Scene, Boden und Licht einzurichten
-  2. Joint-Drives für alle Gelenke zu konfigurieren (Stiffness/Damping/MaxForce)
-  3. Initiale Pose (T-Pose, alle Targets 0°) als Drive-Target zu setzen
+  2. Joint-Drives zu konfigurieren — v5: Servo-Aktuatormodell aus Datenblättern
+     (ADR-012), passive Mimic-Folgegelenke (ADR-011); v4: Referenzwerte von 0fdbc62
+  3. Mimic Joints (v5), Gelenk-Limits und Initialpose (T-Pose, alle Targets 0°) zu setzen
 
 Danach Stage speichern (Ctrl+S), dann Play drücken.
 
@@ -40,138 +41,90 @@ _spec.loader.exec_module(_cfg)
 ROBOT_PRIM_PATH = _cfg.ROBOT_PRIM_PATH
 
 
-# ── Drive-Klassifizierung ─────────────────────────────────────────────────────
+# ── v4: Referenz-Drives (unverändert seit 0fdbc62) ────────────────────────────
+# v4 bleibt der verifizierte Referenzstand: diese Gains, maxForce=inf, keine Armature/
+# Geschwindigkeitsgrenze. Das Servo-Aktuatormodell (unten) gilt nur für v5 — v4-Namen
+# haben das Präfix "dof_".
 
-# Experiment-Schalter: Faktor auf Stiffness/Damping aller Körpergelenke (Kopf, Schulter,
-# Oberarm, Ellbogen, Unterarm, Handgelenk). 1.0 = unverändert. Stiffness ist in Nm/GRAD
-# (5000 Nm/° ≈ 2.9e5 Nm/rad) — bei leichten Gliedern weit über dem, was ein
-# 60-Hz-Physikschritt stabil auflösen kann (NVIDIA: Eigenfrequenz * Zeitschritt nicht >> 1).
-# Zum Testen z.B. 0.1 oder 0.02; die Testpose weicht dann unter Schwerkraft etwas ab.
-ARM_GAIN_SCALE = 1.0
-
-
-def _classify_dof(name: str) -> tuple:
-    """Gibt (stiffness, damping) für einen DOF-Namen zurück."""
+def _v4_gains(name: str) -> tuple:
+    """(stiffness Nm/°, damping Nm·s/°) für v4-Gelenke."""
     n = name.lower()
     if "head" in n:
-        return 3000.0 * ARM_GAIN_SCALE, 150.0 * ARM_GAIN_SCALE
+        return 3000.0, 150.0
     if any(k in n for k in ("shoulder", "upper_arm", "elbow", "forearm")):
-        return 5000.0 * ARM_GAIN_SCALE, 200.0 * ARM_GAIN_SCALE
+        return 5000.0, 200.0
     if "wrist" in n:
-        return 2000.0 * ARM_GAIN_SCALE, 100.0 * ARM_GAIN_SCALE
-    if "rotator" in n:                                  # dof_thumb_*_rotator
+        return 2000.0, 100.0
+    if "rotator" in n:
         return 1000.0, 50.0
     if any(k in n for k in ("proximal", "distal", "tip")):
         return 500.0, 20.0
     return 1000.0, 50.0                                 # Fallback
 
 
-# ST3215-Servo (reale Hardware): 30 kg·cm Stall-Torque @ 12V.
-# 1 kgf·cm = 0.0980665 Nm → 30 * 0.0980665 ≈ 2.94 Nm.
-# Angenommen: Betriebsspannung 12V (Servo-Spannungsbereich 6~12.6V) — bei
-# abweichender realer Versorgungsspannung anpassen, Stall-Torque skaliert mit
-# dem Blockierstrom (kt=11 kg·cm/A * 2.7A Blockierstrom ≈ 30 kg·cm bei den
-# Datenblatt-Bedingungen), nicht einfach linear mit der Spannung.
-SERVO_STALL_TORQUE_NM = 30.0 * 0.0980665  # ≈ 2.94 Nm
-
-
-def _classify_max_force(name: str) -> float:
-    """
-    Gibt maxForce (Nm) für einen DOF-Namen zurück.
-
-    Nur auf die Gelenke beschränkt, die für RL-Fahrplan + aktuellen
-    Demonstrator-Stand relevant sind und direkt von einem eigenen Servo
-    angetrieben werden: Handgelenk, Unterarmdrehung (Pronation), Daumen-
-    Rotator (CMC) und alle MCP-Gelenke (proximal) — Finger wie Daumen,
-    beide Seiten. Bekommen den realen ST3215-Stall-Torque.
-
-    Rest bleibt bei inf (unverändert, bewusst):
-    - Kopf/Schulter/Oberarm/Ellbogen — nicht Teil dieser Abgrenzung (Leon:
-      "der Rest bleibt erstmal so"), noch nicht angegangen.
-    - PIP/DIP/IP (distal/tip) — mechanisch über das Viergelenkgetriebe an
-      den jeweiligen MCP GEKOPPELT, kein eigener Servo. Laufen als passive
-      Mimic Joints (siehe MIMIC_JOINTS unten): der MCP-Servo trägt die
-      Last über die Zwangsbedingung, ein eigenes maxForce hätte hier keine
-      physikalische Basis.
-    """
-    n = name.lower()
-    if "wrist" in n:
-        return SERVO_STALL_TORQUE_NM
-    if "forearm" in n:
-        return SERVO_STALL_TORQUE_NM
-    if "rotator" in n:                                  # dof_thumb_*_rotator
-        return SERVO_STALL_TORQUE_NM
-    if "proximal" in n:                                 # alle MCP-Gelenke
-        return SERVO_STALL_TORQUE_NM
-    return float("inf")
-
-
-# ── Servo-Dynamik der MCP-Gelenke (ST3215) ────────────────────────────────────
-# Aus dem Datenblatt: Leerlaufdrehzahl 0.222 s/60° @12V (45 RPM) = 270°/s.
-# Ohne Begrenzung beschleunigt der gesättigte 2.94-Nm-Antrieb den leichten Finger
-# (Trägheit ~5e-5 kg·m², Annahme aus PROMPT_mimic_joints.md) auf viele hundert
-# Grad pro Physikschritt und prallt dann auf den Tisch (Chattern, NaN) — siehe
-# NVIDIA Articulation Stability Guide: Max-Force/Geschwindigkeit nach Aktuator-
-# Spezifikation, Armature = Rotorträgheit * Übersetzung^2, Antriebs-Eigenfrequenz
-# * Zeitschritt nicht >> 1.
-#
-# Einheiten (USD-Schema): Angular-Drive stiffness = Nm/GRAD, damping = Nm·s/GRAD,
-# physxJoint:maxJointVelocity = °/s, physxJoint:armature = kg·m².
-SERVO_NO_LOAD_SPEED_DEG_S = 60.0 / 0.222          # ≈ 270 °/s
-# ANNAHME, nicht gemessen: reflektierte Rotorträgheit des geared Servos. Startwert
-# 5e-3 kg·m² (Robotiq-Beispiel der NVIDIA-Doku; plausible Größenordnung für kleinen
-# Motor mit Getriebe ~1:345). Bei Bedarf an realem Servo-Verhalten nachziehen.
-SERVO_ARMATURE_KGM2 = 5.0e-3
-# Stiffness so gewählt, dass maxForce (Stall-Torque) bei 5° Positionsfehler erreicht
-# wird (NVIDIA-Rezept: stiffness = maxForce / Ziel-Fehler); Damping für kritische
-# Dämpfung (ζ=1) mit der Armature als Trägheit.
-SERVO_SATURATION_ERROR_DEG = 5.0
+# ── v5: Servo-Aktuatormodell (ADR-012) ────────────────────────────────────────
+# Nach NVIDIA Articulation Stability Guide / Isaac-Sim-Tuning-Reihe (Robotiq-Rezept):
+#   maxForce          = Stall-Torque (Datenblatt, 12 V)
+#   maxJointVelocity  = Leerlaufdrehzahl (Datenblatt, 12 V)
+#   stiffness         = maxForce / SERVO_SATURATION_ERROR_DEG  (Sättigung bei 5° Fehler)
+#   damping           = kritisch (ζ = 1) mit I = I_nominal + Armature
+# Einheiten am Prim (USD-Schema): stiffness Nm/°, damping Nm·s/°, maxJointVelocity °/s,
+# armature kg·m². Ergebnis prüfen mit isaac_sim/tools/audit_asset.py (ω_n·Δt, ζ).
+_KGCM_TO_NM = 0.0980665
 _RAD_PER_DEG = 0.017453292519943295
 
-# Experiment-Schalter (je Lauf nur EINEN ändern, dann start.py → Stop → Play → Test):
-#   Referenz "alt":  alle drei False  → Gains 500/20, keine Armature, kein Geschw.-Limit
-SERVO_GAINS_ENABLED = True         # Stiffness/Damping aus Datenblatt-Rezept statt 500/20
-SERVO_ARMATURE_ENABLED = True      # physxJoint:armature an den MCPs
-SERVO_MAX_VELOCITY_ENABLED = True  # physxJoint:maxJointVelocity an den MCPs (270 °/s)
-# Folgegelenke (PIP/DIP/IP): Limits [-2°, 95°] statt [0°, 90°] — Kontakt kann DIP unter 0°
-# drücken, harte Grenze + Mimic + Kontakt widersprechen sich dann (PROMPT_mimic_joints.md,
-# Abschnitt 3 Punkt 6).
-FOLLOWER_LIMITS_WIDE = False
-# Gleiche Servo-Behandlung auch für Handgelenk, Unterarmdrehung und Daumen-Rotator (alle
-# ST3215, maxForce 2.94 Nm bei Stiffness 2000-5000 Nm/°): ein bei Winkelfehler ~0.001°
-# gesättigter Antrieb wirkt wie ein Relais (±2.94 Nm) und kann vom Kontakt angeregt werden.
-SERVO_ARM_JOINTS_ENABLED = True
-# Passive Folgegelenke (PIP/DIP/IP): kleine Armature + Geschwindigkeitsgrenze. Ohne beides
-# (Armature 0, maxJointVelocity 1e6 °/s) drehen sie bei Kontakt mehrfach durch, obwohl die
-# Mimic-Zwangsbedingung sie an den MCP koppeln soll. ANNAHMEN, nicht gemessen:
-#   Armature 5e-4 kg·m² (~10x geschätzte Fingerträgheit 5e-5, 1/10 der MCP-Armature),
-#   maxJointVelocity 500 °/s (reale Kopplung: bis 1.67x MCP-Geschwindigkeit von 270 °/s ≈ 450 °/s).
-FOLLOWER_STABILIZE_ENABLED = True
+SERVOS = {
+    # ST3215 (12 V): 30 kg·cm Stall, 0.222 s/60° Leerlauf (45 RPM)
+    "ST3215": {"stall_nm": 30.0 * _KGCM_TO_NM, "no_load_deg_s": 60.0 / 0.222},
+    # ST3095-C002 (12 V): 95 kg·cm Stall, 31 RPM Leerlauf
+    "ST3095": {"stall_nm": 95.0 * _KGCM_TO_NM, "no_load_deg_s": 31.0 * 6.0},
+}
+SERVO_SATURATION_ERROR_DEG = 5.0
+# ANNAHME, nicht gemessen: reflektierte Rotorträgheit (Rotor × Übersetzung²) — steht in
+# keinem der Datenblätter. 5e-3 kg·m² = Startwert aus NVIDIAs Robotiq-Beispiel.
+SERVO_ARMATURE_KGM2 = 5.0e-3
+
+# Gelenkgruppen v5: (Schlüsselwort im Gelenknamen, Servo, I_nominal [kg·m²]).
+# I_nominal = Diagonale der Massenmatrix in der T-Pose (audit_asset.py, 2026-10-03) — nur
+# für die Dämpfung; posenabhängig, für Arm-Gelenke dominiert sie die Armature.
+# Reihenfolge = Prüfreihenfolge (erstes passendes Schlüsselwort gewinnt).
+V5_ACTUATORS = [
+    ("shoulder_vertical",   "ST3095", 0.0249),
+    ("shoulder_horizontal", "ST3095", 0.116),
+    ("upper_arm",           "ST3215", 0.024),
+    ("elbow",               "ST3215", 0.0426),
+    ("head_horizontal",     "ST3215", 0.00591),
+    ("head_vertical",       "ST3215", 0.00534),
+    ("forearm",             "ST3215", 0.00128),
+    ("wrist",               "ST3215", 0.00281),
+    ("rotator",             "ST3215", 1.58e-4),     # Daumen-CMC
+    ("proximal",            "ST3215", 6.6e-5),      # MCP Finger (Daumen 7.1e-5)
+]
+
+# Passive Mimic-Folgegelenke (PIP/DIP/IP, kein Servo): kleine Armature gegen das extreme
+# Trägheitsverhältnis zum MCP (Fingerspitze M_ii ≈ 1e-6 vs. MCP 5e-3, NVIDIA: große
+# Trägheitsverhältnisse vermeiden) und Geschwindigkeitsgrenze (reale Kopplung bis 1.67×
+# MCP-Geschwindigkeit ≈ 450 °/s). ANNAHMEN, nicht gemessen.
 FOLLOWER_ARMATURE_KGM2 = 5.0e-4
 FOLLOWER_MAX_VELOCITY_DEG_S = 500.0
-_PHYSX_DEFAULT_MAX_JOINT_VELOCITY = 1.0e6   # Schema-Default, siehe generatedSchema.usda
 
 
-def _classify_servo_dynamics(name: str):
+def _v5_actuator(name: str):
     """
-    ((stiffness Nm/°, damping Nm·s/°) oder None, armature kg·m², maxJointVelocity °/s)
-    für servo-getriebene MCP-Gelenke (proximal, Finger + Daumen, beide Seiten), sonst
-    None. Deaktivierte Experiment-Schalter liefern die neutralen Werte (gains=None,
-    armature 0, Schema-Default-Geschwindigkeit), damit ein erneuter start.py-Lauf
-    in derselben Session einen früheren Zustand wirklich zurücksetzt.
+    Parameter eines servo-getriebenen v5-Gelenks als dict (servo, stiffness, damping,
+    max_force, armature, max_velocity), sonst None.
     """
     n = name.lower()
-    is_mcp = "proximal" in n
-    is_arm_servo = SERVO_ARM_JOINTS_ENABLED and any(k in n for k in ("wrist", "forearm", "rotator"))
-    if not (is_mcp or is_arm_servo):
-        return None
-    k_deg = SERVO_STALL_TORQUE_NM / SERVO_SATURATION_ERROR_DEG
-    k_rad = k_deg / _RAD_PER_DEG
-    d_rad = 2.0 * (k_rad * SERVO_ARMATURE_KGM2) ** 0.5
-    gains = (k_deg, d_rad * _RAD_PER_DEG) if SERVO_GAINS_ENABLED else None
-    armature = SERVO_ARMATURE_KGM2 if SERVO_ARMATURE_ENABLED else 0.0
-    max_vel = SERVO_NO_LOAD_SPEED_DEG_S if SERVO_MAX_VELOCITY_ENABLED else _PHYSX_DEFAULT_MAX_JOINT_VELOCITY
-    return gains, armature, max_vel
+    for key, servo, inertia in V5_ACTUATORS:
+        if key in n:
+            spec = SERVOS[servo]
+            k_deg = spec["stall_nm"] / SERVO_SATURATION_ERROR_DEG
+            k_rad = k_deg / _RAD_PER_DEG
+            d_rad = 2.0 * (k_rad * (inertia + SERVO_ARMATURE_KGM2)) ** 0.5    # ζ = 1
+            return {"servo": servo, "stiffness": k_deg, "damping": d_rad * _RAD_PER_DEG,
+                    "max_force": spec["stall_nm"], "armature": SERVO_ARMATURE_KGM2,
+                    "max_velocity": spec["no_load_deg_s"]}
+    return None
 
 
 # ── Mimic Joints (Stufe 1: linear, nur v5) ────────────────────────────────────
@@ -252,33 +205,17 @@ def configure_lights(stg) -> None:
 
 def configure_drives(stg) -> int:
     """
-    Setzt Stiffness, Damping und MaxForce für alle PhysicsRevoluteJoint-Prims.
-    Funktioniert für v4 und v5 identisch (Namens-Substring-Klassifizierung,
-    kein dof_-Präfix nötig, siehe _classify_dof).
-
-    Klassifizierung nach DOF-Name (Stiffness / Damping):
-      head      → stiffness=3000, damping=150
-      shoulder/upper_arm/elbow/forearm → 5000 / 200
-      wrist     → 2000 / 100
-      rotator   → 1000 / 50   (Daumen CMC)
-      proximal/distal/tip → 500 / 20  (alle Fingerglieder)
-
-    MaxForce (physics:maxForce): für Handgelenk/Unterarmdrehung/Daumen-
-    Rotator/alle MCP-Gelenke jetzt der reale ST3215-Stall-Torque
-    (`_classify_max_force`, ≈2.94 Nm) statt inf — das sind die Gelenke, die
-    direkt von einem eigenen Servo angetrieben werden und für RL +
-    Demonstrator relevant sind. Rest (Kopf/Schulter/Oberarm/Ellbogen,
-    PIP/DIP/IP) bleibt bei inf, siehe `_classify_max_force`-Docstring.
-    Vorherige Session hatte hier pauschal inf gesetzt (Fix für einen
-    falschen URDF-effort-Import bei v5, z.B. 10 Nm an der Schulter — siehe
-    current-sprint.md), das bleibt für die unverändert gelassenen Gelenke
-    weiterhin so.
+    Setzt die Antriebe aller PhysicsRevoluteJoint-Prims:
+      v4 (Präfix "dof_")       → _v4_gains, maxForce=inf (Referenzstand, unverändert)
+      v5 Mimic-Folgegelenke    → passiv: Stiffness/Damping 0, Armature/Geschwindigkeit
+                                 aus FOLLOWER_* (ADR-011)
+      v5 Servo-Gelenke         → Servo-Aktuatormodell aus V5_ACTUATORS (ADR-012)
 
     Returns: Anzahl konfigurierter Joints
     """
     count = 0
-    limited = 0
-    servo_count = 0
+    groups = {}            # Ausgabe: (servo, stiffness, damping) -> Gelenkanzahl
+    unknown = []
     for prim in stg.Traverse():
         is_revolute = (prim.GetTypeName() == "PhysicsRevoluteJoint" or
                        prim.HasAPI(UsdPhysics.RevoluteJoint))
@@ -286,44 +223,49 @@ def configure_drives(stg) -> int:
             continue
 
         name = prim.GetPath().name
-        stiffness, damping = _classify_dof(name)
-        max_force = _classify_max_force(name)
-        servo = _classify_servo_dynamics(name)
-        if servo and servo[0]:
-            stiffness, damping = servo[0]
-        if name in MIMIC_JOINTS:
-            # Mimic-Folgegelenke sind passiv — ein aktiver Antrieb würde gegen
-            # die Zwangsbedingung arbeiten.
-            stiffness, damping = 0.0, 0.0
-
         drive = UsdPhysics.DriveAPI.Get(prim, "angular")
         if not drive:
             drive = UsdPhysics.DriveAPI.Apply(prim, "angular")
 
-        drive.GetStiffnessAttr().Set(stiffness)
-        drive.GetDampingAttr().Set(damping)
-        drive.GetMaxForceAttr().Set(max_force)
-        if name in MIMIC_JOINTS:
-            joint_api = PhysxSchema.PhysxJointAPI.Apply(prim)
-            joint_api.CreateArmatureAttr().Set(FOLLOWER_ARMATURE_KGM2 if FOLLOWER_STABILIZE_ENABLED else 0.0)
-            joint_api.CreateMaxJointVelocityAttr().Set(
-                FOLLOWER_MAX_VELOCITY_DEG_S if FOLLOWER_STABILIZE_ENABLED else _PHYSX_DEFAULT_MAX_JOINT_VELOCITY)
-        if servo:
-            joint_api = PhysxSchema.PhysxJointAPI.Apply(prim)
-            joint_api.CreateArmatureAttr().Set(servo[1])
-            joint_api.CreateMaxJointVelocityAttr().Set(servo[2])
-            servo_count += 1
-        count += 1
-        if max_force != float("inf"):
-            limited += 1
+        if name.startswith("dof_"):
+            stiffness, damping = _v4_gains(name)
+            drive.GetStiffnessAttr().Set(stiffness)
+            drive.GetDampingAttr().Set(damping)
+            drive.GetMaxForceAttr().Set(float("inf"))
+            groups[("v4", stiffness, damping)] = groups.get(("v4", stiffness, damping), 0) + 1
+            count += 1
+            continue
 
-    print(f"configure_drives: {count} Joints konfiguriert "
-          f"({limited} mit realem Stall-Torque ≈{SERVO_STALL_TORQUE_NM:.2f} Nm, "
-          f"Rest MaxForce=inf); {servo_count} Servo-Gelenke — Gains {'Datenblatt' if SERVO_GAINS_ENABLED else '500/20 (alt)'}, "
-          f"Armature {SERVO_ARMATURE_KGM2 if SERVO_ARMATURE_ENABLED else 0:g} kg·m², "
-          f"maxJointVelocity {SERVO_NO_LOAD_SPEED_DEG_S if SERVO_MAX_VELOCITY_ENABLED else 'Default'}; "
-          f"SERVO_ARM_JOINTS={SERVO_ARM_JOINTS_ENABLED}, FOLLOWER_STABILIZE={FOLLOWER_STABILIZE_ENABLED}, ARM_GAIN_SCALE={ARM_GAIN_SCALE:g}, "
-          f"FOLLOWER_LIMITS_WIDE={FOLLOWER_LIMITS_WIDE}")
+        joint_api = PhysxSchema.PhysxJointAPI.Apply(prim)
+        if name in MIMIC_JOINTS:
+            # Passiv — ein aktiver Antrieb würde gegen die Zwangsbedingung arbeiten.
+            drive.GetStiffnessAttr().Set(0.0)
+            drive.GetDampingAttr().Set(0.0)
+            drive.GetMaxForceAttr().Set(float("inf"))
+            joint_api.CreateArmatureAttr().Set(FOLLOWER_ARMATURE_KGM2)
+            joint_api.CreateMaxJointVelocityAttr().Set(FOLLOWER_MAX_VELOCITY_DEG_S)
+            groups[("Mimic passiv", 0.0, 0.0)] = groups.get(("Mimic passiv", 0.0, 0.0), 0) + 1
+            count += 1
+            continue
+
+        act = _v5_actuator(name)
+        if act is None:
+            unknown.append(name)
+            continue
+        drive.GetStiffnessAttr().Set(act["stiffness"])
+        drive.GetDampingAttr().Set(act["damping"])
+        drive.GetMaxForceAttr().Set(act["max_force"])
+        joint_api.CreateArmatureAttr().Set(act["armature"])
+        joint_api.CreateMaxJointVelocityAttr().Set(act["max_velocity"])
+        key = (act["servo"], round(act["stiffness"], 4), round(act["damping"], 4))
+        groups[key] = groups.get(key, 0) + 1
+        count += 1
+
+    print(f"configure_drives: {count} Joints konfiguriert")
+    for (label, k, d), n in sorted(groups.items(), key=lambda item: str(item[0])):
+        print(f"  {n:2d}x {label:<13} stiffness {k:g} Nm/°, damping {d:g} Nm·s/°")
+    if unknown:
+        print(f"  WARNUNG: keine Aktuator-Zuordnung für {unknown} — Antrieb unverändert")
     return count
 
 
@@ -453,11 +395,7 @@ def set_joint_limits(stg) -> int:
         upper_attr = prim.GetAttribute("physics:upperLimit")
         if not (lower_attr and upper_attr):
             continue
-        if FOLLOWER_LIMITS_WIDE and name in MIMIC_JOINTS:
-            lower_attr.Set(-2.0)
-            upper_attr.Set(95.0)
-            count += 1
-        elif any(k in name for k in _HAND_KEYWORDS):
+        if any(k in name for k in _HAND_KEYWORDS):
             lower_attr.Set(0.0)
             upper_attr.Set(90.0)
             count += 1

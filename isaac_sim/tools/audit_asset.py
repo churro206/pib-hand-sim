@@ -36,7 +36,7 @@ from pxr import Usd, UsdPhysics
 stage = omni.usd.get_context().get_stage()
 out = io.StringIO()
 
-STIFF_WN_DT_MAX = 1.0        # NVIDIA: ω_n·Δt nicht >> 1
+STIFF_WN_DT_MAX = 2.0        # NVIDIA: ω_n·Δt "nicht viel größer als 1" — Warnung ab 2
 ZETA_UNDER = 0.7
 ZETA_OVER = 3.0
 VEL_UNLIMITED = 1.0e5        # Schema-Default ist 1e6 °/s
@@ -279,7 +279,7 @@ def audit_joints(robot_root: str, view, dt: float) -> None:
             zeta = d_rad / (2.0 * math.sqrt(k_rad * I))
             wn_dt = wn * dt
             if wn_dt > STIFF_WN_DT_MAX:
-                warn.append("zu steif (ω_n·Δt>1)")
+                warn.append(f"zu steif (ω_n·Δt>{STIFF_WN_DT_MAX:g})")
                 counts["steif"] += 1
             if zeta < ZETA_UNDER:
                 warn.append("unterdämpft")

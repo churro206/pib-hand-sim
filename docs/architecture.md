@@ -120,9 +120,13 @@ Nach NVIDIAs Articulation Stability Guide / Tuning-Reihe: `maxForce` = Stall-Tor
 | Servo | Gelenke | maxForce | maxJointVelocity | Stand |
 |---|---|---|---|---|
 | ST3215 | MCP (`*_proximal`), `thumb_*_rotator`, `wrist_*`, `forearm_*` | 2,94 Nm | 270 °/s | umgesetzt |
-| ST3215 | `upper_arm_*`, `elbow_*`, `head_*` | 2,94 Nm | 270 °/s | **offen** (noch 3000–5000 Nm/°, `maxForce=inf`) |
-| ST3095 | `shoulder_vertical_*`, `shoulder_horizontal_*` | 9,32 Nm | 186 °/s | **offen** |
+| ST3215 | `upper_arm_*`, `elbow_*`, `head_*` | 2,94 Nm | 270 °/s | umgesetzt |
+| ST3095 | `shoulder_vertical_*`, `shoulder_horizontal_*` | 9,32 Nm | 186 °/s | umgesetzt |
 | – | Mimic-Folgegelenke (`distal`/`tip`) | passiv | 500 °/s | Armature 5e-4 |
+
+Konfiguriert in `setup_stage.py` → `SERVOS` (Datenblattwerte) und `V5_ACTUATORS`
+(Gelenkgruppe → Servo, Nenn-Trägheit aus dem Audit für die Dämpfung). v4 behält die
+Referenzwerte von `0fdbc62` (`_v4_gains`, `maxForce=inf`).
 
 Prüfen mit `isaac_sim/tools/audit_asset.py` (effektive Gelenkträgheit aus der Massenmatrix,
 ω_n·Δt, ζ, Schwerkraftmoment). Armature 5e-3 kg·m² ist eine Annahme (Rotorträgheit und
@@ -132,8 +136,10 @@ Prüfen mit `isaac_sim/tools/audit_asset.py` (effektive Gelenkträgheit aus der 
 Pickup-/Putdown-Demo bewegen den Roboter korrekt, Kontakt und Reibung mit dem Zylinder
 funktionieren (siehe `ros2_ws/src/pib_bringup/pib_bringup/test_client_pickup.py`). v5 mit
 Mimic Joints: `test_client_mimic_v5` (Kopplung frei, Δ ≤ 0,2°) und
-`test_client_mimic_load_v5` (Finger gegen Tisch: stabiler Stall, Kopplung ≤ 0,1°, kein
-Ausbrechen) — Pickup-/Putdown-Regression mit Mimic Joints steht noch aus.
+`test_client_mimic_load_v5` (Finger gegen Tisch: Kopplung ≤ 0,1°, kein Ausbrechen; mit
+Servo-Arm gibt der Ellbogen nach, statt dass der Finger stallt). Pickup-Demo v5: Dose wird
+gegriffen, der ausgestreckte Arm hält sie nur knapp (Servo-Grenzen) — Putdown nicht erneut
+getestet.
 
 ---
 
@@ -178,8 +184,8 @@ Weitere Objekte/Umgebung in `isaac_sim/usd/pib_upperbody_v4.usd` — Details noc
 v5 läuft dauerhaft parallel zu v4 (nicht ablösend), Repo-Struktur bereits auf `_v4`/`_v5`
 gezogen (USD, `config/`, roher Onshape-Export, ROS2-Package). Action Graph, ros2_control-
 Stack, Pickup-/Putdown-Demo, `config/pib_hand_config_v5.py` und Fingerkopplung (Mimic
-Joints, ADR-011) für v5 sind fertig. Noch offen: Physik-Tuning für Arm/Kopf (ADR-012),
-Kontaktsensoren, Pickup-/Putdown-Regression mit Mimic Joints, ADR zur
+Joints, ADR-011) und das Servo-Aktuatormodell (ADR-012) für v5 sind fertig. Noch offen:
+Kontaktsensoren, Putdown-Regression, ADR zur
 v5-Reimport-Entscheidung (bisher nur in `docs/current-sprint.md` nacherzählt).
 
 ---

@@ -11,22 +11,21 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 1. **Sehnendynamik verworfen, Branch auf `0fdbc62` zurückgesetzt** — `1d0cd9c` (Script Node, ADR-009) lebt im Tag `backup/sehnendynamik-1d0cd9c` und auf `feature/rl-grasping`; Vorsession-Experimente (Kraft-Rückwirkung, Mimic-Vorprüfungen, `tendondrive/PROMPT_*.md`) liegen nur in `stash@{0}`.
 2. **PhysX Mimic Joints** (ADR-011): `isaac_sim/setup_stage.py` → `MIMIC_JOINTS` + `configure_mimic_joints()`, von `start.py` jede Session gesetzt; 18 Folgegelenke passiv, gearing=-1.
 3. **Servo-Aktuatormodell + Self-Collision** (ADR-012): MCP/Rotator/Handgelenk/Unterarm auf ST3215-Datenblatt (2,94 Nm, 270 °/s, 0,588 Nm/°, ζ=1, Armature 5e-3); Self-Collision am `root_joint` an → Tischtest stabil. Action Graph auf `OnPhysicsStep`.
-4. **Werkzeuge**: `test_client_mimic_v5`, `test_client_mimic_load_v5` (Finger gegen Tisch, Diagnose), `isaac_sim/tools/audit_asset.py`; Unterarm-Masse 30 g → 0,229 kg (URDFs + USD). Commit `383c4ef`, Doku auf ADR-010/011/012 nachgezogen.
+4. **Werkzeuge**: `test_client_mimic_v5`, `test_client_mimic_load_v5` (Finger gegen Tisch, Diagnose), `isaac_sim/tools/audit_asset.py`; Unterarm-Masse 30 g → 0,229 kg (URDFs + USD). Commit `383c4ef`, Doku `f2c4e67`, origin per Force-Push auf diesen Stand gebracht.
+5. **Schritt 3/4 abgeschlossen**: `setup_stage.py` → `SERVOS` + `V5_ACTUATORS` für alle v5-Servo-Gelenke (Schultern ST3095 9,32 Nm/186 °/s, Rest ST3215), Experiment-Schalter entfernt, v4 zurück auf `0fdbc62`-Werte. Pickup: Arm hält die Dose nur knapp, Tischtest: Ellbogen gibt nach — beides realistisch (Leon).
 
 ### Offene Punkte
 
-- **Arm/Kopf noch nicht auf das Aktuatormodell umgestellt**: `shoulder_*` (ST3095), `upper_arm_*`/`elbow_*`/`head_*` (ST3215) stehen auf 3000–5000 Nm/°, `maxForce=inf` — Audit: ω_n·Δt 26–95.
-- `setup_stage.py` hat sieben Experiment-Schalter (`SERVO_*_ENABLED`, `FOLLOWER_*`, `ARM_GAIN_SCALE`) aus der Fehlersuche — sollen durch eine Aktuator-Tabelle ersetzt werden.
-- Pickup-/Putdown-Demo v5 mit Mimic Joints + Self-Collision nicht erneut getestet.
+- Nach der Arm-Umstellung nicht erneut gelaufen: `test_client_mimic_v5 --finger all`, `audit_asset.py` (erwartet: keine "zu steif"-Warnung, Schwelle jetzt ω_n·Δt > 2), Putdown-Demo v5.
+- Arm/Handgelenk hängen unter Last sichtbar durch (Handgelenk −5,6° in der Tisch-Testpose) — akzeptiert; Stellschraube `SERVO_SATURATION_ERROR_DEG`.
 - Contact Sensors v5: alle 10 Fingerspitzen offen; `index_right`-Reader im Graph zeigt laut Inventur auf den Roboter-Wrapper, kein Sensor-Prim.
 - Warum Self-Collision das Wegfliegen behoben hat, ist nicht erklärt (empirischer Befund).
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Schritt 3/4 des NVIDIA-Plans: Aktuator-Tabelle in `setup_stage.py` (ST3095 `shoulder_*` 9,32 Nm/186 °/s; ST3215 Rest 2,94 Nm/270 °/s), Stiffness = maxForce/5°, Damping ζ=1 mit I_eff = M_ii + Armature aus `_asset_audit.txt`. Vorab durchgerechnet: Schulter vert. 1,864/0,062, horiz. 1,864/0,126, Oberarm 0,588/0,035, Ellbogen 0,588/0,044, Kopf 0,588/0,021 (Nm/° bzw. Nm·s/°).
-2. Danach `audit_asset.py` (Play) + `test_client_mimic_load_v5 --reset` + `--finger fingers_left` als Regression.
-3. Pickup-/Putdown-Demo v5 (`test_client_pickup_v5`/`_putdown_v5`) als Regression.
-4. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster).
+1. Restvalidierung: `audit_asset.py` (Play), `test_client_mimic_v5 --finger all`, `test_client_putdown_v5`.
+2. Contact Sensors für alle 10 v5-Fingerspitzen (ADR-008-Muster), vorher den halb verkabelten `index_right`-Reader im v5-Graph prüfen.
+3. Optional: `SERVO_SATURATION_ERROR_DEG` kleiner, falls das Durchhängen stört (danach Audit).
 
 ### Wichtige Kontextdetails
 

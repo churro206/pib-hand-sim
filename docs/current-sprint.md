@@ -149,16 +149,16 @@ Tuning-Reihe (Inspire Hand) und bewährten Projekten. Plan (Reihenfolge nach NVI
       gemessen (PhysX zählt Armature nicht in die Massenmatrix)
 - [x] **2. Collider-Paare** — Self-Collision am `root_joint` an (damit Tischtest stabil);
       Collision Groups vorerst nicht nötig, nur bei konkretem Problem einzelne Filtered Pairs
-- [~] **3. Antriebsgrenzen** + **4. Gains** — Servo-Aktuatormodell (ST3215 2,94 Nm/270 °/s,
-      ST3095 9,32 Nm/186 °/s; Stiffness = maxForce/5°, ζ=1) für MCP, Daumen-Rotator,
-      Handgelenk, Unterarm umgesetzt. **Nächster Schritt: Oberarm, Ellbogen, Kopf (ST3215)
-      und Schultern (ST3095) umstellen** — laut Audit dort noch ω_n·Δt 26–95; Werte aus dem
-      Audit schon durchgerechnet. Dabei Experiment-Schalter in `setup_stage.py` durch eine
-      Aktuator-Tabelle ersetzen
+- [x] **3. Antriebsgrenzen** + **4. Gains** — Servo-Aktuatormodell für alle v5-Servo-Gelenke
+      (ST3215 2,94 Nm/270 °/s, ST3095 `shoulder_*` 9,32 Nm/186 °/s; Stiffness = maxForce/5°,
+      ζ=1 mit Nenn-Trägheit aus dem Audit) in `setup_stage.py` → `SERVOS`/`V5_ACTUATORS`;
+      Experiment-Schalter entfernt, v4 zurück auf Referenzwerte. ω_n·Δt 0,44–1,36
 - [ ] **5. Stabilität unter Kontakt** — nur falls nötig, einzeln: Armature,
       `maxDepenetrationVelocity`, Solver-Iterationen (Mimic-Compliance und
       `solveArticulationContactLast` gibt es in 5.1 nicht)
-- [ ] **6. Validierung** — `test_client_mimic_v5`, `test_client_mimic_load_v5`, Pickup/Putdown v5
+- [~] **6. Validierung** — Tischtest bestanden (Ellbogen gibt nach statt Finger-Stall),
+      Pickup v5: Dose gegriffen, Arm hält sie nur knapp (realistisch laut Leon); offen:
+      `test_client_mimic_v5` und `audit_asset.py` nach der Arm-Umstellung, Putdown v5
 - [x] Action-Graph-Trigger auf `OnPhysicsStep` (v5)
 - [x] Tischtest bestanden: `index_left` stabiler Stall, vier Finger → Handgelenk gibt
       realistisch nach; Durchhängen/Blockaden bewusst akzeptiert (siehe ADR-012)

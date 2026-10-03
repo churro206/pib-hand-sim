@@ -69,10 +69,9 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
   `config/pib_hand_config_v5.py`; Regressionscheck der Demo mit Mimic Joints noch offen
 - **Fingerkopplung** ✓ PhysX Mimic Joints (ADR-011, linear, gearing=-1) — ersetzt den
   Sehnendynamik-Script-Node (ADR-009) und die verworfene Kraft-Rückwirkung (ADR-010)
-- **Physik-Tuning nach NVIDIA** ← aktuelles Ziel (ADR-012, Plan in `docs/current-sprint.md`):
-  Servo-Aktuatormodell (ST3215/ST3095) für Hand/Handgelenk/Unterarm umgesetzt, Self-Collision
-  an, Tischtest stabil — **nächster Schritt: Arm/Kopf auf das Aktuatormodell umstellen**
-  (Schritt 3/4), Experiment-Schalter in `setup_stage.py` durch eine Aktuator-Tabelle ersetzen
+- **Physik-Tuning nach NVIDIA** ✓ weitgehend (ADR-012, Plan in `docs/current-sprint.md`):
+  Servo-Aktuatormodell (ST3215/ST3095) für alle v5-Servo-Gelenke, Self-Collision an,
+  Tischtest stabil; Restvalidierung (Mimic-Freitest, Audit, Putdown) offen
 - **Contact Sensors** ← offen — Ansatz entschieden (nativer `IsaacContactSensor`-Node,
   ADR-008), `index_right` in v4 verifiziert, alle 10 Fingerspitzen in v5 offen
 - **Szenen-Erweiterung** — weitere Objekte/Umgebung in der USD-Stage
@@ -86,8 +85,8 @@ per RL ist ebenfalls nicht Teil dieses Branches — siehe `feature/rl-grasping`.
 config/pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (v4, verifiziert)
 config/pib_hand_config_v5.py   dasselbe für v5 (gegen URDF und Stage verifiziert)
 isaac_sim/start.py             Startroutine: Drives + Mimic + Limits + Initialpose (vor Play ausführen)
-isaac_sim/setup_stage.py       von start.py genutzt — Drive-Klassen, Servo-Aktuatormodell,
-                               MIMIC_JOINTS, Experiment-Schalter (ADR-011/012)
+isaac_sim/setup_stage.py       von start.py genutzt — v5: SERVOS/V5_ACTUATORS (Servo-
+                               Aktuatormodell, ADR-012), MIMIC_JOINTS (ADR-011); v4: _v4_gains
 isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec), lädt v4
 isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifizierter Arbeitsstand
 isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) + Action Graph (OnPhysicsStep), Self-Collision an
