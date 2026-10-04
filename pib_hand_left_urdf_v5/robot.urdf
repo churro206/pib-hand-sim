@@ -1,0 +1,573 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://cad.onshape.com/documents/de4501504bdc7c1ee8f454db/w/362ced42eda2d0d1b7062a8c/e/18cf9e9b4d3b6abf4a5cfcd8 -->
+<robot name="pib_hand_left_v5">
+  <!-- Link urdf_elbow_lower -->
+  <link name="urdf_elbow_lower">
+    <inertial>
+      <origin xyz="-0.00143933 -0.0182962 3.43653e-07" rpy="0 0 0"/>
+      <mass value="0.149603"/>
+      <inertia ixx="0.000244685" ixy="9.86492e-06" ixz="4.085e-09" iyy="0.000233779" iyz="-2.056e-09" izz="0.00016871"/>
+    </inertial>
+    <!-- Part urdf_elbow_lower -->
+    <visual>
+      <origin xyz="8.95795e-07 0.239338 -0.0650001" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_elbow_lower.stl"/>
+      </geometry>
+      <material name="urdf_elbow_lower_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="8.95795e-07 0.239338 -0.0650001" rpy="-1.5708 -1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_elbow_lower.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_forearm_left -->
+  <link name="urdf_forearm_left">
+    <inertial>
+      <origin xyz="0.00111195 -0.000423248 0.0470523" rpy="0 0 0"/>
+      <mass value="0.229101"/>
+      <inertia ixx="0.000686071" ixy="8.58034e-07" ixz="3.61713e-06" iyy="0.0007126" iyz="3.90889e-06" izz="0.00028461"/>
+    </inertial>
+    <!-- Part urdf_forearm_left -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 -0 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_forearm_left.stl"/>
+      </geometry>
+      <material name="urdf_forearm_left_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 -0 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_forearm_left.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_palm_left -->
+  <link name="urdf_palm_left">
+    <inertial>
+      <origin xyz="0.000667588 0.044286 0.000370315" rpy="0 0 0"/>
+      <mass value="0.203832"/>
+      <inertia ixx="0.000293593" ixy="-2.97123e-07" ixz="6.59953e-07" iyy="9.99101e-05" iyz="-1.45435e-05" izz="0.00022019"/>
+    </inertial>
+    <!-- Part urdf_palm_left -->
+    <visual>
+      <origin xyz="0.0018 0.1 0.0124013" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_palm_left.stl"/>
+      </geometry>
+      <material name="urdf_palm_left_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 0.1 0.0124013" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_palm_left.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_proximal -->
+  <link name="urdf_finger_proximal">
+    <inertial>
+      <origin xyz="0.000519077 0.0160755 1.67544e-05" rpy="0 0 0"/>
+      <mass value="0.0136189"/>
+      <inertia ixx="2.55777e-06" ixy="8.9497e-08" ixz="2.334e-09" iyy="9.59667e-07" iyz="-9.661e-09" izz="2.59211e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_proximal -->
+    <visual>
+      <origin xyz="0 0 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+      <material name="urdf_finger_proximal_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_distal -->
+  <link name="urdf_finger_distal">
+    <inertial>
+      <origin xyz="0.000837797 0.0147599 2.23004e-05" rpy="0 0 0"/>
+      <mass value="0.0105932"/>
+      <inertia ixx="1.84566e-06" ixy="9.5641e-08" ixz="1.338e-09" iyy="6.74585e-07" iyz="-1.6e-11" izz="1.88457e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_distal -->
+    <visual>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+      <material name="urdf_finger_distal_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_tip -->
+  <link name="urdf_finger_tip">
+    <inertial>
+      <origin xyz="0.000347345 0.0101473 2.26491e-05" rpy="0 0 0"/>
+      <mass value="0.00509636"/>
+      <inertia ixx="5.08038e-07" ixy="3.4148e-08" ixz="1.458e-09" iyy="2.31863e-07" iyz="-3.207e-09" izz="4.97718e-07"/>
+    </inertial>
+    <!-- Part urdf_finger_tip -->
+    <visual>
+      <origin xyz="0.0018 -0.067 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+      <material name="urdf_finger_tip_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 -0.067 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from urdf_finger_distal to urdf_finger_tip -->
+  <joint name="index_left_tip" type="revolute">
+    <origin xyz="-0.0009 0.031 0" rpy="0 -0 -0"/>
+    <parent link="urdf_finger_distal"/>
+    <child link="urdf_finger_tip"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_finger_proximal to urdf_finger_distal -->
+  <joint name="index_left_distal" type="revolute">
+    <origin xyz="-0.0009 0.036 -0" rpy="-0 0 0"/>
+    <parent link="urdf_finger_proximal"/>
+    <child link="urdf_finger_distal"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_palm_left to urdf_finger_proximal -->
+  <joint name="index_left_proximal" type="revolute">
+    <origin xyz="0.00323365 0.0961869 0.0389556" rpy="2.96706 -0 -3.14159"/>
+    <parent link="urdf_palm_left"/>
+    <child link="urdf_finger_proximal"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Link urdf_thumb_rotator_left -->
+  <link name="urdf_thumb_rotator_left">
+    <inertial>
+      <origin xyz="-0.00970221 0.00034781 -0.00213644" rpy="0 0 0"/>
+      <mass value="0.0125202"/>
+      <inertia ixx="7.27023e-07" ixy="5.8149e-08" ixz="4.067e-09" iyy="1.75239e-06" iyz="4.121e-08" izz="1.63188e-06"/>
+    </inertial>
+    <!-- Part urdf_thumb_rotator_left -->
+    <visual>
+      <origin xyz="0.0280811 0 0.0662275" rpy="-0 0.23061 -0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_rotator_left.stl"/>
+      </geometry>
+      <material name="urdf_thumb_rotator_left_material">
+        <color rgba="0.901961 0.901961 0.901961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0280811 0 0.0662275" rpy="-0 0.23061 -0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_rotator_left.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_thumb_proximal -->
+  <link name="urdf_thumb_proximal">
+    <inertial>
+      <origin xyz="0.020504 -0.000256687 1.8639e-05" rpy="0 0 0"/>
+      <mass value="0.0188728"/>
+      <inertia ixx="1.36772e-06" ixy="-1.87557e-07" ixz="-1.076e-08" iyy="4.52129e-06" iyz="-2.506e-09" izz="4.53199e-06"/>
+    </inertial>
+    <!-- Part urdf_thumb_proximal -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_proximal.stl"/>
+      </geometry>
+      <material name="urdf_thumb_proximal_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_proximal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_thumb_tip -->
+  <link name="urdf_thumb_tip">
+    <inertial>
+      <origin xyz="0.000984455 0.0172636 1.74502e-05" rpy="0 0 0"/>
+      <mass value="0.0145886"/>
+      <inertia ixx="2.49622e-06" ixy="1.58215e-07" ixz="3.262e-09" iyy="8.7434e-07" iyz="-8.997e-09" izz="2.40768e-06"/>
+    </inertial>
+    <!-- Part urdf_thumb_tip -->
+    <visual>
+      <origin xyz="0.0018 -0.045 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_tip.stl"/>
+      </geometry>
+      <material name="urdf_thumb_tip_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 -0.045 -0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_thumb_tip.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from urdf_thumb_proximal to urdf_thumb_tip -->
+  <joint name="thumb_left_tip" type="revolute">
+    <origin xyz="0.045 0.0018 0" rpy="0 0 -1.5708"/>
+    <parent link="urdf_thumb_proximal"/>
+    <child link="urdf_thumb_tip"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_thumb_rotator_left to urdf_thumb_proximal -->
+  <joint name="thumb_left_proximal" type="revolute">
+    <origin xyz="-0.0257187 0 7.51193e-05" rpy="1.04237 -0.216545 -3.11673"/>
+    <parent link="urdf_thumb_rotator_left"/>
+    <child link="urdf_thumb_proximal"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_palm_left to urdf_thumb_rotator_left -->
+  <joint name="thumb_left_rotator" type="revolute">
+    <origin xyz="0.0018 0.0291072 0.0246013" rpy="0 1.34019 1.5708"/>
+    <parent link="urdf_palm_left"/>
+    <child link="urdf_thumb_rotator_left"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Link urdf_finger_proximal_2 -->
+  <link name="urdf_finger_proximal_2">
+    <inertial>
+      <origin xyz="0.000519077 0.0160755 1.67544e-05" rpy="0 0 0"/>
+      <mass value="0.0136189"/>
+      <inertia ixx="2.55777e-06" ixy="8.9497e-08" ixz="2.334e-09" iyy="9.59667e-07" iyz="-9.661e-09" izz="2.59211e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_proximal_2 -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+      <material name="urdf_finger_proximal_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_distal_2 -->
+  <link name="urdf_finger_distal_2">
+    <inertial>
+      <origin xyz="0.000837797 0.0147599 2.23004e-05" rpy="0 0 0"/>
+      <mass value="0.0105932"/>
+      <inertia ixx="1.84566e-06" ixy="9.5641e-08" ixz="1.338e-09" iyy="6.74585e-07" iyz="-1.6e-11" izz="1.88457e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_distal_2 -->
+    <visual>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+      <material name="urdf_finger_distal_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_tip_2 -->
+  <link name="urdf_finger_tip_2">
+    <inertial>
+      <origin xyz="0.000347345 0.0101473 2.26491e-05" rpy="0 0 0"/>
+      <mass value="0.00509636"/>
+      <inertia ixx="5.08038e-07" ixy="3.4148e-08" ixz="1.458e-09" iyy="2.31863e-07" iyz="-3.207e-09" izz="4.97718e-07"/>
+    </inertial>
+    <!-- Part urdf_finger_tip_2 -->
+    <visual>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+      <material name="urdf_finger_tip_2_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from urdf_finger_distal_2 to urdf_finger_tip_2 -->
+  <joint name="middle_left_tip" type="revolute">
+    <origin xyz="-0.0009 0.031 0" rpy="-0 0 0"/>
+    <parent link="urdf_finger_distal_2"/>
+    <child link="urdf_finger_tip_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_finger_proximal_2 to urdf_finger_distal_2 -->
+  <joint name="middle_left_distal" type="revolute">
+    <origin xyz="-0.0009 0.036 0" rpy="0 -0 0"/>
+    <parent link="urdf_finger_proximal_2"/>
+    <child link="urdf_finger_distal_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_palm_left to urdf_finger_proximal_2 -->
+  <joint name="middle_left_proximal" type="revolute">
+    <origin xyz="0.00320589 0.0998 0.0124014" rpy="3.14159 -0 3.14159"/>
+    <parent link="urdf_palm_left"/>
+    <child link="urdf_finger_proximal_2"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Link urdf_finger_proximal_3 -->
+  <link name="urdf_finger_proximal_3">
+    <inertial>
+      <origin xyz="0.000519077 0.0160755 1.67544e-05" rpy="0 0 0"/>
+      <mass value="0.0136189"/>
+      <inertia ixx="2.55777e-06" ixy="8.9497e-08" ixz="2.334e-09" iyy="9.59667e-07" iyz="-9.661e-09" izz="2.59211e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_proximal_3 -->
+    <visual>
+      <origin xyz="-0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+      <material name="urdf_finger_proximal_3_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_distal_3 -->
+  <link name="urdf_finger_distal_3">
+    <inertial>
+      <origin xyz="0.000837797 0.0147599 2.23004e-05" rpy="0 0 0"/>
+      <mass value="0.0105932"/>
+      <inertia ixx="1.84566e-06" ixy="9.5641e-08" ixz="1.338e-09" iyy="6.74585e-07" iyz="-1.6e-11" izz="1.88457e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_distal_3 -->
+    <visual>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+      <material name="urdf_finger_distal_3_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_tip_3 -->
+  <link name="urdf_finger_tip_3">
+    <inertial>
+      <origin xyz="0.000347345 0.0101473 2.26491e-05" rpy="0 0 0"/>
+      <mass value="0.00509636"/>
+      <inertia ixx="5.08038e-07" ixy="3.4148e-08" ixz="1.458e-09" iyy="2.31863e-07" iyz="-3.207e-09" izz="4.97718e-07"/>
+    </inertial>
+    <!-- Part urdf_finger_tip_3 -->
+    <visual>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+      <material name="urdf_finger_tip_3_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from urdf_finger_distal_3 to urdf_finger_tip_3 -->
+  <joint name="ring_left_tip" type="revolute">
+    <origin xyz="-0.0009 0.031 0" rpy="0 -0 0"/>
+    <parent link="urdf_finger_distal_3"/>
+    <child link="urdf_finger_tip_3"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_finger_proximal_3 to urdf_finger_distal_3 -->
+  <joint name="ring_left_distal" type="revolute">
+    <origin xyz="-0.0009 0.036 0" rpy="0 0 0"/>
+    <parent link="urdf_finger_proximal_3"/>
+    <child link="urdf_finger_distal_3"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_palm_left to urdf_finger_proximal_3 -->
+  <joint name="ring_left_proximal" type="revolute">
+    <origin xyz="0.00333305 0.0961655 -0.0142745" rpy="-2.96706 0 3.14159"/>
+    <parent link="urdf_palm_left"/>
+    <child link="urdf_finger_proximal_3"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Link urdf_finger_proximal_4 -->
+  <link name="urdf_finger_proximal_4">
+    <inertial>
+      <origin xyz="0.000519077 0.0160755 1.67544e-05" rpy="0 0 0"/>
+      <mass value="0.0136189"/>
+      <inertia ixx="2.55777e-06" ixy="8.9497e-08" ixz="2.334e-09" iyy="9.59667e-07" iyz="-9.661e-09" izz="2.59211e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_proximal_4 -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+      <material name="urdf_finger_proximal_4_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_proximal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_distal_4 -->
+  <link name="urdf_finger_distal_4">
+    <inertial>
+      <origin xyz="0.000837797 0.0147599 2.23004e-05" rpy="0 0 0"/>
+      <mass value="0.0105932"/>
+      <inertia ixx="1.84566e-06" ixy="9.5641e-08" ixz="1.338e-09" iyy="6.74585e-07" iyz="-1.6e-11" izz="1.88457e-06"/>
+    </inertial>
+    <!-- Part urdf_finger_distal_4 -->
+    <visual>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+      <material name="urdf_finger_distal_4_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0009 -0.036 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_distal.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link urdf_finger_tip_4 -->
+  <link name="urdf_finger_tip_4">
+    <inertial>
+      <origin xyz="0.000347345 0.0101473 2.26491e-05" rpy="0 0 0"/>
+      <mass value="0.00509636"/>
+      <inertia ixx="5.08038e-07" ixy="3.4148e-08" ixz="1.458e-09" iyy="2.31863e-07" iyz="-3.207e-09" izz="4.97718e-07"/>
+    </inertial>
+    <!-- Part urdf_finger_tip_4 -->
+    <visual>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+      <material name="urdf_finger_tip_4_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0018 -0.067 0" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="package://assets/urdf_finger_tip.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from urdf_finger_distal_4 to urdf_finger_tip_4 -->
+  <joint name="pinky_left_tip" type="revolute">
+    <origin xyz="-0.0009 0.031 0" rpy="0 0 0"/>
+    <parent link="urdf_finger_distal_4"/>
+    <child link="urdf_finger_tip_4"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_finger_proximal_4 to urdf_finger_distal_4 -->
+  <joint name="pinky_left_distal" type="revolute">
+    <origin xyz="-0.0009 0.036 -0" rpy="0 0 0"/>
+    <parent link="urdf_finger_proximal_4"/>
+    <child link="urdf_finger_distal_4"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_palm_left to urdf_finger_proximal_4 -->
+  <joint name="pinky_left_proximal" type="revolute">
+    <origin xyz="0.00326544 0.0855612 -0.0388901" rpy="-2.82743 -0 3.14159"/>
+    <parent link="urdf_palm_left"/>
+    <child link="urdf_finger_proximal_4"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="0" upper="1.5708"/>
+  </joint>
+  <!-- Joint from urdf_forearm_left to urdf_palm_left -->
+  <joint name="wrist_left" type="revolute">
+    <origin xyz="0 -0 0.1544" rpy="1.5708 -0 -1.5708"/>
+    <parent link="urdf_forearm_left"/>
+    <child link="urdf_palm_left"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="0.523599"/>
+  </joint>
+  <!-- Joint from urdf_elbow_lower to urdf_forearm_left -->
+  <joint name="forearm_left" type="revolute">
+    <origin xyz="0.000469602 -0.0641 -0.000258187" rpy="1.5708 -0 0"/>
+    <parent link="urdf_elbow_lower"/>
+    <child link="urdf_forearm_left"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.5708" upper="1.5708"/>
+  </joint>
+</robot>

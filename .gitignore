@@ -31,3 +31,5 @@ isaac_sim/tools/_*.txt
 
 # Lokale Sicherungskopien von Stages
 *.usd.bak-*
+# onshape-to-robot Export-Cache
+*/robot.pkl

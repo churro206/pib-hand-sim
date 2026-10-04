@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "de4501504bdc7c1ee8f454db",
+    "documentMicroversion": "8267a44e5047cf354b7dd509",
+    "elementId": "9c4ce35903ff690d444c4c7f",
+    "fullConfiguration": "default",
+    "id": "MFJ2kcWsLnpNyJMpe",
+    "isStandardContent": false,
+    "name": "urdf_thumb_proximal <1>",
+    "partId": "RAJD",
+    "suppressed": false,
+    "type": "Part"
+}
