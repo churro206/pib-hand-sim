@@ -188,7 +188,10 @@ linken Hand. Meilensteine: M1 Policy greift in der Sim, M2 läuft quantisiert au
       Actor-Critic, ein Kontaktsensor je Fingerspitze, Zufallsstart der Gelenke)
 - [x] Machbarkeitstest: Daumen-Rotator 90° → 14–15/16 gehalten, 0° → 0/16
 - [x] Probelauf 300 Iterationen: Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38; ONNX-Export
-- [ ] Policy im Fenster bewerten (`play.py`), dann längeres Training
+- [x] Policy im Fenster bewertet (`play.py`, Video `videos/isaac_lab_pib_hand_inference_test.webm`):
+      hält viele Dosen — dreht dafür aber den Unterarm, bis die Dose auf der Handfläche liegt
+- [ ] Unterarmdrehung unterbinden (Unterarm aus dem Aktionsraum oder Strafe auf Neigung der
+      Dose/Abweichung des Unterarms), dann längeres Training
 - [ ] Dose beim Reset aus der Hand geschleudert (~6 %, vermutlich Daumen in Opposition +
       gebeugt überlappt die Dose) — beobachten, ggf. Daumen-MCP-Startbereich verkleinern
 - [ ] M2: ONNX → int8 (QDQ) → in der Sim gegen float bewerten → ST Edge AI →

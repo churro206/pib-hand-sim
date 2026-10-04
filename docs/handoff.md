@@ -15,7 +15,7 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ### Offene Punkte
 
-- Policy-Vorführung mit `play.py` (Wrapper-Bug gefixt in `isaac_lab/play.py`/`train.py`) — Leon hat sie noch nicht gesehen/bewertet.
+- **Policy gelernt, Inferenz sieht gut aus** (Video `videos/isaac_lab_pib_hand_inference_test.webm`), aber: sie **dreht den Unterarm**, bis die Dose über der Handfläche liegt — ungewollt (ein Wasserglas würde verschüttet).
 - ~6 % der Episoden: Dose fliegt beim Reset weg (Daumen in Opposition + gebeugt überlappt die Dose).
 - Kurve flacht ab Iteration ~175 ab; längeres Training und Belohnungsfeinschliff offen.
 - Sim-to-Real-Lücken: lineare Kopplung, idealisierte FSR, keine Latenz, Gains/Armature geschätzt, int8 ungeprüft (ADR-015).
@@ -23,7 +23,7 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. `play.py` mit Fenster vorführen (Befehl in `docs/conventions.md` → „Isaac Lab“), Leons Eindruck einholen.
+1. Unterarmdrehung unterbinden — mit Leon entscheiden: `forearm_left` aus dem Aktionsraum nehmen (IK stellt die Hand), oder Strafe auf Abweichung von der Startlage / Neigung der Dose (Belohnung „aufrecht“).
 2. Reset-Überlappung prüfen/entschärfen (Daumen-MCP-Startbereich in `env_cfg.py` → `reset_hand` verkleinern).
 3. Längeres Training (z. B. 1500 It., TensorBoard), Ergebnis mit `play.py` zeigen.
 4. M2: ONNX → int8 (QDQ, Kalibrierdaten aus Sim-Rollouts) → in der Sim gegen float bewerten → `stedgeai validate` auf dem NUCLEO-N657X0.
