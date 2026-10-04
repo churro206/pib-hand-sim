@@ -10,7 +10,7 @@ from pib_grasp.env_cfg import PibGraspEnvCfg
 cfg = PibGraspEnvCfg(); cfg.scene.num_envs = 1
 cfg.events.object_scale = None
 env = gym.make("Pib-Grasp-Hand-Left-v0", cfg=cfg); u = env.unwrapped; env.reset()
-r, o, t, s = u.scene["robot"], u.scene["object"], u.scene["table"], u.scene["fingertips"]
+r, o, t, s = u.scene["robot"], u.scene["object"], u.scene["table"], u.scene["fsr_index"]
 org = u.scene.env_origins[0]
 def dump(tag):
     print(f"== {tag}")

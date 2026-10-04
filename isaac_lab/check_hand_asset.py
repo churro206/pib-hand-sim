@@ -7,6 +7,7 @@ check_hand_asset.py — Prüft die Hand-USD in Isaac Lab, bevor darauf trainiert
      Liefern die Kontaktsensoren an den 5 Fingerspitzen Werte?
 
 Aufruf (ohne aktive Projekt-.venv):
+  ~/IsaacLab/isaaclab.sh -p isaac_lab/check_hand_asset.py            # mit Fenster, Echtzeit
   ~/IsaacLab/isaaclab.sh -p isaac_lab/check_hand_asset.py --headless
 Bericht zusätzlich in isaac_sim/tools/_check_hand_asset_lab.txt.
 """
@@ -20,6 +21,7 @@ args_cli = parser.parse_args()
 simulation_app = AppLauncher(args_cli).app
 
 import math  # noqa: E402
+import time  # noqa: E402
 
 import torch  # noqa: E402
 from pxr import Usd, UsdPhysics  # noqa: E402
@@ -88,6 +90,7 @@ log(f"Fingerspitzen-Links: {tip_rel}")
 log()
 log("── 2. Isaac Lab ──")
 sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=1 / 120, device=args_cli.device))
+sim.set_camera_view([0.45, -0.25, 0.75], [0.0, -0.25, 0.48])
 robot = Articulation(PIB_HAND_LEFT_V5_CFG.replace(prim_path="/World/Hand"))
 contact = None
 if tip_rel and len({p.count("/") for p in tip_rel}) == 1:
@@ -113,12 +116,15 @@ def run_phase(label: str, mcp_deg: float, seconds: float = 1.5) -> None:
         target[:, jidx(f"{f}_left_proximal")] = math.radians(mcp_deg)
     target[:, jidx("thumb_left_proximal")] = math.radians(mcp_deg)
     for _ in range(int(seconds * 120)):
+        t0 = time.time()
         robot.set_joint_position_target(target)
         robot.write_data_to_sim()
         sim.step()
         robot.update(sim.get_physics_dt())
         if contact is not None:
             contact.update(sim.get_physics_dt())
+        if not args_cli.headless:   # mit Fenster in Echtzeit, zum Zuschauen
+            time.sleep(max(0.0, sim.get_physics_dt() - (time.time() - t0)))
 
     q = torch.rad2deg(robot.data.joint_pos[0]).tolist()
     log()
@@ -157,6 +163,10 @@ log("PROBLEME:\n  - " + "\n  - ".join(problems) if problems else "OK")
 
 REPORT.write_text("\n".join(_lines) + "\n", encoding="utf-8")
 print(f"\nBericht: {REPORT}", flush=True)
+if not args_cli.headless:
+    print("Fenster bleibt offen — zum Beenden schließen.", flush=True)
+    while simulation_app.is_running():
+        simulation_app.update()
 # simulation_app.close() blieb headless minutenlang hängen (2026-10-04) — Bericht ist
 # geschrieben, Prozess hart beenden.
 import os  # noqa: E402

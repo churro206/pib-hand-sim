@@ -33,3 +33,6 @@ isaac_sim/tools/_*.txt
 *.usd.bak-*
 # onshape-to-robot Export-Cache
 */robot.pkl
+
+# Isaac-Lab-Trainingslogs und Checkpoints (rsl_rl)
+logs/

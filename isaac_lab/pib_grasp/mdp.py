@@ -22,10 +22,13 @@ if TYPE_CHECKING:
 # Link-Namen aus pib_hand_left_urdf_v5/robot.urdf (finger_tip = Zeige, _2 = Mittel,
 # _3 = Ring, _4 = klein). Der ContactSensor liefert sie in anderer Reihenfolge.
 FINGERTIP_LINKS = ["urdf_thumb_tip", "urdf_finger_tip", "urdf_finger_tip_2", "urdf_finger_tip_3", "urdf_finger_tip_4"]
+# Ein ContactSensor je Fingerspitze (wie Dexsuite): Isaac Labs Objekt-Filter funktioniert
+# nur, wenn ein Sensor genau einen Prim abdeckt (ContactSensorCfg.filter_prim_paths_expr).
+FINGERTIP_SENSORS = ["fsr_thumb", "fsr_index", "fsr_middle", "fsr_ring", "fsr_pinky"]
 
 
-def _tip_order(sensor: ContactSensor) -> list[int]:
-    return [sensor.body_names.index(name) for name in FINGERTIP_LINKS]
+def _sensors(env: ManagerBasedRLEnv) -> list[ContactSensor]:
+    return [env.scene.sensors[name] for name in FINGERTIP_SENSORS]
 
 
 def episode_time(env: ManagerBasedRLEnv) -> torch.Tensor:
@@ -34,18 +37,16 @@ def episode_time(env: ManagerBasedRLEnv) -> torch.Tensor:
 
 # ── Beobachtungen ─────────────────────────────────────────────────────────────
 
-def fingertip_forces(env: ManagerBasedRLEnv, sensor_name: str = "fingertips") -> torch.Tensor:
+def fingertip_forces(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Betrag der Gesamtkontaktkraft je Fingerspitze [N], FSR-Reihenfolge. Alle Kontakte
     (auch Finger-Finger), wie ein echter FSR. Clip über ObsTerm(clip=...)."""
-    sensor: ContactSensor = env.scene.sensors[sensor_name]
-    return sensor.data.net_forces_w[:, _tip_order(sensor)].norm(dim=-1)
+    return torch.stack([s.data.net_forces_w[:, 0].norm(dim=-1) for s in _sensors(env)], dim=-1)
 
 
-def fingertip_object_forces(env: ManagerBasedRLEnv, sensor_name: str = "fingertips") -> torch.Tensor:
+def fingertip_object_forces(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Kontaktkraft je Fingerspitze nur mit dem Objekt [N] (privilegiert, Critic/Reward)."""
-    sensor: ContactSensor = env.scene.sensors[sensor_name]
-    # force_matrix_w: (N, Körper, Filter, 3) — ein Filter (das Objekt)
-    return sensor.data.force_matrix_w[:, _tip_order(sensor), 0].norm(dim=-1)
+    # force_matrix_w: (N, Körper=1, Filter=1, 3)
+    return torch.stack([s.data.force_matrix_w[:, 0, 0].norm(dim=-1) for s in _sensors(env)], dim=-1)
 
 
 def object_pos_in_root(env: ManagerBasedRLEnv, robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
@@ -82,6 +83,30 @@ def lower_table(env: ManagerBasedRLEnv, env_ids: torch.Tensor, drop_start_s: flo
     table.write_root_pose_to_sim(pose, env_ids=env_ids)
 
 
+# Mimic-Kopplung der linken Hand (ADR-011, isaac_sim/setup_stage.py → MIMIC_JOINTS):
+# Folgegelenk -> Referenz, gearing -1 = gleicher Winkel. Reihenfolge: PIP vor DIP.
+MIMIC_LEFT = [(f"{f}_left_distal", f"{f}_left_proximal") for f in ("index", "middle", "ring", "pinky")] + \
+             [(f"{f}_left_tip", f"{f}_left_distal") for f in ("index", "middle", "ring", "pinky")] + \
+             [("thumb_left_tip", "thumb_left_proximal")]
+
+
+def reset_hand_joints(env: ManagerBasedRLEnv, env_ids: torch.Tensor, ranges_deg: dict[str, tuple[float, float]],
+                      asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> None:
+    """Servo-Gelenke beim Reset gleichverteilt in ranges_deg setzen (Dexsuite: reset_joints_by_offset),
+    Folgegelenke passend zur Mimic-Kopplung — sonst startet die Zwangsbedingung mit einem Sprung.
+    Sollwerte = Startstellung, damit die Antriebe nicht zurückziehen."""
+    import math
+    robot: Articulation = env.scene[asset_cfg.name]
+    q = robot.data.default_joint_pos[env_ids].clone()
+    for name, (lo, hi) in ranges_deg.items():
+        u = torch.rand(len(env_ids), device=q.device)
+        q[:, robot.joint_names.index(name)] = math.radians(lo) + u * math.radians(hi - lo)
+    for follower, reference in MIMIC_LEFT:
+        q[:, robot.joint_names.index(follower)] = q[:, robot.joint_names.index(reference)]
+    robot.write_joint_state_to_sim(q, torch.zeros_like(q), env_ids=env_ids)
+    robot.set_joint_position_target(q, env_ids=env_ids)
+
+
 # ── Belohnungen ───────────────────────────────────────────────────────────────
 
 def fingertips_to_object(env: ManagerBasedRLEnv, std: float,
@@ -95,9 +120,9 @@ def fingertips_to_object(env: ManagerBasedRLEnv, std: float,
     return 1.0 - torch.tanh(dist / std)
 
 
-def thumb_opposition_contact(env: ManagerBasedRLEnv, threshold: float, sensor_name: str = "fingertips") -> torch.Tensor:
+def thumb_opposition_contact(env: ManagerBasedRLEnv, threshold: float) -> torch.Tensor:
     """1, wenn Daumen und mindestens ein Finger das Objekt berühren (Dexsuite: contacts)."""
-    f = fingertip_object_forces(env, sensor_name)
+    f = fingertip_object_forces(env)
     return ((f[:, 0] > threshold) & (f[:, 1:] > threshold).any(dim=-1)).float()
 
 
@@ -112,10 +137,10 @@ def object_held(env: ManagerBasedRLEnv, drop_start_s: float, std: float,
     return active * (1.0 - torch.tanh(sink / std))
 
 
-def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float, sensor_name: str = "fingertips") -> torch.Tensor:
+def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float) -> torch.Tensor:
     """Summe der Kraft über `limit` [N] an allen Fingerspitzen (gegen Zerquetschen und
     unrealistisch hohe Kräfte, ADR-011: lineare Kopplung überschätzt die Spitzenkraft)."""
-    return (fingertip_forces(env, sensor_name) - limit).clamp(min=0.0).sum(dim=-1)
+    return (fingertip_forces(env) - limit).clamp(min=0.0).sum(dim=-1)
 
 
 # ── Abbruch ───────────────────────────────────────────────────────────────────

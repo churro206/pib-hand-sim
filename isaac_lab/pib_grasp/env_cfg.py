@@ -99,11 +99,19 @@ class SceneCfg(InteractiveSceneCfg):
         init_state=RigidObjectCfg.InitialStateCfg(pos=TABLE_POS),
     )
 
-    # Ein Sensor für alle 5 Fingerspitzen; Filter aufs Objekt für die privilegierte Kraft
-    fingertips = ContactSensorCfg(
-        prim_path="{ENV_REGEX_NS}/Robot/(urdf_finger_tip.*|urdf_thumb_tip)",
-        filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"],
-    )
+    # Ein Sensor je Fingerspitze (= je FSR), wie Dexsuite: der Objekt-Filter (privilegierte
+    # Kraft) funktioniert in Isaac Lab nur, wenn ein Sensor genau einen Prim abdeckt.
+    # Link-Namen: mdp.FINGERTIP_LINKS (Daumen, Zeige, Mittel, Ring, klein).
+    fsr_thumb = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_thumb_tip",
+                                 filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
+    fsr_index = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip",
+                                 filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
+    fsr_middle = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip_2",
+                                  filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
+    fsr_ring = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip_3",
+                                filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
+    fsr_pinky = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip_4",
+                                 filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
 
     light = AssetBaseCfg(prim_path="/World/light", spawn=sim_utils.DomeLightCfg(intensity=2000.0))
 
@@ -205,6 +213,22 @@ class EventCfg:
     # -- reset
     reset_robot = EventTerm(func=base_mdp.reset_scene_to_default, mode="reset",
                             params={"reset_joint_targets": True})
+    # Zufällige Startstellung der Servo-Gelenke (Dexsuite: reset_joints_by_offset ±0,5 rad;
+    # hier enger, Gelenke nur 0–90°). Rotator über den ganzen Bereich, damit die Policy auch
+    # Starts mit Daumen in Opposition erlebt (Machbarkeitstest: Rotator 90° → 14–15/16 gehalten).
+    reset_hand = EventTerm(
+        func=mdp.reset_hand_joints,
+        mode="reset",
+        params={"ranges_deg": {
+            "thumb_left_rotator": (0.0, 90.0),
+            "thumb_left_proximal": (0.0, 15.0),
+            "index_left_proximal": (0.0, 15.0),
+            "middle_left_proximal": (0.0, 15.0),
+            "ring_left_proximal": (0.0, 15.0),
+            "pinky_left_proximal": (0.0, 15.0),
+            "wrist_left": (-10.0, 0.0),
+        }},
+    )
     reset_object = EventTerm(
         func=base_mdp.reset_root_state_uniform,
         mode="reset",
