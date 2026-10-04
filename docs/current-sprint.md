@@ -160,7 +160,7 @@ Tuning-Reihe (Inspire Hand) und bewährten Projekten. Plan (Reihenfolge nach NVI
       Pickup v5: Dose gegriffen, Arm hält sie nur knapp (realistisch laut Leon),
       `test_client_mimic_v5` unverändert bestanden (Δ ≤ 0,2°; Daumen/Zeigefinger blockieren
       sich bei ~70°, übrige Finger ~88,5° — Self-Collision), `audit_asset.py` ohne Warnung.
-      Nur Putdown v5 nicht erneut getestet
+      Putdown v5 am 2026-10-04 erneut bestanden (mit Handgelenk-Pleuel und Filtered Pairs)
 - [x] Action-Graph-Trigger auf `OnPhysicsStep` (v5)
 - [x] Tischtest bestanden: `index_left` stabiler Stall, vier Finger → Handgelenk gibt
       realistisch nach; Durchhängen/Blockaden bewusst akzeptiert (siehe ADR-012)
