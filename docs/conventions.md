@@ -110,6 +110,49 @@ mit Play/Stop.
 
 ---
 
+## Isaac Lab (RL-Greifen, ADR-015)
+
+### Umgebung
+- Isaac Lab 2.3.2 in `~/IsaacLab`, Isaac Sim per Symlink `~/IsaacLab/_isaac_sim` →
+  `~/isaacsim`. Pakete **nur** in der conda-Umgebung `env_isaaclab` (Miniconda, NVIDIA-Doku),
+  **nie** in Isaac Sims eigenes Python — `isaaclab.sh` nimmt immer die gerade aktive Python
+  (`VIRTUAL_ENV`/`CONDA_PREFIX`), deshalb vorher die Projekt-`.venv` deaktivieren.
+- conda-`base` startet nicht automatisch (`auto_activate_base false`) — ROS2-Terminals bleiben
+  unberührt.
+
+### Workflow
+```bash
+deactivate 2>/dev/null; conda activate env_isaaclab
+cd ~/repos/pib-hand-sim
+~/IsaacLab/isaaclab.sh -p isaac_lab/check_hand_asset.py                 # Asset-Prüfung (Fenster)
+~/IsaacLab/isaaclab.sh -p isaac_lab/scripted_grasp_test.py --num_envs 16 --real_time --thumb_rot 0,45,90
+~/IsaacLab/isaaclab.sh -p isaac_lab/train.py --task Pib-Grasp-Hand-Left-v0 --headless --num_envs 1024
+~/IsaacLab/isaaclab.sh -p isaac_lab/play.py --task Pib-Grasp-Hand-Left-Play-v0 --num_envs 16 --real-time
+tensorboard --logdir logs/rsl_rl                                          # http://localhost:6006
+```
+- Tests und Vorführungen mit Fenster (Leon schaut zu); headless nur fürs Training.
+- Logs/Checkpoints: `logs/rsl_rl/pib_grasp_hand_left/<Zeitstempel>/` (gitignored),
+  ONNX-Export von `play.py` in `.../exported/policy.onnx`.
+- Nur ein Isaac-Fenster gleichzeitig (8 GB VRAM).
+
+### Schnittstelle Policy ↔ echte Hand
+- **Aktion** (8, relative Gelenkposition in rad × Skala, Reihenfolge = `LEFT_HAND_SERVO_JOINTS`):
+  `forearm_left, wrist_left, thumb_left_rotator, thumb_left_proximal, index_left_proximal,
+  middle_left_proximal, ring_left_proximal, pinky_left_proximal`; Skala 0,03 (Unterarm,
+  Handgelenk) bzw. 0,1 rad (übrige).
+- **Beobachtung** (je Schritt 21 Werte, 5 Schritte Verlauf = 105): 8 Gelenkwinkel [rad, gleiche
+  Reihenfolge], 5 FSR [N, 0–20] in der Reihenfolge **Daumen, Zeige, Mittel, Ring, klein**,
+  8 letzte Aktionen. Normalisierung steckt im exportierten Netz (rsl_rl).
+- Handgelenk: Vorzeichen-Ausnahme, −60° = gebeugt (siehe oben).
+
+### Kontaktsensoren in Isaac Lab
+Ein `ContactSensorCfg` **je Fingerspitze** (`fsr_thumb` … `fsr_pinky`). Mit Objekt-Filter
+(`filter_prim_paths_expr`) liefert ein Sensor über mehrere Prims keine gefilterten Kräfte
+(Isaac-Lab-Doku, Dexsuite-Muster). Isaac Lab nutzt nicht die `IsaacContactSensor`-Prims der
+Vollroboter-USD.
+
+---
+
 ## Isaac Sim Patterns
 
 ### Modul laden (Script Editor)

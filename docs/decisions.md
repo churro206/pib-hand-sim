@@ -517,6 +517,92 @@ zweckentfremdet (Kraft statt Moment), wie schon in ADR-005 geplant.
 
 ---
 
+## ADR-014: Handgelenk-Pleuel — Gelenkgrenzen und Aktuatormodell (v5)
+
+**Problem**: Das v5-Handgelenk wird nicht direkt vom ST3215 bewegt, sondern über ein Pleuel
+(Viergelenk: Kurbel am Servo → Pleuel → Hebel an der Handfläche). Das Modell nahm direkten
+Antrieb an (2,94 Nm, 270 °/s am Gelenk) und Grenzen [−90°, +30°] aus dem Onshape-Mate.
+
+**Entscheidung**: Maße aus Onshape (Kurbel 6 mm, Pleuel 115 mm, Hebel 12 mm, Gestell
+115,43 mm). Die Kurbel ist umlauffähig (Grashof), der Hebel schwenkt zwischen den beiden
+Totlagen genau 60° bei 180° Kurbelwinkel → Grenzen **[−60°, 0°]** (−60° = voll nach innen
+gebeugt; Vorzeichen-Ausnahme, siehe `docs/conventions.md`). In Onshape korrigiert, URDFs und
+USDs ohne Neuimport nachgezogen. Übersetzung analytisch (`config/pib_hand_config_v5.py` →
+`wrist_transmission()`): Mitte n ≈ 2,0, an den Totlagen → ∞.
+- **Isaac Sim** (PhysX kann nur konstante Grenzen): Servo-Werte mit der Übersetzung der
+  Bereichsmitte aufs Gelenk umgerechnet — 5,87 Nm, 135 °/s, Armature × n² = 0,02 kg·m²
+  (`TRANSMISSIONS` → `servo_actuator()`).
+- **Isaac Lab**: NVIDIAs `RemotizedPDActuatorCfg` (Referenz: Spot-Knie,
+  `isaaclab_assets/robots/spot.py`) mit Tabelle Winkel → Moment (`wrist_lookup_table()`),
+  nahe den Totlagen bei 12 Nm gekappt (Leon).
+
+**Begründung**: NVIDIA-Muster für gestängegetriebene Gelenke; ein geschlossenes Viergelenk
+in PhysX (Gelenk außerhalb der Artikulation) wäre weniger stabil und vom URDF-Import nicht
+abgedeckt — NVIDIA meidet das selbst (Inspire-Hand → Mimic Joints).
+
+**Konsequenzen**:
+- Handgelenk real etwa doppelt so stark und halb so schnell wie bisher modelliert; Durchhängen
+  in Ruhe von −3,6° auf −0,2°.
+- Annahme: 0° liegt an der „gestreckten“ Totlage (Übersetzung fast symmetrisch, unkritisch).
+- Explizite PD-Regelung in Isaac Lab stabil (`check_hand_asset.py`); Verzögerung vorerst 0
+  (Spot: 0–4 Physikschritte, später als Sim-to-Real-Maßnahme).
+
+---
+
+## ADR-015: RL-Greifen als Proof of Concept in Isaac Lab (linke v5-Hand)
+
+**Problem**: Ziel ist eine Greif-Policy für die reale linke v5-Hand (8 Servos, 5 FSR an den
+Fingerspitzen), die auf einem STM32N657 (NUCLEO-N657X0, Neural-ART-NPU) laufen soll. Zeit
+für den ersten Schritt: etwa eine Woche — Proof of Concept in der Simulation.
+
+**Entscheidung**: Vorgehen nach NVIDIA-Referenzen, wo immer möglich:
+- **Asset**: eigener `onshape-to-robot`-Export nur Unterarm + Hand
+  (`pib_hand_left_urdf_v5/`), importiert als `isaac_sim/usd/pib_hand_left_v5.usd`; Mimic
+  Joints, Limits, Antriebe und Self-Collision per `bake_hand_asset_v5.py` eingebrannt (Isaac
+  Lab führt `start.py` nicht aus). Filtered Pair Unterarm ↔ Daumen-Rotator (Convex Hull des
+  Unterarms blockierte den Rotator). Isaac Lab übernimmt die PhysX-Mimic-Kopplung aus der
+  USD (GPU, Δ ≤ 0,01°).
+- **Aufgabe** (`isaac_lab/pib_grasp/`) als abgespeckte Kopie von Isaac Labs **Dexsuite**
+  (Kuka-Allegro-Lift): Hand fest, seitlich (Daumen oben), Dose Ø 6 cm vor der Handfläche;
+  ab 2 s senkt sich ein kinematischer Tisch um 10 cm (≙ Arm hebt an), Erfolg = Dose bleibt.
+- **Asymmetric Actor-Critic**: Policy sieht nur reale Sensoren — 8 Servo-Gelenkwinkel, 5 FSR
+  (auf 20 N gekappt wie Dexsuite), letzte Aktion, 5 Schritte Verlauf (105 Werte); Critic
+  zusätzlich Objektlage/-geschwindigkeit, alle Gelenke, Objekt-Kontaktkräfte, Phase.
+- **Aktion**: relative Gelenkposition auf die 8 Servos (Dexsuite), Schritt 0,1 rad
+  (Handgelenk/Unterarm 0,03 rad), Policy 60 Hz.
+- **Belohnung**: Annäherung, Daumen-Gegengriff (beide Dexsuite), Halten nach dem Absenken
+  (Hauptterm), Strafen für Kraft > 15 N, Aktionsgröße/-sprünge, Abbruch.
+- **Randomisierung**: Reibung, Dosenmasse/-größe/-lage, Servo-Gains ±25 %, zufällige
+  Gelenk-Startstellung (Daumen-Rotator 0–90°).
+- **PPO** (`rsl_rl`, Werte aus Dexsuite), Actor 256-128-64 (klein, für die NPU).
+- **Installation** nach NVIDIA-Doku in einer **eigenen conda-Umgebung** (`env_isaaclab`,
+  Miniconda) — nicht in Isaac Sims Python.
+
+**Begründung**: Dexsuite ist NVIDIAs aktuelle Referenz für dexterous Lift/Grasp in Isaac Lab
+(Gewichte, Clip, Aktionsart, Randomisierung übernommen). Policy-Beobachtungen auf reale
+Sensoren beschränkt, damit sie auf der echten Hand laufen kann.
+
+**Konsequenzen**:
+- Machbarkeitstest ohne Policy (`scripted_grasp_test.py`): Daumen-Rotator 0° → 0/16 gehalten,
+  90° → 14–15/16 — die Szene ist lösbar, Opposition ist entscheidend.
+- Probelauf (1024 Umgebungen, 300 Iterationen, ~10 Mio. Schritte, ~10 min auf RTX 3060 Ti):
+  Anteil fallengelassener Dosen 100 % → 19 %, Daumen-Gegengriff 0 → 0,38 — die Policy findet
+  die Opposition selbst. ONNX-Export über Isaac Labs `play.py`.
+- **Fallstricke** (alle 2026-10-04):
+  1. Isaac Lab ohne Umgebung installiert landet in der gerade aktiven Python (hier zuerst die
+     Projekt-`.venv`, danach Isaac Sims eigenes Python mit 100 Fremdpaketen) → immer
+     `env_isaaclab`; Isaac Sims Python hat nur `pip`, `setuptools`, `psutil`, `starlette`.
+  2. `flatdict` baut nur mit `setuptools<81` ohne Build-Isolation (`pkg_resources`).
+  3. `ContactSensorCfg` mit Objekt-Filter funktioniert nur, wenn ein Sensor **genau einen**
+     Prim abdeckt (Isaac-Lab-Doku) → ein Sensor je Fingerspitze, wie Dexsuite.
+  4. `simulation_app.close()` hängt nach Skriptende minutenlang → Bericht schreiben, dann
+     `os._exit(0)`; vorher `stdout` flushen.
+- Bekannte Sim-to-Real-Lücken: lineare Fingerkopplung (bis ~22° Abweichung, Spitzenkraft
+  ~2× zu hoch), idealisierte FSR, keine Latenz, geschätzte Servo-Gains/Armature,
+  Vollmaterial-Massen, Convex Hulls, int8 noch nicht geprüft.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

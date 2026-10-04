@@ -36,3 +36,5 @@ isaac_sim/tools/_*.txt
 
 # Isaac-Lab-Trainingslogs und Checkpoints (rsl_rl)
 logs/
+# Hydra-Ausgaben von Isaac Labs train.py/play.py
+outputs/

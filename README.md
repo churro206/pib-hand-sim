@@ -9,6 +9,10 @@ eigenen Python-Bridge-Code. Alles, was für diesen Weg nicht gebraucht wird (rob
 ControlMode-Architektur, Sequenz-Executor, LSTM-Pipeline), wurde aus diesem Branch entfernt.
 Der volle Stand liegt weiterhin auf `feature/ros2-control`.
 
+**Branch `feature/rl-grasping`:** dieser Stand plus RL-Greifen in NVIDIA Isaac Lab für die
+reale linke v5-Hand (Proof of Concept, `isaac_lab/`, ADR-014/015). Isaac Lab läuft in einer
+eigenen conda-Umgebung — Befehle in `docs/conventions.md` → „Isaac Lab“.
+
 ---
 
 ## Aktueller Stand
@@ -18,10 +22,12 @@ Der volle Stand liegt weiterhin auf `feature/ros2-control`.
 | USD-Stage mit Action Graph (ROS2 Subscribe/Publish Joint State + Articulation Controller) | ✓ läuft | ✓ läuft |
 | ros2_control-Stack (JTC, JointStateBroadcaster, TopicBasedSystem) | ✓ end-to-end verifiziert | ✓ end-to-end verifiziert |
 | Pickup-Demo (Dose greifen und heben) | ✓ physikalisch verifiziert | ✓ läuft |
-| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ | ✓ läuft, Dose kippt gelegentlich um (mit Servo-Modell nicht erneut getestet) |
+| Putdown-Demo (Dose absetzen und loslassen — Umkehrung der Pickup-Demo) | ✓ | ✓ läuft (2026-10-04 mit Servo-Modell erneut bestanden) |
 | Fingerkopplung PIP/DIP/IP folgen dem MCP (PhysX Mimic Joints, ADR-011) | — | ✓ |
 | Servo-Aktuatormodell ST3215/ST3095 nach Datenblatt (ADR-012) | — | ✓ |
 | Contact Sensors (Fingertip-Kontaktkraft) | nur `index_right` (Einzel-Topic) | ✓ alle 10, gebündelt auf `/pib/fingertip_forces` (ADR-013) |
+| Handgelenk über Pleuel, Grenzen [−60°, 0°] (ADR-014) | — | ✓ |
+| RL-Greifen in Isaac Lab, linke Hand (ADR-015) | — | Proof of Concept: Policy lernt Daumen-Gegengriff, Dose fällt nur noch in ~19 % |
 
 ---
 
@@ -218,6 +224,8 @@ bleiben unverbunden — `controllers.yaml` konfiguriert nur `command_interfaces:
 | `Package 'pib_bringup' not found` | `ros2_ws/install/setup.bash` wurde in dieser Shell nicht gesourced — `cd` ändert daran nichts, `AMENT_PREFIX_PATH` fehlt der Eintrag. |
 | Hand schließt in falsche Richtung | Nach einem Onshape-Neuimport `isaac_sim/tools/flip_joint_sign.py` erneut ausführen (ADR-007). |
 | `/pib/fingertip_forces` leer oder Graph-Änderung nach dem Neu-Öffnen weg | Per Skript gesetzte OmniGraph-Werte stehen nur im laufenden Graph — nach Graph-Skripten speichern **und neu öffnen**, Knoten nicht im Stage-Tree umbenennen (ADR-013, `docs/conventions.md`). |
+| v5-Stage stürzt bei Play ab (Backtrace in `isaacsim.sensors.physics.plugin`) | Compound-Subgraph im Action Graph — entfernen, Kraft-Knoten flach neu bauen (ADR-013, Korrektur zu Fallstrick 3). |
+| Isaac Lab installiert Pakete in die falsche Python | Immer in `conda activate env_isaaclab` arbeiten, Projekt-`.venv` vorher deaktivieren (ADR-015). |
 | Isaac Sim startet aber ROS2 nicht gefunden | ROS2 muss **vor** Isaac Sim gesourced sein: `source /opt/ros/jazzy/setup.bash && ~/isaacsim/isaac-sim.sh` |
 
 ---

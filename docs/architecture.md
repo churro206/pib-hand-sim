@@ -1,6 +1,8 @@
 # Architektur
 
-**Branch `experiment/omnigraph-lightweight`.** Beschreibt den Stand dieses Branches. Der
+**Branch `feature/rl-grasping`** (= `experiment/omnigraph-lightweight` + RL-Greifen in Isaac
+Lab, Abschnitt „RL-Greifen“ unten). Die Simulations-/ROS2-Teile beschreiben den Stand von
+`experiment/omnigraph-lightweight`. Der
 vollständige Stand mit `robot_io.py`, ControlMode-Architektur (`direct`/`servo`/`nn`),
 Sequenz-Executor und Sprint-3/4-Fahrplan liegt auf `feature/ros2-control` (eigene Version
 dieser Datei dort).
@@ -14,10 +16,9 @@ RoboCup 2027 @Home. Mehrere Gruppen:
 
 Alle Teams nutzen **ROS2**. Auf diesem Branch noch nicht angegangen (siehe „Offen" unten).
 
-**RL-Grasping**: Feinmotorisches Greifen (Force Closure) per Reinforcement Learning in
-Isaac Lab, aufbauend auf dem digitalen Zwilling dieses Branches — eigener Branch
-`feature/rl-grasping`, eigenes `CLAUDE.md`. Nicht Teil dieses Branches, siehe dort für
-Details.
+**RL-Greifen**: Greif-Policy per Reinforcement Learning in Isaac Lab für die reale linke
+v5-Hand (8 Servos, 5 FSR, STM32N657 mit NPU) — auf diesem Branch, siehe Abschnitt
+„RL-Greifen“ und ADR-015.
 
 **v4/v5**: Seit der v5-Hand-Baugruppe läuft alles Folgende doppelt, für v4 (verifiziert,
 Referenz-Implementierung) und v5 (im Aufbau) parallel — nicht ablösend. Durchgängiges
@@ -119,7 +120,8 @@ Nach NVIDIAs Articulation Stability Guide / Tuning-Reihe: `maxForce` = Stall-Tor
 
 | Servo | Gelenke | maxForce | maxJointVelocity | Stand |
 |---|---|---|---|---|
-| ST3215 | MCP (`*_proximal`), `thumb_*_rotator`, `wrist_*`, `forearm_*` | 2,94 Nm | 270 °/s | umgesetzt |
+| ST3215 | MCP (`*_proximal`), `thumb_*_rotator`, `forearm_*` | 2,94 Nm | 270 °/s | umgesetzt |
+| ST3215 über Pleuel | `wrist_*` (Übersetzung Bereichsmitte ≈ 2, ADR-014) | 5,87 Nm | 135 °/s | umgesetzt, Armature ×4 |
 | ST3215 | `upper_arm_*`, `elbow_*`, `head_*` | 2,94 Nm | 270 °/s | umgesetzt |
 | ST3095 | `shoulder_vertical_*`, `shoulder_horizontal_*` | 9,32 Nm | 186 °/s | umgesetzt |
 | – | Mimic-Folgegelenke (`distal`/`tip`) | passiv | 500 °/s | Armature 5e-4 |
@@ -142,6 +144,33 @@ Mimic Joints: `test_client_mimic_v5` (Kopplung frei, Δ ≤ 0,2°) und
 Servo-Arm gibt der Ellbogen nach, statt dass der Finger stallt). Pickup-Demo v5: Dose wird
 gegriffen, der ausgestreckte Arm hält sie nur knapp (Servo-Grenzen) — Putdown nicht erneut
 getestet.
+
+---
+
+## RL-Greifen (Isaac Lab, ADR-014/015)
+
+```
+Isaac Lab (conda env_isaaclab)                         reale Hand (Ziel)
+  isaac_lab/pib_grasp/  Greifaufgabe (Dexsuite-Muster)   STM32N657 (NUCLEO-N657X0, NPU)
+  isaac_lab/pib_hand_left_v5_cfg.py  Asset + Aktuatoren   ← Policy als int8-ONNX (ST Edge AI)
+  isaac_sim/usd/pib_hand_left_v5.usd  Hand + Unterarm      8 Servos (ST3215), 5 FSR
+  config/pib_hand_config_v5.py  Servo-/Pleuel-Modell (gemeinsame Quelle mit Isaac Sim)
+```
+
+- **Asset**: nur Unterarm + Hand (eigener `onshape-to-robot`-Export), Basis fest. Mimic
+  Joints, Limits, Antriebe, Self-Collision und Filtered Pair Unterarm ↔ Daumen-Rotator
+  eingebrannt (`isaac_sim/tools/bake_hand_asset_v5.py`). Kein Action Graph, keine
+  `IsaacContactSensor`-Prims — Isaac Lab bringt eigene Kontaktsensoren mit.
+- **Aktuatoren** (`pib_hand_left_v5_cfg.py`): 7 Servos implizit (PhysX-PD, Werte aus
+  `servo_actuator()` in rad), Handgelenk explizit über `RemotizedPDActuatorCfg` (Pleuel,
+  winkelabhängiges Moment), 9 Folgegelenke passiv.
+- **Aufgabe** (`pib_grasp/env_cfg.py`, `mdp.py`): Hand seitlich, Dose auf kinematischem Tisch,
+  ab 2 s sinkt der Tisch; Policy sieht 8 Gelenkwinkel + 5 FSR + letzte Aktion (Verlauf 5),
+  Critic zusätzlich privilegierte Größen; PPO über Isaac Labs `rsl_rl`-Skripte
+  (`isaac_lab/train.py`/`play.py` registrieren nur die Tasks und starten diese).
+- **Werkzeuge**: `check_hand_asset.py` (Mimic, Sensoren, Antriebe), `scripted_grasp_test.py`
+  (Machbarkeit ohne Policy), `_probe_geometry.py`/`_debug_scene.py` (Diagnose).
+- Schnittstelle Policy ↔ Firmware: `docs/conventions.md` → „Isaac Lab“.
 
 ---
 

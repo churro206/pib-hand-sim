@@ -2,23 +2,21 @@
 
 Leon, RoboCup 2027 @Home: pib v4 Roboterhand-Simulation in NVIDIA Isaac Sim 5.1.
 
-## Branch `experiment/omnigraph-lightweight`
-Bewusst minimaler Zweig: Isaac-seitige ROS2-Anbindung läuft über einen nativen Action
-Graph (OmniGraph, Teil der USD-Stage) statt über eigenen Python-Bridge-Code. Diese Datei
-beschreibt den Stand **dieses Branches**. Der vollständige Stand mit `robot_io.py`,
-ControlMode-Architektur und Sprint-Fahrplan liegt auf `feature/ros2-control` (eigenes,
-dort gültiges CLAUDE.md). Feinmotorisches Greifen per Reinforcement Learning (Isaac Lab,
-aufbauend auf dem hier entstandenen digitalen Zwilling) liegt auf `feature/rl-grasping`
-(ebenfalls eigenes CLAUDE.md) — abgezweigt vom inzwischen ersetzten Sehnendynamik-Stand
-(`1d0cd9c`, ADR-009), nicht vom aktuellen Mimic-Joint-Stand (ADR-011).
+## Branch `feature/rl-grasping`
+Seit 2026-10-04 Arbeitsbranch: der digitale Zwilling von `experiment/omnigraph-lightweight`
+(v5-USD, Action Graph, Mimic Joints, Servo-Modell, Kontaktsensoren — alles weiter gültig) plus
+**RL-Greifen in Isaac Lab** für die reale linke v5-Hand (Proof of Concept, ADR-014/015).
+Der alte Branch-Stand (Sehnendynamik-Script-Node, ADR-009) liegt im Tag
+`backup/rl-grasping-c0b3f6d`. Team-Integration/LSTM: `feature/ros2-control`.
 
 ## Session-Start
 **Lies zuerst `docs/handoff.md`** — enthält Stand und offene Punkte der letzten Session.
 
 ## Stack
 - **Isaac Sim 5.1** — Script Editor (`start.py`) + Action Graph (Teil der USD-Stage) + `ros2_control`
-- **Python 3.10+**, numpy | kein Test-Framework
-- Keine LSTM/Training-Pipeline auf diesem Branch (LSTM: siehe `feature/ros2-control`, RL-Grasping: siehe `feature/rl-grasping`)
+- **Isaac Lab 2.3.2** (`~/IsaacLab`, `rsl_rl` PPO) in conda-Umgebung `env_isaaclab` (Miniconda)
+- **Python 3.10+**, numpy | kein Test-Framework (Prüfskripte in `isaac_lab/`)
+- Ziel-Hardware der Policy: STM32N657 (NUCLEO-N657X0, Neural-ART-NPU, int8) — später Jetson Thor
 
 ## Vorzeichen-Konvention (behoben, ADR-007)
 Onshape und Isaacs importierte Gelenkachsen waren vorzeicheninvertiert — physikalische
@@ -54,6 +52,20 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
   gleichartige Wiederholungen oder Diagnose; Diagnose-Skripte schreiben zusätzlich nach
   `isaac_sim/tools/_*.txt` (Script-Editor-Konsole nicht kopierbar)
 
+## Isaac Lab Regeln (ADR-015)
+- **Nie** in Isaac Sims eigenes Python installieren — nur in `conda activate env_isaaclab`,
+  Projekt-`.venv` vorher deaktivieren (`isaaclab.sh` nimmt die gerade aktive Python)
+- Starten über `~/IsaacLab/isaaclab.sh -p isaac_lab/<skript>.py` — Befehle in
+  `docs/conventions.md` → „Isaac Lab“
+- Tests/Vorführungen **mit Fenster** (Leon schaut zu), headless nur fürs Training; nur ein
+  Isaac-Fenster gleichzeitig (8 GB VRAM)
+- Isaac-Lab-API nie raten — gegen `~/IsaacLab/source` prüfen; Vorbild ist Dexsuite
+  (`isaaclab_tasks/manager_based/manipulation/dexsuite`)
+- Hand-USD: Mimic/Limits/Antriebe sind eingebrannt (`bake_hand_asset_v5.py`) — nach
+  Änderungen an `setup_stage.py`/Config erneut ausführen und speichern
+- Kontaktsensor mit Objekt-Filter: **ein** `ContactSensorCfg` pro Fingerspitze
+- Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
+
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
 - **Greifpunkt-Team**: Greifpunkterkennung → gibt Greifpunkt im Roboterframe aus
@@ -66,29 +78,22 @@ Extern (ROS2, ros2_control) → Action Graph (ROS2SubscribeJointState → IsaacA
 Details: @docs/architecture.md (Abschnitt "Action Graph")
 
 ## Ziele (dieser Branch)
-- **OmniGraph-Migration** ✓ Action Graph ersetzt `pib_bridge.py`, Pickup-/Putdown-Demo verifiziert
-- **Vorzeichen-Fix** ✓ Gelenke direkt am Prim korrigiert (ADR-007), kein Script Node/JOINT_SIGN mehr
-- **v5-Hand-Integration** ✓ Action Graph, ros2_control-Stack, Pickup-/Putdown-Demo für v5,
-  `config/pib_hand_config_v5.py`; Regressionscheck der Demo mit Mimic Joints noch offen
-- **Fingerkopplung** ✓ PhysX Mimic Joints (ADR-011, linear, gearing=-1) — ersetzt den
-  Sehnendynamik-Script-Node (ADR-009) und die verworfene Kraft-Rückwirkung (ADR-010)
-- **Physik-Tuning nach NVIDIA** ✓ weitgehend (ADR-012, Plan in `docs/current-sprint.md`):
-  Servo-Aktuatormodell (ST3215/ST3095) für alle v5-Servo-Gelenke, Self-Collision an,
-  Tischtest stabil; Restvalidierung (Mimic-Freitest, Audit, Putdown) offen
-- **Contact Sensors** ✓ (v5) — alle 10 Fingerspitzen, gebündelt als `sensor_msgs/JointState`
-  mit Zeitstempel auf `/pib/fingertip_forces` (ADR-008 + ADR-013)
-- **Szenen-Erweiterung** — weitere Objekte/Umgebung in der USD-Stage
-
-Alte Phasen/Sprints (Simulation Server, Team-Integration, LSTM-Training) sind für diesen
-Branch verworfen — voller Fahrplan dazu auf `feature/ros2-control`. Feinmotorisches Greifen
-per RL ist ebenfalls nicht Teil dieses Branches — siehe `feature/rl-grasping`.
+- **Digitaler Zwilling v5** ✓ (geerbt): Action Graph, ros2_control, Pickup/Putdown v5,
+  Mimic Joints (ADR-011), Servo-Modell (ADR-012), Kontaktsensoren (ADR-013),
+  Handgelenk-Pleuel [−60°, 0°] (ADR-014)
+- **RL-Greifen, Proof of Concept** ← aktuell (ADR-015, Plan in `docs/current-sprint.md`):
+  - M1 Policy greift in der Sim — Probelauf lernt Gegengriff, Dose fällt nur noch ~19 %
+  - M2 Policy int8-quantisiert auf dem STM32N657 (`stedgeai validate`)
+  - M3 echte Hand (optional, Sim-to-Real-Kalibrierung nötig)
+- Policy sieht nur reale Sensoren (8 Servo-Winkel, 5 FSR); Aktionsraum = 8 Servos
 
 ## Schlüsseldateien
 ```
 config/pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (v4, verifiziert)
 config/pib_hand_config_v5.py   dasselbe für v5 (gegen URDF und Stage verifiziert), dazu
                                Servo-Aktuatormodell SERVOS/V5_ACTUATORS/servo_actuator()
-                               (ADR-012, Nm/° und Nm/rad) und LEFT_HAND_SERVO_JOINTS
+                               (ADR-012, Nm/° und Nm/rad), Handgelenk-Pleuel WRIST_LINKAGE
+                               (ADR-014) und LEFT_HAND_SERVO_JOINTS
 isaac_sim/start.py             Startroutine: Drives + Mimic + Limits + Initialpose (vor Play ausführen)
 isaac_sim/setup_stage.py       von start.py genutzt — v5: wendet das Aktuatormodell aus der
                                Config an, MIMIC_JOINTS (ADR-011); v4: _v4_gains
@@ -100,6 +105,14 @@ isaac_sim/tools/audit_asset.py       Asset-Inspektion: Massen USD/PhysX/URDF, Co
 isaac_sim/tools/inspect_action_graph.py        Graph-Inventur aus der USD (Knoten, Verbindungen, Sensoren)
 isaac_sim/tools/build_contact_sensors_v5.py    10 Fingertip-Kontaktsensor-Prims anlegen (ADR-013)
 isaac_sim/tools/build_fingertip_force_graph_v5.py  Kraft-Bündel-Graph → /pib/fingertip_forces
+isaac_sim/tools/bake_hand_asset_v5.py   Mimic/Limits/Antriebe/Self-Collision in die Hand-USD
+isaac_sim/usd/pib_hand_left_v5.usd       Hand + Unterarm (links) für Isaac Lab
+pib_hand_left_urdf_v5/                   onshape-to-robot-Export der Hand (Basis: elbow_lower)
+isaac_lab/pib_hand_left_v5_cfg.py        Isaac-Lab-Asset: Aktuatoren aus der v5-Config, Handgelenk Remotized
+isaac_lab/pib_grasp/                     Greifaufgabe (env_cfg, mdp, agents/rsl_rl_ppo_cfg)
+isaac_lab/train.py, play.py              Isaac Labs rsl_rl-Skripte mit den pib-Tasks
+isaac_lab/check_hand_asset.py            Prüfung Hand-USD in Isaac Lab (Mimic, Sensoren)
+isaac_lab/scripted_grasp_test.py         Machbarkeitstest ohne Policy (Fenster, Echtzeit)
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
 ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
@@ -113,4 +126,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–013) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–015) | Sprint: @docs/current-sprint.md
+→ RL-Ursprungs-Prompt/Bewertung: `docs/rl-grasping-notes.md`

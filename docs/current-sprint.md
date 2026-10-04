@@ -1,6 +1,9 @@
-# Sprint — `experiment/omnigraph-lightweight`
+# Sprint — `feature/rl-grasping`
 
-Alte Sprints/Ziele (Simulation Server, Team-Integration, LSTM-Training) für diesen Branch
+Seit 2026-10-04 Arbeitsbranch: `feature/rl-grasping` = Stand von
+`experiment/omnigraph-lightweight` (digitaler Zwilling v5) plus RL-Greifen in Isaac Lab
+(Abschnitt „RL-Greifen“ unten, ADR-015). Die übrigen Abschnitte sind die Historie des
+Omnigraph-Sprints. Alte Sprints/Ziele (Simulation Server, Team-Integration, LSTM-Training)
 verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 
 ## OmniGraph-Migration ✓
@@ -119,7 +122,7 @@ weiter oben in dieser Session):
       Servo-Gains (ADR-012) kann die Greifpose anders ausfallen
 - [ ] ADR schreiben zur v5-Reimport-Entscheidung (`_v4`/`_v5`-Namensschema, maxForce-Fix,
       Erkenntnis dass dieser Import-Weg über `onshape-to-robot`+URDF lief statt über den
-      direkten Onshape-Importer wie beim v4-Aufbau) — nächste freie Nummer ist ADR-014
+      direkten Onshape-Importer wie beim v4-Aufbau) — nächste freie Nummer ist ADR-016
 
 ## Fingerkopplung ✓ (ADR-009 → ADR-010 → ADR-011)
 
@@ -167,16 +170,36 @@ Tuning-Reihe (Inspire Hand) und bewährten Projekten. Plan (Reihenfolge nach NVI
 
 ---
 
-## RL-Grasping (Isaac Lab) — ausgelagert auf `feature/rl-grasping`
+## RL-Greifen (Isaac Lab, linke v5-Hand) ← aktuell (ADR-014, ADR-015)
 
-Feinmotorisches Greifen (Force Closure) per RL, aufbauend auf dem digitalen Zwilling dieses
-Branches (USD, Fingerkopplung, Kontaktsensoren). Eigener Branch, eigenes `CLAUDE.md` — siehe
-dort für Ziele/Stand. Nicht Teil dieses Sprints. Achtung: abgezweigt vom Sehnendynamik-Stand
-(ADR-009), nicht vom aktuellen Mimic-Joint-Stand (ADR-011/012).
+**Ziel (Proof of Concept, ~1 Woche ab 2026-10-04)**: Greif-Policy in der Simulation, die nur
+reale Sensoren nutzt (8 Servo-Winkel, 5 FSR) — später auf dem STM32N657 (NPU) der echten
+linken Hand. Meilensteine: M1 Policy greift in der Sim, M2 läuft quantisiert auf dem Chip
+(`stedgeai validate`), M3 echte Hand (optional).
+
+- [x] Servo-Aktuatormodell nach `config/pib_hand_config_v5.py` (eine Quelle, Nm/° und Nm/rad)
+- [x] Isaac Lab 2.3.2 in eigener conda-Umgebung `env_isaaclab` (Miniconda, NVIDIA-Doku);
+      Hardware-Test RTX 3060 Ti: 1024 Umgebungen ≈ 16.000 Schritte/s
+- [x] Hand-only-Asset: `pib_hand_left_urdf_v5/` → `pib_hand_left_v5.usd`, eingebrannt per
+      `bake_hand_asset_v5.py`; Isaac Lab übernimmt die Mimic-Kopplung (GPU, Δ ≤ 0,01°)
+- [x] Handgelenk-Pleuel: Grenzen [−60°, 0°], Aktuator `RemotizedPDActuatorCfg` (ADR-014)
+- [x] Filtered Pair Unterarm ↔ Daumen-Rotator (Hand-USD und Vollroboter)
+- [x] Aufgabe `isaac_lab/pib_grasp/` nach Dexsuite (Tisch senkt sich, Asymmetric
+      Actor-Critic, ein Kontaktsensor je Fingerspitze, Zufallsstart der Gelenke)
+- [x] Machbarkeitstest: Daumen-Rotator 90° → 14–15/16 gehalten, 0° → 0/16
+- [x] Probelauf 300 Iterationen: Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38; ONNX-Export
+- [ ] Policy im Fenster bewerten (`play.py`), dann längeres Training
+- [ ] Dose beim Reset aus der Hand geschleudert (~6 %, vermutlich Daumen in Opposition +
+      gebeugt überlappt die Dose) — beobachten, ggf. Daumen-MCP-Startbereich verkleinern
+- [ ] M2: ONNX → int8 (QDQ) → in der Sim gegen float bewerten → ST Edge AI →
+      `stedgeai validate` auf dem NUCLEO-N657X0
+- [ ] Sim-to-Real (für M3): Servo-Sprungantwort messen und Gains/Armature kalibrieren,
+      Aktionsverzögerung randomisieren (Spot-Muster), FSR-Modell, ggf. adaptive Kopplung
 
 ---
 
 ## Nicht in diesem Sprint
 - Team-Integration (Koordinatenrahmen, IK-/Greifpunkt-Interface) — siehe `feature/ros2-control`
 - AS5600-Sensoren, LSTM-Training — siehe `feature/ros2-control`
-- RL-Grasping-Training — siehe `feature/rl-grasping`
+- Vision/VLA-Greifen auf dem künftigen Jetson Thor (GraspGen, FoundationPose, cuMotion,
+  GR00T N1.6, Teacher-Student nach DextrAH) — nur skizziert, siehe Handoff 2026-10-04

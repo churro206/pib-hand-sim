@@ -18,7 +18,8 @@ RSL_RL_SCRIPTS = Path(os.environ.get("ISAACLAB_PATH", Path.home() / "IsaacLab"))
 sys.path[:0] = [str(HERE), str(RSL_RL_SCRIPTS)]
 import pib_grasp  # noqa: E402,F401  (registriert die Gym-Tasks)
 
-script = os.path.basename(sys.argv[0]).replace(".py", "")
-target = RSL_RL_SCRIPTS / ("play.py" if script == "play" else "train.py")
+# play.py setzt PIB_RSL_RL_SCRIPT=play (runpy überschreibt sys.argv[0], daran lässt es sich
+# nicht erkennen)
+target = RSL_RL_SCRIPTS / ("play.py" if os.environ.get("PIB_RSL_RL_SCRIPT") == "play" else "train.py")
 sys.argv[0] = str(target)
 runpy.run_path(str(target), run_name="__main__")
