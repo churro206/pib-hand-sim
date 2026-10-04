@@ -19,7 +19,7 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 - ~6 % der Episoden: Dose fliegt beim Reset weg (Daumen in Opposition + gebeugt überlappt die Dose).
 - Kurve flacht ab Iteration ~175 ab; längeres Training und Belohnungsfeinschliff offen.
 - Sim-to-Real-Lücken: lineare Kopplung, idealisierte FSR, keine Latenz, Gains/Armature geschätzt, int8 ungeprüft (ADR-015).
-- 5 Commits nicht gepusht (`567fe46`…`1821896`) + Doku-Commit dieser Session.
+- Trainierte Checkpoints/ONNX nur lokal: `logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59/` (gitignored, nicht gesichert).
 
 ### Nächste Schritte (in Reihenfolge)
 
