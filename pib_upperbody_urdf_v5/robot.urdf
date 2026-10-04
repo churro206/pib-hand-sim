@@ -776,7 +776,7 @@
     <parent link="urdf_forearm_left"/>
     <child link="urdf_palm_left"/>
     <axis xyz="0 0 1"/>
-    <limit effort="10" velocity="10" lower="-1.5708" upper="0.523599"/>
+    <limit effort="10" velocity="10" lower="-1.0472" upper="0"/>
   </joint>
   <!-- Joint from urdf_elbow_lower to urdf_forearm_left -->
   <joint name="forearm_left" type="revolute">
@@ -1448,7 +1448,7 @@
     <parent link="urdf_forearm_right"/>
     <child link="urdf_palm_right"/>
     <axis xyz="0 0 1"/>
-    <limit effort="10" velocity="10" lower="-1.5708" upper="0.523599"/>
+    <limit effort="10" velocity="10" lower="-1.0472" upper="0"/>
   </joint>
   <!-- Joint from urdf_elbow_lower_2 to urdf_forearm_right -->
   <joint name="forearm_right" type="revolute">

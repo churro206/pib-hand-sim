@@ -31,8 +31,10 @@ ROBOT_PRIM_PATH = "/World/pib_upperbody_urdf_v5/root_joint"
 #   - upper_arm_left: v5 ist symmetrisch [-90, 90] (v4 war [0, 90] -- siehe Kommentar
 #     zu dof_upper_arm_left in setup_stage.py, dort explizit für v4 verifiziert, galt
 #     nie für v5)
-#   - wrist_left/wrist_right: v5 ist [-90, 30] (v4 ist [0, 90]) -- beide Seiten
-#     gleichermaßen betroffen, kein Links/Rechts-Unterschied, nur v4 != v5
+#   - wrist_left/wrist_right: v5 ist [-60, 0] (v4 ist [0, 90]) -- beide Seiten
+#     gleichermaßen betroffen. Bis 2026-10-04 [-90, 30]; korrigiert in Onshape und
+#     den URDFs, weil das Pleuel nur 60° Schwenk zulässt (WRIST_LINKAGE unten).
+#     Vorzeichen-Ausnahme: -60 = voll nach innen gebeugt, 0 = gestreckt
 #   - shoulder_horizontal_right: [0, 90] bei BEIDEN Versionen (v4 UND v5) -- das ist
 #     KEIN Bug, sondern eine reale, in zwei unabhängigen Quellen (v4- und v5-URDF)
 #     übereinstimmend verifizierte Asymmetrie gegenüber shoulder_horizontal_left
@@ -48,14 +50,14 @@ BODY_DOFS = {
         "upper_arm_left",            # [-90, 90]
         "elbow_left",                # [-45, 90]
         "forearm_left",              # [-90, 90]
-        "wrist_left",                # [-90, 30]
+        "wrist_left",                # [-60, 0]  -- -60 = gebeugt (Ausnahme)
         # Rechte Seite
         "shoulder_vertical_right",   # [-90, 90]
         "shoulder_horizontal_right", # [  0, 90]  -- Asymmetrie verifiziert, kein Bug
         "upper_arm_right",           # [-90, 90]
         "elbow_right",               # [-45, 90]
         "forearm_right",             # [-90, 90]
-        "wrist_right",               # [-90, 30]
+        "wrist_right",               # [-60, 0]  -- -60 = gebeugt (Ausnahme)
     ],
     # TODO(param): Artikulations-DOF-Indizes (wie BODY_DOFS["indices"] in
     # pib_hand_config_v4.py) nicht übernommen -- die v4-Werte stammen aus einem
@@ -131,30 +133,109 @@ FOLLOWER_ARMATURE_KGM2 = 5.0e-4
 FOLLOWER_MAX_VELOCITY_DEG_S = 500.0
 
 
+# ── Handgelenk-Pleuel (2026-10-04) ────────────────────────────────────────────
+# Der Handgelenk-Servo (ST3215) treibt das Handgelenk über ein Pleuel an (Viergelenk:
+# Kurbel am Servo → Pleuel → Hebel an der Handfläche). Maße aus Onshape bei 0°
+# (Leon). Kurbel umlauffähig (Grashof), Hebel schwenkt zwischen den Totlagen genau 60°
+# bei 180° Kurbelwinkel → Handgelenk [-60°, 0°]. Übersetzung in der Mitte ≈ 2:1,
+# an den Totlagen gegen ∞ (Moment ↑, Geschwindigkeit ↓).
+# ANNAHME: 0° (gestreckt) liegt an der Totlage "Kurbel und Pleuel gestreckt", -60° an
+# der gefalteten. Die Übersetzung ist fast symmetrisch (5 % vom Rand: 0,228 bzw. 0,241),
+# eine Vertauschung ändert die Tabelle kaum.
+WRIST_LINKAGE = {"crank_mm": 6.0, "rod_mm": 115.0, "lever_mm": 12.0, "frame_mm": 115.43}
+WRIST_RANGE_DEG = (-60.0, 0.0)
+WRIST_TORQUE_CAP_NM = 12.0      # Kappung nahe den Totlagen (Leon, 2026-10-04)
+
+
+def _wrist_rocker_limits():
+    """Hebelwinkel β [rad] am Handgelenk in den beiden Totlagen (gestreckt, gefaltet)."""
+    import math
+    a, b, c, d = (WRIST_LINKAGE[k] for k in ("crank_mm", "rod_mm", "lever_mm", "frame_mm"))
+    beta = lambda r: math.acos((d * d + c * c - r * r) / (2 * d * c))  # noqa: E731
+    return beta(b + a), beta(b - a)
+
+
+def wrist_transmission(theta_deg: float) -> float:
+    """
+    Übersetzung des Handgelenk-Pleuels n = dφ_servo / dθ_handgelenk (≥ 1, "in/out")
+    bei Handgelenkwinkel theta_deg ∈ [-60, 0]. Analytisch aus der Geschwindigkeit der
+    beiden Gelenkzapfen entlang des starren Pleuels (wie tendondrive/ für die Finger).
+    """
+    import math
+    a, b, c, d = (WRIST_LINKAGE[k] for k in ("crank_mm", "rod_mm", "lever_mm", "frame_mm"))
+    beta_ext, beta_fold = _wrist_rocker_limits()
+    frac = min(max(-theta_deg / (WRIST_RANGE_DEG[1] - WRIST_RANGE_DEG[0]), 0.0), 1.0)
+    beta = beta_ext + frac * (beta_fold - beta_ext)
+    # Servoachse (0,0), Handgelenkachse (d,0); Hebelzapfen B, Kurbelzapfen A mit |A|=a, |A-B|=b
+    bx, by = d - c * math.cos(beta), c * math.sin(beta)
+    r = math.hypot(bx, by)
+    gamma = math.acos(max(-1.0, min(1.0, (a * a + r * r - b * b) / (2 * a * r))))
+    phi = math.atan2(by, bx) - gamma                      # ein Montagezweig, über den Bereich stetig
+    ax, ay = a * math.cos(phi), a * math.sin(phi)
+    ux, uy = bx - ax, by - ay                             # Pleuelrichtung
+    t_a = (-math.sin(phi), math.cos(phi))                 # Tangente Kurbelzapfen
+    t_b = (-math.sin(beta), -math.cos(beta))              # Tangente Hebelzapfen (dB/dβ / c)
+    out_per_in = (a * (t_a[0] * ux + t_a[1] * uy)) / (c * (t_b[0] * ux + t_b[1] * uy))
+    return 1.0 / max(abs(out_per_in), 1e-6)
+
+
+def wrist_lookup_table(points: int = 25) -> list:
+    """
+    Tabelle für Isaac Labs RemotizedPDActuatorCfg.joint_parameter_lookup (NVIDIA-Muster
+    für gestängegetriebene Gelenke, Spot-Knie): [Gelenkwinkel rad, Übersetzung in/out,
+    Ausgangsmoment Nm], Moment = Stall-Moment × Übersetzung, gekappt bei WRIST_TORQUE_CAP_NM
+    (Übersetzung entsprechend mitgekappt; Isaac Lab nutzt für die Begrenzung nur das Moment).
+    """
+    lo, hi = WRIST_RANGE_DEG
+    stall = SERVOS["ST3215"]["stall_nm"]
+    n_cap = WRIST_TORQUE_CAP_NM / stall
+    table = []
+    for i in range(points):
+        theta = lo + (hi - lo) * i / (points - 1)
+        n = min(wrist_transmission(theta), n_cap)
+        table.append([theta * _RAD_PER_DEG, n, stall * n])
+    return table
+
+
+# Konstante Übersetzung für PhysX-Antriebe (Isaac Sim kann kein winkelabhängiges
+# Moment): Mitte des Bereichs.
+WRIST_TRANSMISSION_NOMINAL = wrist_transmission(sum(WRIST_RANGE_DEG) / 2)
+
+# Übersetzung zwischen Servo und Gelenk je Gelenkgruppe (Schlüsselwort → n = dφ/dθ).
+# Moment × n, Geschwindigkeit ÷ n, Armature (Rotorträgheit auf Servoseite) × n².
+TRANSMISSIONS = {"wrist": WRIST_TRANSMISSION_NOMINAL}
+
+
 def servo_actuator(name: str):
     """
     Parameter eines servo-getriebenen v5-Gelenks, sonst None. Beide Einheitensysteme:
       *_deg: USD-Prim (stiffness Nm/°, damping Nm·s/°, max_velocity °/s)
       *_rad: Isaac Lab / ROS (stiffness Nm/rad, damping Nm·s/rad, max_velocity rad/s)
-    max_force [Nm] und armature [kg·m²] sind einheitengleich.
+    max_force [Nm] und armature [kg·m²] sind einheitengleich. Gelenke hinter einem
+    Gestänge (TRANSMISSIONS) bekommen die auf das Gelenk umgerechneten Servowerte.
     """
     n = name.lower()
     for key, servo, inertia in V5_ACTUATORS:
         if key in n:
             spec = SERVOS[servo]
-            k_deg = spec["stall_nm"] / SERVO_SATURATION_ERROR_DEG
+            ratio = next((r for k, r in TRANSMISSIONS.items() if k in n), 1.0)
+            max_force = spec["stall_nm"] * ratio
+            max_velocity_deg = spec["no_load_deg_s"] / ratio
+            armature = SERVO_ARMATURE_KGM2 * ratio ** 2
+            k_deg = max_force / SERVO_SATURATION_ERROR_DEG
             k_rad = k_deg / _RAD_PER_DEG
-            d_rad = 2.0 * (k_rad * (inertia + SERVO_ARMATURE_KGM2)) ** 0.5    # ζ = 1
+            d_rad = 2.0 * (k_rad * (inertia + armature)) ** 0.5    # ζ = 1
             return {
                 "servo": servo,
-                "max_force": spec["stall_nm"],
-                "armature": SERVO_ARMATURE_KGM2,
+                "transmission": ratio,
+                "max_force": max_force,
+                "armature": armature,
                 "stiffness_deg": k_deg,
                 "damping_deg": d_rad * _RAD_PER_DEG,
-                "max_velocity_deg": spec["no_load_deg_s"],
+                "max_velocity_deg": max_velocity_deg,
                 "stiffness_rad": k_rad,
                 "damping_rad": d_rad,
-                "max_velocity_rad": spec["no_load_deg_s"] * _RAD_PER_DEG,
+                "max_velocity_rad": max_velocity_deg * _RAD_PER_DEG,
             }
     return None
 

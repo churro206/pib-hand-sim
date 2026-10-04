@@ -298,6 +298,11 @@ def configure_mimic_joints(stg) -> int:
 # betroffen, kein Links/Rechts-Unterschied). shoulder_horizontal_right [0°,90°] ist
 # dagegen in BEIDEN Versionen (v4 UND v5 URDF) identisch und keine Abweichung --
 # keine Korrektur nötig, siehe config/pib_hand_config_v5.py.
+#
+# wrist_left/wrist_right v5 (2026-10-04): [-60°, 0°], in Onshape korrigiert. Das
+# Handgelenk wird über ein Pleuel angetrieben, das mechanisch nur 60° Schwenk zulässt
+# (config/pib_hand_config_v5.py → WRIST_LINKAGE). Vorzeichen-Ausnahme: -60° = voll
+# nach innen gebeugt, 0° = gestreckt (docs/conventions.md).
 
 _HAND_KEYWORDS = ("proximal", "distal", "tip", "rotator")
 
@@ -326,13 +331,13 @@ _BODY_LIMITS = {
     "upper_arm_left":            (-90.0,  90.0),
     "elbow_left":                (-45.0,  90.0),
     "forearm_left":              (-90.0,  90.0),
-    "wrist_left":                (-90.0,  30.0),
+    "wrist_left":                (-60.0,   0.0),
     "shoulder_vertical_right":   (-90.0,  90.0),
     "shoulder_horizontal_right": (  0.0,  90.0),
     "upper_arm_right":           (-90.0,  90.0),
     "elbow_right":               (-45.0,  90.0),
     "forearm_right":             (-90.0,  90.0),
-    "wrist_right":               (-90.0,  30.0),
+    "wrist_right":               (-60.0,   0.0),
 }
 
 

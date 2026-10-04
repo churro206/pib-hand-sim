@@ -13,7 +13,10 @@
   behoben durch `isaac_sim/tools/flip_joint_sign.py` (einmalig gegen die Prims ausgeführt,
   siehe `docs/decisions.md`)
 - Gelenk-Limits nach `set_joint_limits()` (`setup_stage.py`): Hand [0°, 90°], Ellbogen [-45°, 90°],
-  Handgelenk v4 [0°, 90°] / v5 [-90°, 30°] (v5-Werte aus der v5-URDF, siehe `_BODY_LIMITS`)
+  Handgelenk v4 [0°, 90°] / v5 [-60°, 0°] (v5-Werte aus der v5-URDF, siehe `_BODY_LIMITS`)
+- **Ausnahme v5-Handgelenk** (`wrist_left`/`wrist_right`): -60° = voll nach innen gebeugt,
+  0° = gestreckt — Vorzeichen so aus Onshape übernommen (fremde Konvention), bewusst nicht
+  geflippt. Bereich mechanisch durch das Pleuel begrenzt (60° Schwenk zwischen den Totlagen)
 
 ### Einheiten am Gelenk-Prim (USD/PhysX-Schema)
 - Angular-Drive `stiffness` in **Nm/°**, `damping` in **Nm·s/°**, `targetPosition` in **°**
