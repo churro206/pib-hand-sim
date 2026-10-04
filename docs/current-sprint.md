@@ -36,9 +36,12 @@ verworfen — voller Fahrplan dazu auf `feature/ros2-control`.
 - [x] v5: alle 10 Fingerspitzen — Sensor-Prims (`build_contact_sensors_v5.py`), 10 Reader,
       gebündelt als `sensor_msgs/JointState` mit Zeitstempel auf `/pib/fingertip_forces`
       (`build_fingertip_force_graph_v5.py`, ADR-013); verifiziert an der Dose (Daumen ≈42 N,
-      Zeige ≈25 N, Mittel ≈16 N, Ring ≈2 N), überlebt Speichern + Neu-Öffnen
-- [ ] Optional: die Contact-Knoten als Compound zusammenfassen — erst auf einem frisch
-      geöffneten, funktionierenden Stand probieren (ADR-013, Fallstrick 3)
+      Zeige ≈25 N, Mittel ≈16 N, Ring ≈2 N)
+- [x] Absturz bei Play behoben (2026-10-04): ein Compound-Subgraph mit allen Reader-Knoten
+      steckte doch in der committeten USD — entfernt, Knoten flach neu gebaut (ADR-013,
+      Korrektur zu Fallstrick 3); jetzt wirklich stabil nach Speichern + Neu-Öffnen
+- [x] ~~Contact-Knoten als Compound zusammenfassen~~ — verworfen: Compound löst den Absturz
+      aus (ADR-013, Fallstrick 3)
 - [ ] v4: restliche 9 Fingerspitzen — v4 vorerst nicht weiterverfolgt
 
 ## Szenen-Erweiterung ← aktuell

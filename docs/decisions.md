@@ -498,6 +498,17 @@ zweckentfremdet (Kraft statt Moment), wie schon in ADR-005 geplant.
      auf dem laufenden Graph — mit einem davon abweichenden USD-Stand entstand ein Zustand,
      der bei Play reproduzierbar im Kontaktsensor-Plugin abstürzte (Physik-Warmup). Lösung
      war ein Neuaufbau aus dem committeten Stand. Compound daher vorerst nicht verwendet.
+     **Korrektur 2026-10-04:** Der Compound war trotzdem in der committeten USD
+     (`/Graph/ROS_JointStates/compound/Subgraph` mit allen 10 Readern + Publisher, schon in
+     `b6b414d`). Jede frisch geöffnete Stage stürzte bei Play ab; gelaufen war es nur in
+     Sessions, in denen die Knoten vorher per Skript gebaut wurden — „überlebt Speichern +
+     Neu-Öffnen" stimmte nicht. Erkennen: Backtrace mit `libisaacsim.sensors.physics.plugin.so`
+     über `omni.graph.action_core` in `initialize_physics`/`_warm_start` (Kit-Log), auch bei
+     deaktiviertem Graph-Prim. Behoben: Compound-Prim offline per `Sdf` aus der USD gelöscht,
+     Knoten per `build_fingertip_force_graph_v5.py` flach neu gebaut, gespeichert, neu
+     geöffnet — Play, Pickup-Demo und `/pib/fingertip_forces` laufen. Prüfen, dass kein
+     Compound in der USD steckt: Graph-Inventur (`inspect_action_graph.py`) bzw. nach Prims
+     mit „compound" im Pfad suchen.
   4. `og.Controller.edit(graph, {DELETE_NODES: [...]})` stellt Pfad-Strings den Graph-Pfad
      voran → Knoten-Objekte übergeben.
 - Für RL: Training in Isaac Lab nutzt diesen Graph nicht (`ContactSensorCfg` über PhysX);
