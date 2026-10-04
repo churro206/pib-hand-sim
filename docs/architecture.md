@@ -124,8 +124,10 @@ Nach NVIDIAs Articulation Stability Guide / Tuning-Reihe: `maxForce` = Stall-Tor
 | ST3095 | `shoulder_vertical_*`, `shoulder_horizontal_*` | 9,32 Nm | 186 °/s | umgesetzt |
 | – | Mimic-Folgegelenke (`distal`/`tip`) | passiv | 500 °/s | Armature 5e-4 |
 
-Konfiguriert in `setup_stage.py` → `SERVOS` (Datenblattwerte) und `V5_ACTUATORS`
-(Gelenkgruppe → Servo, Nenn-Trägheit aus dem Audit für die Dämpfung). v4 behält die
+Konfiguriert in `config/pib_hand_config_v5.py` → `SERVOS` (Datenblattwerte) und
+`V5_ACTUATORS` (Gelenkgruppe → Servo, Nenn-Trägheit aus dem Audit für die Dämpfung);
+`servo_actuator()` liefert die Werte in Prim-Einheiten (Nm/°, von `setup_stage.py`
+angewendet) und in rad (für Isaac Lab). v4 behält die
 Referenzwerte von `0fdbc62` (`_v4_gains`, `maxForce=inf`).
 
 Prüfen mit `isaac_sim/tools/audit_asset.py` (effektive Gelenkträgheit aus der Massenmatrix,

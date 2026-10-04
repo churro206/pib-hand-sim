@@ -79,3 +79,97 @@ BODY_DOFS = {
 # NICHT übernommen -- aus demselben Grund wie die Körper-DOF-Indizes oben: v5 hat eine
 # andere Artikulationsstruktur (44 statt 28 Gelenke insgesamt, anderes Importmuster),
 # die Indizes/Servo-Gruppen aus v4 1:1 zu kopieren wäre geraten, nicht verifiziert.
+
+
+# ── Servo-Aktuatormodell (ADR-012) ────────────────────────────────────────────
+# Einzige Quelle für Isaac Sim (isaac_sim/setup_stage.py, Einheiten am Prim: Nm/°) und
+# Isaac Lab (ArticulationCfg/ImplicitActuatorCfg, Einheiten: Nm/rad) -- servo_actuator()
+# liefert beide. Rezept nach NVIDIA Articulation Stability Guide / Tuning-Reihe
+# (Robotiq-Beispiel):
+#   max_force         = Stall-Torque (Datenblatt, 12 V)
+#   max_velocity      = Leerlaufdrehzahl (Datenblatt, 12 V)
+#   stiffness         = max_force / SERVO_SATURATION_ERROR_DEG  (Sättigung bei 5° Fehler)
+#   damping           = kritisch (ζ = 1) mit I = I_nominal + Armature
+# Ergebnis prüfen mit isaac_sim/tools/audit_asset.py (ω_n·Δt, ζ).
+_KGCM_TO_NM = 0.0980665
+_RAD_PER_DEG = 0.017453292519943295
+
+SERVOS = {
+    # ST3215 (12 V): 30 kg·cm Stall, 0.222 s/60° Leerlauf (45 RPM)
+    "ST3215": {"stall_nm": 30.0 * _KGCM_TO_NM, "no_load_deg_s": 60.0 / 0.222},
+    # ST3095-C002 (12 V): 95 kg·cm Stall, 31 RPM Leerlauf
+    "ST3095": {"stall_nm": 95.0 * _KGCM_TO_NM, "no_load_deg_s": 31.0 * 6.0},
+}
+SERVO_SATURATION_ERROR_DEG = 5.0
+# ANNAHME, nicht gemessen: reflektierte Rotorträgheit (Rotor × Übersetzung²) — steht in
+# keinem der Datenblätter. 5e-3 kg·m² = Startwert aus NVIDIAs Robotiq-Beispiel.
+SERVO_ARMATURE_KGM2 = 5.0e-3
+
+# Gelenkgruppen: (Schlüsselwort im Gelenknamen, Servo, I_nominal [kg·m²]).
+# I_nominal = Diagonale der Massenmatrix in der T-Pose (audit_asset.py, 2026-10-03) — nur
+# für die Dämpfung; posenabhängig, für Arm-Gelenke dominiert sie die Armature.
+# Reihenfolge = Prüfreihenfolge (erstes passendes Schlüsselwort gewinnt).
+V5_ACTUATORS = [
+    ("shoulder_vertical",   "ST3095", 0.0249),
+    ("shoulder_horizontal", "ST3095", 0.116),
+    ("upper_arm",           "ST3215", 0.024),
+    ("elbow",               "ST3215", 0.0426),
+    ("head_horizontal",     "ST3215", 0.00591),
+    ("head_vertical",       "ST3215", 0.00534),
+    ("forearm",             "ST3215", 0.00128),
+    ("wrist",               "ST3215", 0.00281),
+    ("rotator",             "ST3215", 1.58e-4),     # Daumen-CMC
+    ("proximal",            "ST3215", 6.6e-5),      # MCP Finger (Daumen 7.1e-5)
+]
+
+# Passive Mimic-Folgegelenke (PIP/DIP/IP, kein Servo): kleine Armature gegen das extreme
+# Trägheitsverhältnis zum MCP (Fingerspitze M_ii ≈ 1e-6 vs. MCP 5e-3, NVIDIA: große
+# Trägheitsverhältnisse vermeiden) und Geschwindigkeitsgrenze (reale Kopplung bis 1.67×
+# MCP-Geschwindigkeit ≈ 450 °/s). ANNAHMEN, nicht gemessen. Welche Gelenke Folgegelenke
+# sind, steht in isaac_sim/setup_stage.py → MIMIC_JOINTS (ADR-011).
+FOLLOWER_ARMATURE_KGM2 = 5.0e-4
+FOLLOWER_MAX_VELOCITY_DEG_S = 500.0
+
+
+def servo_actuator(name: str):
+    """
+    Parameter eines servo-getriebenen v5-Gelenks, sonst None. Beide Einheitensysteme:
+      *_deg: USD-Prim (stiffness Nm/°, damping Nm·s/°, max_velocity °/s)
+      *_rad: Isaac Lab / ROS (stiffness Nm/rad, damping Nm·s/rad, max_velocity rad/s)
+    max_force [Nm] und armature [kg·m²] sind einheitengleich.
+    """
+    n = name.lower()
+    for key, servo, inertia in V5_ACTUATORS:
+        if key in n:
+            spec = SERVOS[servo]
+            k_deg = spec["stall_nm"] / SERVO_SATURATION_ERROR_DEG
+            k_rad = k_deg / _RAD_PER_DEG
+            d_rad = 2.0 * (k_rad * (inertia + SERVO_ARMATURE_KGM2)) ** 0.5    # ζ = 1
+            return {
+                "servo": servo,
+                "max_force": spec["stall_nm"],
+                "armature": SERVO_ARMATURE_KGM2,
+                "stiffness_deg": k_deg,
+                "damping_deg": d_rad * _RAD_PER_DEG,
+                "max_velocity_deg": spec["no_load_deg_s"],
+                "stiffness_rad": k_rad,
+                "damping_rad": d_rad,
+                "max_velocity_rad": spec["no_load_deg_s"] * _RAD_PER_DEG,
+            }
+    return None
+
+
+# ── Reale linke Hand (Prototyp, STM32 Nucleo) ─────────────────────────────────
+# Die 8 Servo-Gelenke = Aktionsraum der RL-Policy (feature/rl-grasping). Namen aus
+# pib_upperbody_urdf_v5/robot.urdf. Alle übrigen Gelenke der linken Hand
+# (*_distal, *_tip) sind passive Mimic-Folgegelenke (ADR-011).
+LEFT_HAND_SERVO_JOINTS = [
+    "forearm_left",          # Unterarmdrehung
+    "wrist_left",
+    "thumb_left_rotator",
+    "thumb_left_proximal",
+    "index_left_proximal",
+    "middle_left_proximal",
+    "ring_left_proximal",
+    "pinky_left_proximal",
+]

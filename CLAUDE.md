@@ -86,10 +86,12 @@ per RL ist ebenfalls nicht Teil dieses Branches — siehe `feature/rl-grasping`.
 ## Schlüsseldateien
 ```
 config/pib_hand_config_v4.py   DOF-Namen, Indizes, ROBOT_PRIM_PATH, Joint-Limits (v4, verifiziert)
-config/pib_hand_config_v5.py   dasselbe für v5 (gegen URDF und Stage verifiziert)
+config/pib_hand_config_v5.py   dasselbe für v5 (gegen URDF und Stage verifiziert), dazu
+                               Servo-Aktuatormodell SERVOS/V5_ACTUATORS/servo_actuator()
+                               (ADR-012, Nm/° und Nm/rad) und LEFT_HAND_SERVO_JOINTS
 isaac_sim/start.py             Startroutine: Drives + Mimic + Limits + Initialpose (vor Play ausführen)
-isaac_sim/setup_stage.py       von start.py genutzt — v5: SERVOS/V5_ACTUATORS (Servo-
-                               Aktuatormodell, ADR-012), MIMIC_JOINTS (ADR-011); v4: _v4_gains
+isaac_sim/setup_stage.py       von start.py genutzt — v5: wendet das Aktuatormodell aus der
+                               Config an, MIMIC_JOINTS (ADR-011); v4: _v4_gains
 isaac_sim/autostart.py         vollautomatischer Start ohne Script Editor (--exec), lädt v4
 isaac_sim/usd/pib_upperbody_v4.usd   Roboter (v4) + Action Graph — verifizierter Arbeitsstand
 isaac_sim/usd/pib_upperbody_v5.usd   Roboter (v5) + Action Graph (OnPhysicsStep), Self-Collision an
