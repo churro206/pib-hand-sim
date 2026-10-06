@@ -57,6 +57,24 @@ def object_pos_in_root(env: ManagerBasedRLEnv, robot_cfg: SceneEntityCfg = Scene
     return quat_apply_inverse(robot.data.root_quat_w, obj.data.root_pos_w - robot.data.root_pos_w)
 
 
+def object_quat_in_root(env: ManagerBasedRLEnv, robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+                        object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Objektorientierung (w, x, y, z) im Hand-Root-Frame (Dexsuite: object_quat_b), privilegiert."""
+    from isaaclab.utils.math import quat_inv, quat_mul
+    robot: Articulation = env.scene[robot_cfg.name]
+    obj: RigidObject = env.scene[object_cfg.name]
+    return quat_mul(quat_inv(robot.data.root_quat_w), obj.data.root_quat_w)
+
+
+def object_tilt(env: ManagerBasedRLEnv, object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Kippwinkel [rad] zwischen Objekt-z-Achse (Zylinderachse) und Welt-z."""
+    from isaaclab.utils.math import quat_apply
+    obj: RigidObject = env.scene[object_cfg.name]
+    z = torch.zeros_like(obj.data.root_pos_w)
+    z[:, 2] = 1.0
+    return torch.acos(quat_apply(obj.data.root_quat_w, z)[:, 2].clamp(-1.0, 1.0))
+
+
 def object_lin_vel(env: ManagerBasedRLEnv, object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
     obj: RigidObject = env.scene[object_cfg.name]
     return obj.data.root_lin_vel_w
@@ -137,6 +155,13 @@ def object_held(env: ManagerBasedRLEnv, drop_start_s: float, std: float,
     return active * (1.0 - torch.tanh(sink / std))
 
 
+def object_upright(env: ManagerBasedRLEnv, drop_start_s: float, std: float) -> torch.Tensor:
+    """Ab dem Tisch-Absenken: 1 − tanh(Kippwinkel / std). Vorher 0 — auf dem Tisch steht die
+    Dose ohnehin aufrecht, die Belohnung gäbe es dort ohne Zutun."""
+    active = (episode_time(env) >= drop_start_s).float()
+    return active * (1.0 - torch.tanh(object_tilt(env) / std))
+
+
 def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float) -> torch.Tensor:
     """Summe der Kraft über `limit` [N] an allen Fingerspitzen (gegen Zerquetschen und
     unrealistisch hohe Kräfte, ADR-011: lineare Kopplung überschätzt die Spitzenkraft)."""
@@ -150,6 +175,13 @@ def object_dropped(env: ManagerBasedRLEnv, max_sink: float,
     obj: RigidObject = env.scene[object_cfg.name]
     z0 = obj.data.default_root_state[:, 2] + env.scene.env_origins[:, 2]
     return (z0 - obj.data.root_pos_w[:, 2]) > max_sink
+
+
+def object_tilted(env: ManagerBasedRLEnv, max_tilt_deg: float) -> torch.Tensor:
+    """Abbruch, wenn das Objekt mehr als max_tilt_deg kippt (Muster: Isaac Lab
+    deploy/gear_assembly, reset_when_gear_orientation_exceeds_threshold)."""
+    import math
+    return object_tilt(env) > math.radians(max_tilt_deg)
 
 
 def abnormal_robot_state(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
