@@ -65,6 +65,7 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
   Änderungen an `setup_stage.py`/Config erneut ausführen und speichern
 - Kontaktsensor mit Objekt-Filter: **ein** `ContactSensorCfg` pro Fingerspitze
 - Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
+- Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, ≥ 3 Seeds, Bewertung nach eval-v1 — nicht über die Trainings-Belohnung vergleichen
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -113,6 +114,9 @@ isaac_lab/pib_grasp/                     Greifaufgabe (env_cfg, mdp, agents/rsl_
 isaac_lab/train.py, play.py              Isaac Labs rsl_rl-Skripte mit den pib-Tasks
 isaac_lab/check_hand_asset.py            Prüfung Hand-USD in Isaac Lab (Mimic, Sensoren)
 isaac_lab/scripted_grasp_test.py         Machbarkeitstest ohne Policy (Fenster, Echtzeit)
+isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eval/done (ADR-016)
+isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
+experiments/                             Experimente (experiment.yaml, Berichte), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
 ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)

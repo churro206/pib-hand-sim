@@ -1,0 +1,85 @@
+{
+ "protokoll": "eval-v1",
+ "seeds": 1,
+ "laeufe": [
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59"
+ ],
+ "bedingung": "zylinder_seitlich",
+ "je_seed": [
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.861,
+   "fehler": {
+    "startfehler": 0.019,
+    "gefallen": 0.121,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.86
+   },
+   "leitplanken": {
+    "kipp_median_deg": 104.07257593072477,
+    "unterarm_median_deg": 90.0000844667482,
+    "kraft_mittel_n": 23.901117133983476,
+    "kraft_ueber_15n_anteil": 0.09285714285714289,
+    "stall_anteil": 0.9961011877776759,
+    "absinken_mm": 0.0,
+    "unruhe": 0.24375687731567267
+   }
+  }
+ ],
+ "aufgabenerfolg": {
+  "mittel": 0.0,
+  "ki95": [
+   0.0,
+   0.0
+  ]
+ },
+ "haltequote": {
+  "mittel": 0.861,
+  "ki95": [
+   0.841,
+   0.882
+  ]
+ },
+ "netz": {
+  "actor": [
+   256,
+   128,
+   64
+  ],
+  "critic": [
+   512,
+   256,
+   128
+  ],
+  "aktivierung": "elu",
+  "verlauf": 5,
+  "eingaenge": 105,
+  "actor_parameter": 68808,
+  "lernrate": 0.001,
+  "entropie": 0.005,
+  "epochen": 5,
+  "mini_batches": 4,
+  "schritte_je_umgebung": 32,
+  "iterationen": 300,
+  "umgebungen": 1024
+ },
+ "leitplanken": {
+  "kipp_median_deg": 104.07257593072477,
+  "unterarm_median_deg": 90.0000844667482,
+  "kraft_mittel_n": 23.901117133983476,
+  "kraft_ueber_15n_anteil": 0.09285714285714289,
+  "stall_anteil": 0.9961011877776759,
+  "absinken_mm": 0.0,
+  "unruhe": 0.24375687731567267
+ },
+ "fehler": {
+  "startfehler": 0.019,
+  "gefallen": 0.121,
+  "instabil": 0.0,
+  "anforderung_verletzt": 0.86
+ },
+ "vergleich": {
+  "urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)"
+ },
+ "konfig_unterschiede": []
+}

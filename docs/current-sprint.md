@@ -190,14 +190,96 @@ linken Hand. Meilensteine: M1 Policy greift in der Sim, M2 läuft quantisiert au
 - [x] Probelauf 300 Iterationen: Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38; ONNX-Export
 - [x] Policy im Fenster bewertet (`play.py`, Video `videos/isaac_lab_pib_hand_inference_test.webm`):
       hält viele Dosen — dreht dafür aber den Unterarm, bis die Dose auf der Handfläche liegt
-- [ ] Unterarmdrehung unterbinden (Unterarm aus dem Aktionsraum oder Strafe auf Neigung der
-      Dose/Abweichung des Unterarms), dann längeres Training
-- [ ] Dose beim Reset aus der Hand geschleudert (~6 %, vermutlich Daumen in Opposition +
-      gebeugt überlappt die Dose) — beobachten, ggf. Daumen-MCP-Startbereich verkleinern
-- [ ] M2: ONNX → int8 (QDQ) → in der Sim gegen float bewerten → ST Edge AI →
-      `stedgeai validate` auf dem NUCLEO-N657X0
-- [ ] Sim-to-Real (für M3): Servo-Sprungantwort messen und Gains/Armature kalibrieren,
-      Aktionsverzögerung randomisieren (Spot-Muster), FSR-Modell, ggf. adaptive Kopplung
+### Plan ab 2026-10-06 (Bewertung von `docs/rl-greifen-poc-prompt.md`)
+
+Entscheidungen (Leon, 2026-10-06):
+- Unterarm bleibt im Aktionsraum — stattdessen Aufrecht-Belohnung + Abbruch bei Kippwinkel
+- Griffarten für den PoC: **Kraftgriff aufrecht** (Milchpackung, Becher, Flasche) und
+  **Hakengriff** (Tasche vom Gast übernehmen) — Stütz-/Randgriff, Besteck vorerst nicht
+- Actor bleibt blind (nur reale Sensoren), Objektpose **inkl. Orientierung** nur im Critic
+- Kein Lehrer/Schüler, kein LSTM: der Actor sieht schon nur reale Sensoren; eine Policy mit
+  Griffart als One-Hot statt Spezialisten + Destillation (nur falls das scheitert)
+
+**Phase 0 — Risiken zuerst**
+- [x] ONNX der Probelauf-Policy geprüft: 4× Gemm, 3× Elu, Sub/Div (Normalisierung), Opset 18,
+      69.018 Parameter — laut ST-Operatortabelle (Neural-ART r1.3) alles auf der NPU
+      (Gemm/Div mit konstanten Parametern), Opset bis 20 unterstützt; float läuft nur auf der CPU,
+      die NPU braucht int8 QDQ (per-channel, ss/sa)
+- [x] ST Edge AI Core v4.0.1 (STM32CubeAI 12.0.1) in `~/ST/STEdgeAI/4.0/4.0`, `onnxruntime` 1.30
+      in `env_isaaclab` (numpy 1.26 eingefroren). `stedgeai analyze --target stm32n6
+      --st-neural-art` auf eine int8-QDQ-Version des Probelauf-ONNX (ST-Vorgaben: static,
+      QDQ, QInt8/QInt8, per-channel; Kalibrierung hier nur synthetisch): **alle 4 Schichten
+      (Gemm+Elu) auf der NPU** (4 HW-Epochs), nur Normalisierung (Sub/Div, 105 Werte) und
+      Quantize/Dequantize auf dem M55; Gewichte 71 kB, Aktivierungen 852 B, 68.632 MACC —
+      Netzgröße ist kein Engpass. Float-Modell zum Vergleich: alles SW auf dem M55
+      (`arm-none-eabi-gcc` fehlt noch → Runtime-Codegröße erst mit STM32CubeIDE in Phase 4)
+- [x] Kapazität NUCLEO-N657X0-Q (UM3417: 4,2 MB SRAM, 64 MB Octo-SPI-Flash, kein HyperRAM)
+      per `stedgeai analyze`, Profil `internal-memories-only--default` (2,8 MB für NN), int8 QDQ:
+      MLP 105→[256,128,64] 70 kB · [512,256,128] 220 kB · Verlauf 15 (315 Eingänge) 326 kB ·
+      315→[1024,1024,512] 1,83 MB (passt, alle Schichten NPU) · [2048,1024,512] 3,1 MB passt
+      **nicht** intern · LSTM-Zelle 256 + [256,128] 384 kB. LSTM vorerst hinten angestellt
+      (rsl_rl-Export braucht eigene Zelle, ST-ONNX-LSTM nur stateless/float)
+- [x] Checkpoints: Probelauf lokal als Vergleichswert behalten (nur `model_299.pt` + Export,
+      4,6 MB); Meilenstein-Policies (M1, int8 für den Nucleo) künftig als GitHub Release mit
+      Tag am Trainings-Commit. Speicher aufgeräumt (6,9 → 21 GB frei)
+- [ ] Durchsatz/VRAM mit 2048 und 4096 Umgebungen messen
+
+**Fahrplan, überarbeitet 2026-10-06 — schrittweise nach bewährten Projekten**
+
+Grundsatz: bewährtes Rezept zuerst, **eine Änderung pro Lauf**, jeweils gegen den vorigen
+Stand messen (Haltequote, Kippwinkel, Abbruchgründe — Isaac Lab loggt Abbrüche und
+Belohnungsterme selbst in TensorBoard). Ausbau nur, wenn eine Messung ihn begründet.
+
+Vorbilder (geprüft, Quellen im Code unter `~/IsaacLab/source/isaaclab_tasks/.../manipulation/`):
+| Projekt | Was wir übernehmen |
+|---|---|
+| Isaac Lab **Lift** (Franka, auch SO-ARM101-Projekte mit ST3215-Servos) | wenige Belohnungsterme; Strafen erst winzig (1e-4), per `modify_reward_weight` nach 10.000 Schritten erhöht; 1500 Iterationen, 4096 Umgebungen, Actor [256,128,64] |
+| Isaac Lab **Dexsuite** (Kuka-Allegro-Lift) | unsere Vorlage: Kontaktsensor je Fingerspitze, relative Gelenkaktion, Verlauf 5, Randomisierung |
+| Isaac Lab **deploy/gear_assembly** (UR10e, laut NVIDIA auf echter Hardware getestet) | Abbruch bei Objekt-Kippwinkel über Schwelle, minimale Belohnung, Rauschen pro Episode konstant |
+| Isaac Lab **inhand** (Allegro, DeXtreme) | Beobachtungsrauschen als einfaches Gauß-Rauschen (Gelenkwinkel std 0,005) |
+| **HORA** (Qi et al. 2022, Allegro) | nur an Zylindern trainiert, real auf Dutzende Objekte übertragen; Masse/Reibung/Größe randomisiert und **aus der Propriozeptions-Historie erschlossen** („fühlen“) |
+
+**Experiment-Framework** (ADR-016) ✓ — `experiments/` + `isaac_lab/experiments.py` +
+`isaac_lab/eval_policy.py` (Protokoll eval-v1), Übersicht in `experiments/index.md`.
+EXP-000 (Probelauf) bewertet: Haltequote 86,1 %, **Aufgabenerfolg 0,0 %** (Kippwinkel 104°,
+Unterarm 90°, Stall-Anteil 99,6 %).
+
+**Stufe 1 — Unterarm-Schummelei beheben (eine Änderung)** = EXP-001
+- [x] Abbruch bei Kippwinkel der Dose > 20° (Muster gear_assembly) + Aufrecht-Belohnung,
+      Objektorientierung im Critic; Fenstertest: alte Policy kippt 48/48, Abbruch greift
+- [ ] EXP-001 trainieren (3 Seeds, 300 It., 1024 Umgebungen) und gegen EXP-000 bewerten
+- [ ] Reset-Überlappung Daumen ↔ Dose (~6 %) beheben — reiner Bugfix, separat geprüft
+
+**Stufe 2 — Rezept der Lift-Aufgabe vollständig**
+- [ ] Langer Lauf EXP-002: 1500 It. × 1024 Umgebungen (wie Lift), 3 Seeds — nur die Iterationen ändern
+- [ ] Durchsatz/VRAM 2048/4096 messen (`experiments.py bench`) — Grundlage für ein späteres Experiment „mehr Umgebungen“
+- [ ] nur falls die Bewegung unruhig ist: Strafen-Curriculum wie Lift (`modify_reward_weight`)
+- [ ] M2-Kette früh einmal durchziehen: int8 mit Sim-Kalibrierdaten, int8 vs. float in der Sim
+
+**Stufe 3 — Robustheit nach HORA (weiter nur Zylinder)**
+- [ ] Machbarkeitstest Massegrenze (`scripted_grasp_test.py`) → Obergrenze der Masse
+- [ ] Masse/Reibung/Durchmesser breiter randomisieren, Masse+Reibung privilegiert im Critic,
+      Gelenkreibung, Beobachtungsrauschen (Werte aus inhand) — einzeln zuschalten
+- [ ] Auswertung „FSR-Kraft über Masse“ (passt die Policy die Kraft an?)
+- [ ] erst wenn das nicht reicht: längerer Verlauf (10–15 Schritte), später LSTM
+
+**Stufe 4 — andere Objekte**: Zylinder-Policy **ohne Nachtraining** an Quader (Milchpackung)/
+Flasche testen (HORA-Erfahrung); nur bei Bedarf Formen ins Training (`MultiAssetSpawnerCfg`)
+
+**Stufe 5 — Hakengriff (Tasche)**: eigene Startpose, Henkel als starrer Körper; zweiter
+Spezialist oder Griffart-One-Hot (beides passt auf den Nucleo)
+
+**Zurückgestellt** (erst bei Bedarf, mit Begründung aus einer Messung): ReLU statt ELU (ELU
+läuft auf der NPU; erst wenn int8 vs. float es verlangt), Stall-Strafe, Masse-Curriculum,
+Rauschen-Curriculum, LSTM. **Gestrichen**: Schwerkraft-Curriculum (bei uns ist die Schwerkraft
+der Erfolgstest — Dexsuite ersetzt damit eine Heben-Belohnung).
+
+**M2 auf dem Board** (nach Stufe 2, wenn STM32CubeIDE/-Programmer installiert): `stedgeai
+validate` auf dem NUCLEO-N657X0, Rechenzeit pro Schritt
+
+**Später (M3)**: Servo-Sprungantwort messen und Gains/Armature kalibrieren, Aktionsverzögerung
+randomisieren (explizite Aktuatoren), Servo-Last als verrauschte Beobachtung, FSR-Kennlinie,
+ggf. adaptive Kopplung
 
 ---
 

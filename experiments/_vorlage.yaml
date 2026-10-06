@@ -1,0 +1,36 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-NNN
+titel: ""
+datum: ""                       # Anlage (JJJJ-MM-TT)
+eltern: null                    # Experiment, gegen das verglichen wird
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: ""                   # was erwarten wir, woran messen wir es
+aenderung: ""                   # genau eine Änderung gegenüber den Eltern
+bedingungen:                    # Objekt × Startpose × Anforderung
+  - name: zylinder_seitlich
+    objekt: "Zylinder Ø 6 cm, 15 cm, 0,05–0,2 kg"
+    startpose: "seitlich, Daumen oben"
+    anforderung:
+      max_kipp_deg: 20          # null = keine Kippanforderung
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds: [42, 43, 44]
+  zusatz_args: []               # weitere Argumente für train.py
+fenstertest: true               # Szene/Belohnung/Abbruch geändert → Leon schaut kurz zu
+
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment

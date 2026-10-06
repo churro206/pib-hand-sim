@@ -1,0 +1,31 @@
+id: EXP-001
+titel: "Kippabbruch + Aufrecht-Belohnung"
+datum: "2026-10-06"
+eltern: EXP-000
+status: geplant
+
+hypothese: "Mit Abbruch bei > 20° Kippwinkel (Muster Isaac Lab deploy/gear_assembly) und Aufrecht-Belohnung nach dem Absenken lernt die Policy, die Dose aufrecht zu halten statt sie mit dem Unterarm auf die Handfläche zu kippen. Messbar: Aufgabenerfolg (max. Kippwinkel ≤ 20°) deutlich über EXP-000 (≈ 0 %), Unterarmdrehung kleiner; Haltequote darf sinken (Aufgabe ist schwerer)."
+aenderung: "Abbruch object_tilted (> 20°), Belohnung upright (Gewicht 2, ab dem Absenken), Objektorientierung im Critic"
+bedingungen:
+  - name: zylinder_seitlich
+    objekt: "Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg"
+    startpose: "seitlich, Daumen oben"
+    anforderung:
+      max_kipp_deg: 20
+protokoll: eval-v1
+entscheidungsregel: standard
+
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds: [42, 43, 44]
+  zusatz_args: []
+fenstertest: true               # erledigt 2026-10-06: alte Policy kippt 48/48, Abbruch greift
+
+commit: null
+laeufe: []
+
+ergebnis: ""
+urteil: ""
+schluss: ""

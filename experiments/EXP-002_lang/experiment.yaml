@@ -1,0 +1,31 @@
+id: EXP-002
+titel: "Langer Lauf (Lift-Rezept: 1500 Iterationen)"
+datum: "2026-10-06"
+eltern: EXP-001
+status: geplant
+
+hypothese: "Mehr Training (1500 statt 300 Iterationen, wie Isaac Labs Lift-Aufgabe; 5× Simulationsschritte) erhöht den Aufgabenerfolg gegenüber EXP-001; die Kurve flachte im Probelauf ab Iteration ~175 ab, Gewinn daher eher moderat."
+aenderung: "Trainingsdauer 1500 statt 300 Iterationen (Umgebungen unverändert 1024)"
+bedingungen:
+  - name: zylinder_seitlich
+    objekt: "Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg"
+    startpose: "seitlich, Daumen oben"
+    anforderung:
+      max_kipp_deg: 20
+protokoll: eval-v1
+entscheidungsregel: standard
+
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 1500
+  umgebungen: 1024
+  seeds: [42, 43, 44]
+  zusatz_args: []
+fenstertest: false              # gleiche Aufgabe wie EXP-001
+
+commit: null
+laeufe: []
+
+ergebnis: ""
+urteil: ""
+schluss: ""

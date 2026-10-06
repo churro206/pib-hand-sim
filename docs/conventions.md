@@ -131,6 +131,16 @@ cd ~/repos/pib-hand-sim
 tensorboard --logdir logs/rsl_rl                                          # http://localhost:6006
 ```
 - Tests und Vorführungen mit Fenster (Leon schaut zu); headless nur fürs Training.
+- **Experimente** (ADR-016, `experiments/README.md`) — Training und Bewertung über das Framework,
+  Orchestrierung mit System-Python bei aktiver conda-Umgebung:
+  ```bash
+  /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-001 --kurz name --titel "..."
+  /usr/bin/python3 isaac_lab/experiments.py run  EXP-002          # Kurztest → Training → Bewertung → Bericht
+  /usr/bin/python3 isaac_lab/experiments.py eval EXP-000          # nur bewerten
+  /usr/bin/python3 isaac_lab/experiments.py done                  # experiments/index.md
+  ~/IsaacLab/isaaclab.sh -p isaac_lab/eval_policy.py --policy <run>/exported/policy.pt --num_envs 16 --real_time
+  ```
+  Protokolle der Unterprozesse in `logs/experiments/`.
 - Logs/Checkpoints: `logs/rsl_rl/pib_grasp_hand_left/<Zeitstempel>/` (gitignored),
   ONNX-Export von `play.py` in `.../exported/policy.onnx`.
 - Nur ein Isaac-Fenster gleichzeitig (8 GB VRAM).
@@ -144,6 +154,16 @@ tensorboard --logdir logs/rsl_rl                                          # http
   Reihenfolge], 5 FSR [N, 0–20] in der Reihenfolge **Daumen, Zeige, Mittel, Ring, klein**,
   8 letzte Aktionen. Normalisierung steckt im exportierten Netz (rsl_rl).
 - Handgelenk: Vorzeichen-Ausnahme, −60° = gebeugt (siehe oben).
+
+### ST Edge AI (Policy → STM32N657)
+- ST Edge AI Core 4.0.1 + STM32-MCU-Modul (enthält Neural-ART) in `~/ST/STEdgeAI/4.0/4.0`,
+  `STEDGEAI_CORE_DIR`/`PATH` in `~/.bashrc`; Installer/Wartung: `~/ST/STEdgeAI/4.0/maintenancetool`
+- Quantisierung nach ST-Vorgabe mit `onnxruntime` (in `env_isaaclab`): erst
+  `onnxruntime.quantization.preprocess`, dann `quantize_static` mit `QuantFormat.QDQ`,
+  `QInt8`/`QInt8`, `per_channel=True`, Kalibrierdaten aus Sim-Rollouts. Nur int8 läuft auf
+  der NPU, float-Schichten fallen auf den Cortex-M55 zurück.
+- Prüfen: `stedgeai analyze --model <qdq>.onnx --target stm32n6 --st-neural-art
+  --input-data-type float32 --output-data-type float32` → „Epochs details“ (HW = NPU)
 
 ### Kontaktsensoren in Isaac Lab
 Ein `ContactSensorCfg` **je Fingerspitze** (`fsr_thumb` … `fsr_pinky`). Mit Objekt-Filter

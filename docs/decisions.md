@@ -603,6 +603,47 @@ Sensoren beschränkt, damit sie auf der echten Hand laufen kann.
 
 ---
 
+## ADR-016: Experiment-Framework und Bewertungsprotokoll für das RL-Greifen
+
+**Problem**: Der Probelauf (ADR-015) wurde nur über die Trainingskurve und ein Video bewertet.
+Die Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar, sobald sich die
+Belohnung ändert; welcher Code-Stand einen Lauf erzeugt hat, war nicht gesichert (Isaac Lab
+speichert nur den Git-Stand von Isaac Lab selbst); Hypothese und Schluss standen nirgends.
+
+**Entscheidung**: `experiments/` (im Git) mit einem `experiment.yaml` je Experiment (Hypothese,
+genau eine Änderung zu den Eltern, Bedingungen, Training, Schluss) und `isaac_lab/experiments.py`
+(`new`, `bench`, `run`, `eval`, `done`). Ablauf in 7 Schritten: Planen → Prüfen (Kurztest) →
+Trainieren (≥ 3 Seeds) → Evaluieren → Sichten (Video) → Bewerten (Urteilsvorschlag) →
+Dokumentieren & Entscheiden. Bewertungsprotokoll `eval-v1` (`isaac_lab/eval_policy.py`):
+1000 Episoden, Bewertungs-Seed 1000, deterministischer Actor, nur die Abbrüche „gefallen“ und
+„instabil“; Hauptmetrik **Aufgabenerfolg** (gehalten und Anforderung der Bedingung erfüllt),
+dazu Haltequote, Fehlerarten und Leitplanken (Kippwinkel, Unterarm, Griffkraft, Kraft > 15 N,
+Stall-Anteil, Absinken, Unruhe); Statistik per zweistufigem Bootstrap (Seeds, Episoden),
+Urteilsvorschlag nach fester Regel. Ergebnisse je **Bedingung** (Objekt × Startpose ×
+Anforderung), nicht je Griffart. Lokal (TensorBoard + Dateien), kein externer Dienst.
+Details: `experiments/README.md`.
+
+**Begründung**: Übliche Praxis — Henderson et al. 2018 (Seeds), Agarwal et al. 2021 / rliable
+(Bootstrap-Konfidenzintervalle), NeurIPS-Reproduzierbarkeits-Checkliste, YCB-Protokolle
+(Erfolgsquote je Objekt/Startlage). Dexsuite unterscheidet Lift und Reorient nur im
+Erfolgskriterium → Anforderung (z. B. aufrecht) ist eine Eigenschaft der Aufgabe/des Objekts,
+nicht der Griffart. Griffarten strukturieren weder Dexsuite noch DextrAH, UniDexGrasp++ oder
+HORA; dort zählt Erfolg je Objekt und bekannte vs. neue Objekte.
+
+**Konsequenzen**:
+- Je Lauf zusätzlich `meta.json` (Commit, Versionen, GPU, Befehl), `pib_hand_sim.diff` und die
+  nicht eingecheckten Dateien; Isaac Labs `train.py` hängt am Ende → Prozess wird 60 s nach dem
+  letzten Checkpoint beendet.
+- Die Bewertung schaltet trainingsspezifische Abbrüche ab (Kippen wird gemessen) — so bleiben
+  Experimente mit unterschiedlichen Trainingsabbrüchen vergleichbar.
+- EXP-000 (Probelauf) unter eval-v1: Haltequote 86,1 %, Aufgabenerfolg 0,0 % (Kippwinkel
+  Median 104°, Unterarm 90°, Stall-Anteil 99,6 % — die Policy gibt fast immer Vollausschlag).
+- PhysX (GPU) ist nicht bitgenau reproduzierbar — reproduzierbar heißt statistisch gleich.
+- `experiments.py` läuft mit System-Python; `conda activate env_isaaclab` setzt `PYTHONPATH` auf
+  Isaac Sims Pakete, das Skript blendet sie für sich selbst aus.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

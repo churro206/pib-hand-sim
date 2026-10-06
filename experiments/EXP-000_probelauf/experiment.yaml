@@ -1,0 +1,33 @@
+# Nachträglich angelegt (Framework ab 2026-10-06) — Ausgangswert
+id: EXP-000
+titel: "Probelauf Dexsuite-Muster (Ausgangswert)"
+datum: "2026-10-04"
+eltern: null
+status: ausgewertet
+
+hypothese: "Die Aufgabe nach Dexsuite-Muster ist lernbar: die Policy lernt, die Dose nach dem Absenken des Tischs zu halten."
+aenderung: "erste Version der Aufgabe isaac_lab/pib_grasp (ADR-015)"
+bedingungen:
+  - name: zylinder_seitlich
+    objekt: "Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg"
+    startpose: "seitlich, Daumen oben"
+    anforderung:
+      max_kipp_deg: 20
+protokoll: eval-v1
+entscheidungsregel: standard
+
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds: [42]                   # nur ein Seed — kein Urteil möglich
+  zusatz_args: []
+fenstertest: true
+
+commit: 1821896
+laeufe:
+  - logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59
+
+ergebnis: "Training (stochastisch): Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38. Im Video: hält, indem der Unterarm die Dose auf die Handfläche kippt. Mit 20°-Kippkriterium (2026-10-06): 48/48 Episoden kippen nach 0,25–0,6 s."
+urteil: "Ausgangswert"
+schluss: "Aufgabe lernbar, aber Belohnung lässt Kippen zu → EXP-001 (Kippabbruch + Aufrecht-Belohnung). Bewertung nach eval-v1 steht aus (Critic-Eingang hat sich geändert, Bewertung über den exportierten Actor)."
