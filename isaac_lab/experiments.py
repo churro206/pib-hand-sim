@@ -619,17 +619,27 @@ def cmd_run(a):
         envs = t["umgebungen"]
         if envs == "auto":
             envs = json.loads(BENCH.read_text())["beste"] if BENCH.exists() else 1024
-        log(f"== {exp_id}: {exp.get('titel')} ({envs} Umgebungen, {t['iterationen']} Iterationen, Seeds {t['seeds']})")
+        # Seeds mit vorhandenem Lauf bleiben (Nachtrag weiterer Seeds, z. B. 3 → 5)
+        runs = [r for r in dict.fromkeys(exp.get("laeufe") or []) if (REPO / r).exists()]
+        done_seeds = {int(m.group(1)) for r in runs if (m := re.search(r"_s(\d+)$", r))}
+        todo = [s for s in t["seeds"] if s not in done_seeds]
+        if not todo:
+            log(f"{exp_id}: alle Seeds trainiert — nichts zu tun (Bewertung: eval)")
+            continue
+        log(f"== {exp_id}: {exp.get('titel')} ({envs} Umgebungen, {t['iterationen']} Iterationen, Seeds {todo}"
+            + (f", vorhanden {sorted(done_seeds)}" if done_seeds else "") + ")")
         # nur Code zählt (experiments/ ändert das Framework selbst während des Laufs)
         commit = sh("git", "rev-parse", "--short", "HEAD") + (
             "+lokal" if sh("git", "status", "--porcelain", "--", "isaac_lab", "config", "isaac_sim") else "")
-        save_fields(d, status="läuft", commit=commit)
+        if runs:   # Nachtrag: Commit des Experiments bleibt, der neue steht in meta.json der Läufe
+            save_fields(d, status="läuft", commit_nachtrag=commit)
+        else:
+            save_fields(d, status="läuft", commit=commit)
         if not smoke(exp_id, t):
             log(f"{exp_id}: Kurztest fehlgeschlagen — übersprungen ({LOGS / (exp_id + '_smoke.log')})")
             save_fields(d, status="fehlgeschlagen (Kurztest)")
             continue
-        runs = []
-        for i, seed in enumerate(t["seeds"]):
+        for i, seed in enumerate(todo):
             name = f"{exp_id}_s{seed}"
             run_dir, info = train(name, t["task"], envs, t["iterationen"], seed, t.get("zusatz_args") or [],
                                   LOGS / f"{name}.log")
@@ -642,7 +652,7 @@ def cmd_run(a):
             runs.append(str(run_dir.relative_to(REPO)))
             save_fields(d, laeufe=runs)
             exp["laeufe"] = runs
-            if not evaluate(run_dir, exp, video=(i == 0), log_file=LOGS / f"{name}_eval.log"):
+            if not evaluate(run_dir, exp, video=(i == 0 and not done_seeds), log_file=LOGS / f"{name}_eval.log"):
                 log(f"  Bewertung {name} fehlgeschlagen ({LOGS / (name + '_eval.log')})")
         save_fields(d, status="trainiert")
         report(exp_id)
