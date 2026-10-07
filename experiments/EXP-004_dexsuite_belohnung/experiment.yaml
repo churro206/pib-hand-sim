@@ -3,8 +3,7 @@ id: EXP-004
 titel: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 datum: '2026-10-07'
 eltern: EXP-000
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: geplant
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-001–003 scheiterten an der Belohnung, nicht am Kippabbruch: Annäherung
   praktisch 0 (std 0,1), unbegrenzte Kraftstrafe > Annäherung → Policy spreizt die
@@ -36,6 +35,8 @@ training:
   umgebungen: 1024
   seeds:
   - 42
+  - 43
+  - 44
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---

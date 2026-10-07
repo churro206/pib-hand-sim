@@ -170,8 +170,10 @@ def cmd_new(a):
     d.mkdir()
     text = (EXP_DIR / "_vorlage.yaml").read_text(encoding="utf-8")
     (d / "experiment.yaml").write_text(text, encoding="utf-8")
+    training = dict(parent["training"])
+    training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44})   # README: ≥ 3 Seeds
     save_fields(d, id=new_id, titel=a.titel, datum=f"{dt.date.today()}", eltern=a.eltern,
-                bedingungen=parent["bedingungen"], training=parent["training"], protokoll=parent["protokoll"])
+                bedingungen=parent["bedingungen"], training=training, protokoll=parent["protokoll"])
     log(f"{new_id} angelegt: {d.relative_to(REPO)} (Eltern {a.eltern})")
     if parent.get("commit"):
         base = str(parent["commit"]).split("+")[0]
