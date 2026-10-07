@@ -1,0 +1,41 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-007
+titel: EXP-004 mit 1500 Iterationen
+datum: '2026-10-07'
+eltern: EXP-004
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: EXP-004 ist nach 300 Iterationen nicht auskonvergiert; 1500 Iterationen
+  (Lift-Rezept) erhöhen den Aufgabenerfolg und verringern die Seed-Streuung (56–88
+  %). Ob sich dabei die Fingernutzung ändert, ist offen. Bewertung in der unveränderten
+  eval-v1-Umgebung (Zylinder 0,05–0,2 kg, ≤ 45°), direkt mit EXP-004 vergleichbar.
+aenderung: Trainingsdauer 1500 statt 300 Iterationen.
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 1500
+  umgebungen: 1024
+  seeds:
+  - 42
+  - 43
+  - 44
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment

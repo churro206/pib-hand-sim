@@ -2,7 +2,7 @@ id: EXP-001
 titel: "Kippabbruch + Aufrecht-Belohnung"
 datum: "2026-10-06"
 eltern: EXP-000
-status: trainiert
+status: ausgewertet
 hypothese: "Mit Abbruch bei > 20° Kippwinkel (Muster Isaac Lab deploy/gear_assembly) und Aufrecht-Belohnung nach dem Absenken lernt die Policy, die Dose aufrecht zu halten statt sie mit dem Unterarm auf die Handfläche zu kippen. Messbar: Aufgabenerfolg (max. Kippwinkel ≤ 20°) deutlich über EXP-000 (≈ 0 %), Unterarmdrehung kleiner; Haltequote darf sinken (Aufgabe ist schwerer)."
 aenderung: "Abbruch object_tilted (> 20°), Belohnung upright (Gewicht 2, ab dem Absenken), Objektorientierung im Critic"
 bedingungen:
@@ -27,6 +27,11 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-26-46_EXP-001_s42
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-37-19_EXP-001_s43
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-47-02_EXP-001_s44
-ergebnis: ""
-urteil: ""
-schluss: ""
+ergebnis: 'Aufgabenerfolg 0 %, Haltequote 0 % (3 Seeds). Training: 94 % gefallen,
+  6 % gekippt, 0 % gehalten; Episoden enden beim Absenken. Video/Inferenz: die Finger
+  spreizen sich, die Dose wird nicht berührt.'
+urteil: schlechter (Entwurf, von Leon zu bestätigen)
+schluss: Hypothese widerlegt. Ursache laut EXP-003/004 vor allem die Belohnung (Annäherung
+  std 0,1 ≈ 0, unbegrenzte Kraftstrafe > Annäherung → Berühren kostet), dazu der Kippabbruch
+  ab Beginn. Strenge Orientierungsabbrüche nutzt NVIDIA nur, wenn das Objekt schon
+  gegriffen ist (gear_assembly). → EXP-003/004.

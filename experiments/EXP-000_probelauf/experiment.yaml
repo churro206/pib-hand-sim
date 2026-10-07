@@ -28,6 +28,8 @@ commit: 1821896
 laeufe:
   - logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59
 
-ergebnis: "Training (stochastisch): Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38. Im Video: hält, indem der Unterarm die Dose auf die Handfläche kippt. Mit 20°-Kippkriterium (2026-10-06): 48/48 Episoden kippen nach 0,25–0,6 s."
+ergebnis: 'eval-v1 (≤ 45°, Neubewertung 2026-10-07): Aufgabenerfolg 2,0 %, Haltequote
+  86,1 %, Kippwinkel Median 104°, Unterarm 90°, Stall 99,6 %. Hält, indem der Unterarm
+  die Dose auf die Handfläche kippt.'
 urteil: "Ausgangswert"
 schluss: "Aufgabe lernbar, aber Belohnung lässt Kippen zu → EXP-001 (Kippabbruch + Aufrecht-Belohnung). Bewertung nach eval-v1 steht aus (Critic-Eingang hat sich geändert, Bewertung über den exportierten Actor)."

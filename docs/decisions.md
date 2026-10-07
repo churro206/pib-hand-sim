@@ -644,6 +644,42 @@ HORA; dort zählt Erfolg je Objekt und bekannte vs. neue Objekte.
 
 ---
 
+## ADR-017: Belohnung nach Dexsuite statt Eigenbau — Lehren aus EXP-001 bis EXP-004
+
+**Problem**: Der Probelauf (EXP-000) hielt die Dose nur, indem der Unterarm sie auf die
+Handfläche kippte (Aufgabenerfolg ≤ 45°: 2 %). Drei eigene Korrekturversuche scheiterten
+vollständig (0 % gehalten): Kippabbruch bei 20° (EXP-001), dazu 5× Training (EXP-002), Halten
+nur multiplikativ mit Aufrecht (EXP-003). Die Policy spreizte die Finger und berührte die Dose nicht.
+
+**Entscheidung**: Belohnungssatz von Isaac Labs Dexsuite übernehmen (EXP-004), Zielpose ersetzt
+durch „nach dem Absenken auf Höhe gehalten, aufrecht“: Annäherung (std 0,4), Gegengriff (0,5),
+dichtes Halten (2) und Aufrecht (4, std 1,5 rad) ab dem Absenken × Gegengriff, scharfer Erfolg
+Halten × Aufrecht (10, rot_std 0,5), gekappte Aktionsstrafen (Dexsuite-Funktionen), keine
+Kraftstrafe, kein Kippabbruch. Anforderung der Bedingung: Kippwinkel ≤ 45° (verschlossene Packung).
+
+**Begründung** (gemessen, `experiments/`):
+- Annäherung mit std 0,1 auf den größten Fingerabstand war praktisch 0 (0,001–0,003/s); die
+  eigene, unbegrenzte Kraftstrafe (> 15 N) war am Anfang 3× größer → Berühren kostete, Annähern
+  brachte nichts → Finger gespreizt.
+- Ohne dichtes, additives Haltesignal wird Halten nie entdeckt: ein früher Griff kippt die Dose
+  ~50° (Machbarkeitstest), Halten × Aufrecht ist dort ≈ 0.
+- Strenger Orientierungsabbruch ist bei NVIDIA nur üblich, wenn das Objekt schon gegriffen ist
+  (deploy/gear_assembly); blinde Policies in der Literatur (HORA) starten aus einem Griff-Cache.
+- Aufrecht-Belohnung erst ab dem Absenken — auf dem Tisch steht die Dose von selbst aufrecht
+  (sonst Belohnung fürs bloße Antippen; Dexsuite-Lift hat keinen Orientierungsterm).
+
+**Konsequenzen**:
+- EXP-004: Aufgabenerfolg 77 % [56–89] (Seeds 88/56/88), Haltequote 90 %, Kippwinkel 27°,
+  Unterarm 26° — der blinde Actor lernt aufrechtes Halten in 300 Iterationen.
+- Offen: Zweifinger-Pinzettengriff (Daumen + ein Finger; der Gegengriff-Term verlangt nur das,
+  wie bei Dexsuite), Griffkraft/Stall hoch (Kraftstrafe vorerst bewusst nicht, Leon), Seed-Streuung.
+- Ein Fehler im Halteterm behoben: Absinken gegen die Höhe beim Absenken statt Standardhöhe
+  (±10 % Größe → bis 7,5 mm Versatz).
+- Arbeitsregel: zuerst das NVIDIA-Rezept vollständig, eigene Terme nur einzeln und begründet;
+  Belohnungsanteile (`Episode_Reward/*`) vor dem Lauf auf Größenordnung prüfen (`_reward_diag.txt`).
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

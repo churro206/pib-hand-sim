@@ -4,38 +4,36 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-10-04
+## Stand 2026-10-07
 
 ### Zuletzt gearbeitet an
 
-1. **Branch neu aufgesetzt**: `feature/rl-grasping` = Mimic-/Servo-Stand + RL (alter Stand im Tag `backup/rl-grasping-c0b3f6d`, force-pushed); `docs/rl-grasping-notes.md` übernommen.
-2. **Hand-only-Asset + Handgelenk-Pleuel** (ADR-014): `pib_hand_left_urdf_v5/` → `isaac_sim/usd/pib_hand_left_v5.usd` (`bake_hand_asset_v5.py`); Handgelenk [−60°, 0°], `WRIST_LINKAGE`/`wrist_transmission()` in `config/pib_hand_config_v5.py`, Isaac Lab `RemotizedPDActuatorCfg`.
-3. **Vollroboter-Absturz behoben**: Compound-Subgraph mit allen ReadContact-Knoten steckte seit `b6b414d` in `pib_upperbody_v5.usd` → offline entfernt, Graph flach neu gebaut (ADR-013-Korrektur); Filtered Pairs Unterarm ↔ Daumen-Rotator in beiden USDs.
-4. **RL-Proof-of-Concept** (ADR-015): Isaac Lab 2.3.2 in conda `env_isaaclab`; `isaac_lab/pib_grasp/` nach Dexsuite; Machbarkeitstest (Rotator 90° → 14–15/16); Probelauf 300 It.: Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38; ONNX exportiert.
+1. **Experiment-Framework** (ADR-016): `experiments/` (README mit 7-Schritte-Ablauf, Metriken, Entscheidungsregel; `index.md`), `isaac_lab/experiments.py` (`new/bench/run/eval/done`), `isaac_lab/eval_policy.py` (Protokoll eval-v1: Aufgabenerfolg, Haltequote, Leitplanken, Fingernutzung, Video).
+2. **EXP-000–004**: Kippabbruch (001), 1500 It. (002), Halten × Aufrecht (003) → je 0 % gehalten (Finger gespreizt). **EXP-004 Belohnungssatz wie Dexsuite → Aufgabenerfolg 77 % (≤ 45°), Haltequote 90 %, Kippwinkel 27°** (ADR-017).
+3. **Phase 0 STM32N6**: ST Edge AI Core 4.0.1 in `~/ST/STEdgeAI/4.0/4.0`; int8-QDQ-Policy läuft komplett auf der NPU (71 kB), bis ~1,8 MB Gewichte passen intern; LSTM möglich, zurückgestellt.
+4. **Gestartet (während Leon weg ist)**: EXP-005 (Fingerzahl-Kontakt), EXP-006 (Masse 0,04–0,4 kg), EXP-007 (EXP-004 mit 1500 It.), alle Eltern EXP-004 — Log `logs/experiments/exp005-007_2026-10-07.log`.
 
 ### Offene Punkte
 
-- **Policy gelernt, Inferenz sieht gut aus** (Video `videos/isaac_lab_pib_hand_inference_test.webm`), aber: sie **dreht den Unterarm**, bis die Dose über der Handfläche liegt — ungewollt (ein Wasserglas würde verschüttet).
-- ~6 % der Episoden: Dose fliegt beim Reset weg (Daumen in Opposition + gebeugt überlappt die Dose).
-- Kurve flacht ab Iteration ~175 ab; längeres Training und Belohnungsfeinschliff offen.
-- Sim-to-Real-Lücken: lineare Kopplung, idealisierte FSR, keine Latenz, Gains/Armature geschätzt, int8 ungeprüft (ADR-015).
-- Trainierte Checkpoints/ONNX nur lokal: `logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59/` (gitignored, nicht gesichert).
+- **Ergebnisse EXP-005–007 auswerten** (`experiments/index.md`, je `bericht.md`), Inferenz mit Fenster zeigen, Urteile mit Leon bestätigen.
+- EXP-004 hält mit **genau 2 Fingern** (Daumen + Zeige/klein/Mittel je nach Seed), Daumen-MCP gestreckt, Rotator ~90°.
+- Leitplanken EXP-004 verletzt: Griffkraft 58 N, Kraft > 15 N 99 %, Stall 99,7 % — Kraftstrafe **vorerst bewusst nicht** (Leon).
+- Urteile in EXP-001–004 sind Entwürfe („von Leon zu bestätigen“).
+- Seed-Streuung EXP-004: 88/56/88 % (Seed 43 hält mit dem kleinen Finger).
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Unterarmdrehung unterbinden — mit Leon entscheiden: `forearm_left` aus dem Aktionsraum nehmen (IK stellt die Hand), oder Strafe auf Abweichung von der Startlage / Neigung der Dose (Belohnung „aufrecht“).
-2. Reset-Überlappung prüfen/entschärfen (Daumen-MCP-Startbereich in `env_cfg.py` → `reset_hand` verkleinern).
-3. Längeres Training (z. B. 1500 It., TensorBoard), Ergebnis mit `play.py` zeigen.
-4. M2: ONNX → int8 (QDQ, Kalibrierdaten aus Sim-Rollouts) → in der Sim gegen float bewerten → `stedgeai validate` auf dem NUCLEO-N657X0.
-5. Für M3: Servo-Sprungantwort an der echten Hand messen, Aktionsverzögerung randomisieren (Spot: 0–4 Schritte), FSR-Kennlinie vom Kollegen.
+1. EXP-005–007 auswerten (`/usr/bin/python3 isaac_lab/experiments.py done`), Fingernutzung vergleichen, Inferenz des besten Laufs mit Fenster (`eval_policy.py --policy … --num_envs 16 --real_time --out <scratch>`).
+2. Je nach Ergebnis: beste Einzeländerung als neue Baseline; ggf. Kombination als eigenes Experiment.
+3. Danach (einzeln): Aktionen auf ±1 kappen (gegen Unruhe/Sättigung), begrenzte Kraftstrafe (wenn Leon will).
+4. Stufe 3/4 nach Fahrplan (`docs/current-sprint.md`); M2: int8 mit Sim-Kalibrierdaten, `stedgeai validate` (STM32CubeIDE/-Programmer fehlen noch).
 
 ### Wichtige Kontextdetails
 
-- **Isaac Lab nur in `conda activate env_isaaclab`**, Projekt-`.venv` vorher `deactivate` — `isaaclab.sh` nimmt die aktive Python; Isaac Sims Python darf nur `pip`, `setuptools`, `psutil` 5.9.8, `starlette` 0.45.3 enthalten.
-- **Handgelenk-Vorzeichen-Ausnahme**: −60° = nach innen gebeugt, 0° = gestreckt (fremde Konvention, bewusst nicht geflippt).
-- **ContactSensor mit Objekt-Filter nur 1 Prim pro Sensor** → `fsr_thumb`…`fsr_pinky`; FSR-Reihenfolge Daumen, Zeige, Mittel, Ring, klein.
-- **Compound im Action Graph = Absturz bei Play** im `isaacsim.sensors.physics`-Plugin, auch bei deaktiviertem Graph; prüfen über Prims mit „compound“ im Pfad.
-- **Leon will zusehen**: Tests mit Fenster (`--real_time`), nur ein Isaac-Fenster gleichzeitig (8 GB VRAM); vorher prüfen, ob ein altes Fenster noch GPU hält.
-- `~/.bashrc` setzt `ROS_DOMAIN_ID=1` — Isaac publiziert auf 0, in ROS-Terminals `export ROS_DOMAIN_ID=0`.
-- Arbeitsweise: langsam, nach Teilschritten Zwischenstand; NVIDIA-Best-Practices per WebSearch prüfen und nennen.
-- Zukunft: Jetson Thor im Roboter — skizziert: modular (FoundationPose, GraspGen, cuMotion) + Finger-Policy als Reflex, später GR00T N1.6.
+- **Arbeitsweise**: jede Änderung als Experiment (Hypothese vorher, genau eine Änderung, 3 Seeds, Commit vor dem Lauf); Leon gibt Läufe frei, schaut Inferenz im Fenster, bestätigt Urteile.
+- **Belohnung**: nach Dexsuite (ADR-017); Aufrecht-Terme erst ab dem Absenken (sonst Belohnung fürs Antippen); Belohnungsanteile vor Läufen prüfen (`isaac_sim/tools/_reward_diag.txt`-Muster).
+- **Bewertung** schaltet Trainingsabbrüche ab (Kippen wird gemessen); Anforderung (≤ 45° für den Zylinder, Leon) wird erst bei der Auswertung angewandt, Eltern unter der Bedingung des Kindes.
+- **Trainingsvarianten** als eigene Task-IDs (`Pib-Grasp-Hand-Left-FingerCount-v0`, `-Heavy-v0`), Bewertung immer in `Pib-Grasp-Hand-Left-v0`.
+- `experiments.py` mit **System-Python** bei aktiver conda-Umgebung starten (blendet Isaac-Pfade aus); lange Läufe mit `setsid nohup … &`. `pkill -f` mit Muster aus dem eigenen Befehl beendet die eigene Shell.
+- Zwei Isaac-Umgebungen nacheinander im selben Prozess (mit `env.close()`) hängen → je Prozess eine Umgebung.
+- Machbarkeitstest: fester Gegengriff kippt die 6-cm-Dose 43–78°; Ring/kleiner Finger erreichen sie nicht. Speicher: ~21 GB frei (aufgeräumt).

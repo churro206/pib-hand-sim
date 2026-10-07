@@ -247,7 +247,12 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 **Stufe 1 — Unterarm-Schummelei beheben (eine Änderung)** = EXP-001
 - [x] Abbruch bei Kippwinkel der Dose > 20° (Muster gear_assembly) + Aufrecht-Belohnung,
       Objektorientierung im Critic; Fenstertest: alte Policy kippt 48/48, Abbruch greift
-- [ ] EXP-001 trainieren (3 Seeds, 300 It., 1024 Umgebungen) und gegen EXP-000 bewerten
+- [x] EXP-001 trainiert: 0 % gehalten (Finger gespreizt) — ebenso EXP-002 (1500 It.) und EXP-003
+      (Halten × Aufrecht ohne Abbruch). Ursache: Belohnung (ADR-017)
+- [x] **EXP-004 Belohnungssatz wie Dexsuite: Aufgabenerfolg 77 % (≤ 45°), Haltequote 90 %,
+      Kippwinkel 27°** — neue Baseline. Anforderung für den Zylinder ≤ 45° (Leon)
+- [ ] Fingernutzung: EXP-004 greift mit Daumen + einem Finger (Pinzettengriff) → EXP-005 ff.
+- [ ] Kraft/Stall (Griffkraft 58 N, Stall 99,7 %) — Kraftstrafe vorerst bewusst nicht (Leon)
 - [ ] Reset-Überlappung Daumen ↔ Dose (~6 %) beheben — reiner Bugfix, separat geprüft
 
 **Stufe 2 — Rezept der Lift-Aufgabe vollständig**

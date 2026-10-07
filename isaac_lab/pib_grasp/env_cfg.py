@@ -308,6 +308,28 @@ class PibGraspEnvCfg(ManagerBasedRLEnvCfg):
         self.viewer.lookat = (0.0, -0.3, 0.5)
 
 
+# ── Varianten für Experimente (eigene Task-IDs, gleiche Bewertungsumgebung) ───────────────
+
+@configclass
+class RewardsFingerCountCfg(RewardsCfg):
+    # EXP-005: Belohnung steigt mit der Zahl der Finger an der Dose (EXP-004: nur Daumen + 1 Finger)
+    finger_count = RewTerm(func=mdp.fingers_in_contact, weight=1.0, params={"threshold": CONTACT_N})
+
+
+@configclass
+class PibGraspEnvCfg_FingerCount(PibGraspEnvCfg):
+    rewards: RewardsFingerCountCfg = RewardsFingerCountCfg()
+
+
+@configclass
+class PibGraspEnvCfg_Heavy(PibGraspEnvCfg):
+    """EXP-006: Objektmasse wie Dexsuite (0,2 kg × 0,2–2 = 0,04–0,4 kg) statt 0,05–0,2 kg."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.events.object_mass.params["mass_distribution_params"] = (0.04, 0.4)
+
+
 @configclass
 class PibGraspEnvCfg_PLAY(PibGraspEnvCfg):
     def __post_init__(self):

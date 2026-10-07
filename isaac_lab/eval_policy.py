@@ -114,6 +114,8 @@ def zeros():
 # laufende Größen je Umgebung (aktuelle Episode)
 steps, max_tilt, early_tilt, max_forearm = zeros(), zeros(), zeros(), zeros()
 hold_steps, hold_force, hold_over, stall, act_rate, sink = zeros(), zeros(), zeros(), zeros(), zeros(), zeros()
+hold_touch = torch.zeros(N, 5, device=dev)       # Fingernutzung: Schritte mit Objektkontakt > 1 N je Finger
+hold_fobj = torch.zeros(N, 5, device=dev)        # … und Objektkraft je Finger (Reihenfolge Daumen … klein)
 forearm0 = robot.data.joint_pos[:, forearm].clone()
 z0 = obj.data.root_pos_w[:, 2].clone()           # Dosenhöhe beim Episodenstart (Größe randomisiert)
 episodes = []                                   # abgeschlossene Episoden
@@ -134,6 +136,8 @@ def finish(i, reason):
         "stall_anteil": stall[i].item() / n,
         "absinken_mm": 1000 * sink[i].item(),
         "unruhe": act_rate[i].item() / n,
+        "finger_kontakt": (hold_touch[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
+        "finger_kraft_n": (hold_fobj[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
     })
 
 
@@ -150,7 +154,8 @@ with torch.inference_mode():
             if len(episodes) < args_cli.episodes:
                 finish(i, next((n for n in term_names if uenv.termination_manager.get_term(n)[i]), "?"))
         # neue Episoden zurücksetzen, laufende fortschreiben (Werte nach dem Schritt)
-        for buf in (steps, max_tilt, early_tilt, max_forearm, hold_steps, hold_force, hold_over, stall, act_rate, sink):
+        for buf in (steps, max_tilt, early_tilt, max_forearm, hold_steps, hold_force, hold_over, stall, act_rate, sink,
+                    hold_touch, hold_fobj):
             buf[done] = 0.0
         forearm0[done] = robot.data.joint_pos[done, forearm]
         z0[done] = obj.data.root_pos_w[done, 2]
@@ -166,6 +171,9 @@ with torch.inference_mode():
         hold_steps[in_hold] += 1
         hold_force[in_hold] += f[in_hold].sum(-1)
         hold_over[in_hold] += (f[in_hold] > FORCE_LIMIT_N).any(-1).float()
+        fo = mdp.fingertip_object_forces(uenv)
+        hold_touch[in_hold] += (fo[in_hold] > 1.0).float()
+        hold_fobj[in_hold] += fo[in_hold]
         stall[live] += (robot.data.applied_torque[live][:, stall_ids].abs() >= STALL_FRACTION * stall_limit[live]).any(-1).float()
         am = uenv.action_manager
         act_rate[live] += ((am.action - am.prev_action) ** 2).sum(-1)[live]
@@ -205,6 +213,13 @@ summary = {
         "absinken_mm": mean([e["absinken_mm"] for e in held]),
         "unruhe": mean([e["unruhe"] for e in held]),
     },
+    # beschreibend (keine Leitplanke): Kontaktanteil/Kraft je Finger in der Haltephase, gehaltene Episoden
+    "fingernutzung": {
+        "finger": ["daumen", "zeige", "mittel", "ring", "klein"],
+        "kontakt_anteil": [mean([e["finger_kontakt"][k] for e in held if e["finger_kontakt"]]) for k in range(5)],
+        "kraft_n": [mean([e["finger_kraft_n"][k] for e in held if e["finger_kraft_n"]]) for k in range(5)],
+        "finger_mit_kontakt": mean([sum(e["finger_kontakt"]) for e in held if e["finger_kontakt"]]),
+    },
 }
 result = {
     "protokoll": PROTOCOL, "policy": str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
@@ -242,6 +257,10 @@ lines = [
     f"  Stall-Anteil         {pct(L['stall_anteil'])}",
     f"  Absinken             {num(L['absinken_mm'], ' mm')}",
     f"  Unruhe               {num(L['unruhe'], digits=3)}",
+    "Fingernutzung (Haltephase, Kontakt > 1 N / Kraft an der Dose), Daumen … klein:",
+    "  Kontakt  " + "  ".join(pct(x) for x in summary["fingernutzung"]["kontakt_anteil"]),
+    "  Kraft    " + "  ".join(num(x, " N") for x in summary["fingernutzung"]["kraft_n"]),
+    f"  Finger mit Kontakt im Mittel: {num(summary['fingernutzung']['finger_mit_kontakt'], digits=2)}",
 ]
 if args_cli.video and getattr(env, "recording", False):
     env.stop_recording()                        # Video schreiben, auch wenn kürzer als --video

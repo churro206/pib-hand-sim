@@ -157,6 +157,13 @@ def object_sink(env: ManagerBasedRLEnv, drop_start_s: float,
     return (env._pib_z_ref - z).clamp(min=0.0)
 
 
+def fingers_in_contact(env: ManagerBasedRLEnv, threshold: float) -> torch.Tensor:
+    """Anteil der vier Finger mit Objektkontakt, nur bei Daumenkontakt: (Finger > threshold) / 4 ·
+    𝟙[Daumen > threshold] ∈ [0, 1]. Belohnt Kraftgriff statt Pinzettengriff (EXP-005)."""
+    f = fingertip_object_forces(env)
+    return (f[:, 1:] > threshold).float().mean(dim=-1) * (f[:, 0] > threshold).float()
+
+
 def object_held(env: ManagerBasedRLEnv, drop_start_s: float, std: float,
                 object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
     """Ab dem Tisch-Absenken: 1 − tanh(Absinken des Objekts / std). Vorher 0 — solange das

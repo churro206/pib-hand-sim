@@ -318,6 +318,11 @@ def aggregate(exp_dir: Path, exp: dict, req="eigene") -> dict:
     first = REPO / exp["laeufe"][0]
     res["netz"] = net_profile(load_params(first), evals[0])
     res["_params"] = load_params(first)
+    fn = [e["zusammenfassung"].get("fingernutzung") for e in evals if e["zusammenfassung"].get("fingernutzung")]
+    res["fingernutzung"] = {
+        "je_seed_kontakt": [f["kontakt_anteil"] for f in fn],
+        "finger_mit_kontakt": _mean([f["finger_mit_kontakt"] for f in fn]),
+    } if fn else None
     res["leitplanken"] = {g[0]: _mean([e["zusammenfassung"]["leitplanken"].get(g[0]) for e in evals]) for g in GUARDRAILS}
     res["fehler"] = {k: _mean([e["zusammenfassung"]["fehler"][k] for e in evals]) for k in evals[0]["zusammenfassung"]["fehler"]}
     res["fehler"]["anforderung_verletzt"] = float(np.mean([
@@ -391,6 +396,11 @@ def report(exp_id: str):
     for x in v.get("leitplanken_verletzt", []):
         lines.append(f"- Leitplanke: {x}")
     lines += ["", "Je Seed: " + ", ".join(f"{pct(s['aufgabenerfolg'])}" for s in res["je_seed"])]
+    if res.get("fingernutzung"):
+        fn = res["fingernutzung"]
+        lines += ["", f"Fingernutzung (Haltephase): im Mittel {fn['finger_mit_kontakt']:.2f} Finger an der Dose; "
+                  "Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): "
+                  + " · ".join("/".join("–" if x is None else f"{100 * x:.0f}" for x in s) for s in fn["je_seed_kontakt"])]
     n = res["netz"]
     lines += ["", "## Netz und Training", "",
               f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "
@@ -495,8 +505,8 @@ def cmd_done(a):
     pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
     rows = ["# Experimente — Übersicht", "", "Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote "
             "in %, [95-%-KI]; Leitplanken Mittel über Seeds. Definitionen: README.md.", "",
-            "| ID | Titel | Eltern | Bedingung | Seeds | Netz (Actor) | Param. | Iter. × Umg. | Aufgabenerfolg | Haltequote | Kipp° | Unterarm° | Stall | Vorschlag | Urteil (bestätigt) |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+            "| ID | Titel | Eltern | Bedingung | Seeds | Netz (Actor) | Param. | Iter. × Umg. | Aufgabenerfolg | Haltequote | Kipp° | Unterarm° | Stall | Finger | Vorschlag | Urteil (bestätigt) |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
         exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
         r = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
@@ -508,6 +518,7 @@ def cmd_done(a):
                     f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
                     f"{_budget_cell(r.get('netz'))} | {f(ae)} | {f(hq)} | "
                     f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
+                    f"{_finger_cell(r.get('fingernutzung'))} | "
                     f"{r.get('vergleich', {}).get('urteil', '–')} | {exp.get('urteil') or '–'} |")
     (EXP_DIR / "index.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
     log(f"index.md aktualisiert ({len(rows) - 6} Experimente)")
@@ -515,6 +526,10 @@ def cmd_done(a):
 
 def _net_cell(n):
     return f"{n['actor']} {n['aktivierung']}, V{n['verlauf']}" if n else "–"
+
+
+def _finger_cell(f):
+    return f"{f['finger_mit_kontakt']:.1f}" if f and f.get("finger_mit_kontakt") is not None else "–"
 
 
 def _budget_cell(n):

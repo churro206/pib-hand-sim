@@ -102,6 +102,10 @@ aber gekippt).
 | Absinken | Absinken der Dose gegenüber der Hand bis Episodenende [mm] | +5 mm |
 | Unruhe | Mittel von ‖a_t − a_{t−1}‖² | +20 % |
 
+**Fingernutzung** (beschreibend, keine Leitplanke; seit 2026-10-07): Kontaktanteil (> 1 N an der
+Dose) und Kraft je Finger in der Haltephase, mittlere Zahl der Finger mit Kontakt. Anlass: EXP-004
+hielt mit nur zwei Fingern (Pinzettengriff) — in den übrigen Metriken unsichtbar.
+
 **Lerneffizienz** (aus TensorBoard, stochastische Policy): `Episode_Termination/time_out` über
 die Schritte; Kennzahl: Umgebungsschritte bis 50 % bzw. 80 %.
 

@@ -83,7 +83,7 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
   Mimic Joints (ADR-011), Servo-Modell (ADR-012), Kontaktsensoren (ADR-013),
   Handgelenk-Pleuel [−60°, 0°] (ADR-014)
 - **RL-Greifen, Proof of Concept** ← aktuell (ADR-015, Plan in `docs/current-sprint.md`):
-  - M1 Policy greift in der Sim — Probelauf lernt Gegengriff, Dose fällt nur noch ~19 %
+  - M1 Policy greift in der Sim — EXP-004: 77 % aufrecht gehalten (≤ 45°), offen: Fingernutzung, Kraft
   - M2 Policy int8-quantisiert auf dem STM32N657 (`stedgeai validate`)
   - M3 echte Hand (optional, Sim-to-Real-Kalibrierung nötig)
 - Policy sieht nur reale Sensoren (8 Servo-Winkel, 5 FSR); Aktionsraum = 8 Servos
@@ -130,5 +130,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–015) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–017) | Sprint: @docs/current-sprint.md
 → RL-Ursprungs-Prompt/Bewertung: `docs/rl-grasping-notes.md`

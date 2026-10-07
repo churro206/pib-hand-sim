@@ -16,6 +16,18 @@ gym.register(
     },
 )
 
+# Trainingsvarianten für Experimente (Bewertung immer in Pib-Grasp-Hand-Left-v0, eval-v1)
+for _name, _cfg in (("FingerCount", "PibGraspEnvCfg_FingerCount"), ("Heavy", "PibGraspEnvCfg_Heavy")):
+    gym.register(
+        id=f"Pib-Grasp-Hand-Left-{_name}-v0",
+        entry_point="isaaclab.envs:ManagerBasedRLEnv",
+        disable_env_checker=True,
+        kwargs={
+            "env_cfg_entry_point": f"pib_grasp.env_cfg:{_cfg}",
+            "rsl_rl_cfg_entry_point": "pib_grasp.agents.rsl_rl_ppo_cfg:PibGraspPPORunnerCfg",
+        },
+    )
+
 gym.register(
     id="Pib-Grasp-Hand-Left-Play-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
