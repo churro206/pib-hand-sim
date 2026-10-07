@@ -1,13 +1,10 @@
 {
  "protokoll": "eval-v1",
- "seeds": 6,
+ "seeds": 3,
  "laeufe": [
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42",
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_23-42-14_EXP-002_s43",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_00-27-37_EXP-002_s44",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_23-42-14_EXP-002_s43",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42"
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_00-27-37_EXP-002_s44"
  ],
  "bedingung": "zylinder_seitlich",
  "je_seed": [
@@ -67,65 +64,9 @@
     "absinken_mm": null,
     "unruhe": null
    }
-  },
-  {
-   "aufgabenerfolg": 0.0,
-   "haltequote": 0.0,
-   "fehler": {
-    "startfehler": 0.019,
-    "gefallen": 0.981,
-    "instabil": 0.0,
-    "anforderung_verletzt": 0.0
-   },
-   "leitplanken": {
-    "kipp_median_deg": null,
-    "unterarm_median_deg": null,
-    "kraft_mittel_n": null,
-    "kraft_ueber_15n_anteil": null,
-    "stall_anteil": null,
-    "absinken_mm": null,
-    "unruhe": null
-   }
-  },
-  {
-   "aufgabenerfolg": 0.0,
-   "haltequote": 0.0,
-   "fehler": {
-    "startfehler": 0.022,
-    "gefallen": 0.978,
-    "instabil": 0.0,
-    "anforderung_verletzt": 0.0
-   },
-   "leitplanken": {
-    "kipp_median_deg": null,
-    "unterarm_median_deg": null,
-    "kraft_mittel_n": null,
-    "kraft_ueber_15n_anteil": null,
-    "stall_anteil": null,
-    "absinken_mm": null,
-    "unruhe": null
-   }
-  },
-  {
-   "aufgabenerfolg": 0.0,
-   "haltequote": 0.0,
-   "fehler": {
-    "startfehler": 0.019,
-    "gefallen": 0.981,
-    "instabil": 0.0,
-    "anforderung_verletzt": 0.0
-   },
-   "leitplanken": {
-    "kipp_median_deg": null,
-    "unterarm_median_deg": null,
-    "kraft_mittel_n": null,
-    "kraft_ueber_15n_anteil": null,
-    "stall_anteil": null,
-    "absinken_mm": null,
-    "unruhe": null
-   }
   }
  ],
+ "anforderung_max_kipp_deg": 20,
  "aufgabenerfolg": {
   "mittel": 0.0,
   "ki95": [
@@ -173,8 +114,8 @@
   "unruhe": null
  },
  "fehler": {
-  "startfehler": 0.0205,
-  "gefallen": 0.9794999999999999,
+  "startfehler": 0.021,
+  "gefallen": 0.9790000000000001,
   "instabil": 0.0,
   "anforderung_verletzt": 0.0
  },

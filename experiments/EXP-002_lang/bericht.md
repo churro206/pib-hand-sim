@@ -1,6 +1,6 @@
 # EXP-002: Langer Lauf (Lift-Rezept: 1500 Iterationen)
 
-Bedingung `zylinder_seitlich`, Protokoll eval-v1, 6 Seed(s)
+Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
 
 | Metrik | Wert | 95-%-KI | Eltern |
 |---|---|---|---|
@@ -19,7 +19,7 @@ Fehlerarten: startfehler 2.1 %, gefallen 97.9 %, instabil 0.0 %, anforderung_ver
 **Urteilsvorschlag: kein messbarer Unterschied**
 Unterschied Aufgabenerfolg +0.0 Prozentpunkte (95-%-KI +0.0 … +0.0)
 
-Je Seed: 0.0 %, 0.0 %, 0.0 %, 0.0 %, 0.0 %, 0.0 %
+Je Seed: 0.0 %, 0.0 %, 0.0 %
 
 ## Netz und Training
 

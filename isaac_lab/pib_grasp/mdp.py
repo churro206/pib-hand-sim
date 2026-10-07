@@ -144,15 +144,38 @@ def thumb_opposition_contact(env: ManagerBasedRLEnv, threshold: float) -> torch.
     return ((f[:, 0] > threshold) & (f[:, 1:] > threshold).any(dim=-1)).float()
 
 
+def object_sink(env: ManagerBasedRLEnv, drop_start_s: float,
+                object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Absinken [m] gegenüber der Höhe beim Beginn des Absenkens (bis dahin mitgeführt, danach
+    eingefroren). Nicht gegen die Standardhöhe: mit ±10 % Größe steht die Dose bis 7,5 mm tiefer."""
+    obj: RigidObject = env.scene[object_cfg.name]
+    z = obj.data.root_pos_w[:, 2]
+    if getattr(env, "_pib_z_ref", None) is None or env._pib_z_ref.shape != z.shape:
+        env._pib_z_ref = z.clone()
+    before = episode_time(env) < drop_start_s
+    env._pib_z_ref[before] = z[before]
+    return (env._pib_z_ref - z).clamp(min=0.0)
+
+
 def object_held(env: ManagerBasedRLEnv, drop_start_s: float, std: float,
                 object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
     """Ab dem Tisch-Absenken: 1 − tanh(Absinken des Objekts / std). Vorher 0 — solange das
     Objekt auf dem Tisch steht, gibt es nichts zu verdienen."""
-    obj: RigidObject = env.scene[object_cfg.name]
-    z0 = obj.data.default_root_state[:, 2] + env.scene.env_origins[:, 2]
-    sink = (z0 - obj.data.root_pos_w[:, 2]).clamp(min=0.0)
     active = (episode_time(env) >= drop_start_s).float()
-    return active * (1.0 - torch.tanh(sink / std))
+    return active * (1.0 - torch.tanh(object_sink(env, drop_start_s, object_cfg) / std))
+
+
+def held_in_grasp(env: ManagerBasedRLEnv, drop_start_s: float, std: float, threshold: float) -> torch.Tensor:
+    """Dicht, ab dem Absenken: Halten × Gegengriff (Dexsuite position_command_error_tanh, × contacts)."""
+    return object_held(env, drop_start_s, std) * thumb_opposition_contact(env, threshold)
+
+
+def upright_in_grasp(env: ManagerBasedRLEnv, drop_start_s: float, rot_std: float, threshold: float) -> torch.Tensor:
+    """Dicht, ab dem Absenken: (1 − tanh(Kippwinkel/rot_std)) × Gegengriff (Dexsuite
+    orientation_command_error_tanh, × contacts). Erst ab dem Absenken — auf dem Tisch steht die
+    Dose von selbst aufrecht, sonst gäbe es die Belohnung fürs bloße Antippen."""
+    active = (episode_time(env) >= drop_start_s).float()
+    return active * (1.0 - torch.tanh(object_tilt(env) / rot_std)) * thumb_opposition_contact(env, threshold)
 
 
 def object_held_upright(env: ManagerBasedRLEnv, drop_start_s: float, std: float, rot_std: float,

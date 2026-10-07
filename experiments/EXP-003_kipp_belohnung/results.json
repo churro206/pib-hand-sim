@@ -2,9 +2,9 @@
  "protokoll": "eval-v1",
  "seeds": 3,
  "laeufe": [
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-26-46_EXP-001_s42",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-37-19_EXP-001_s43",
-  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-47-02_EXP-001_s44"
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-03-30_EXP-003_s42",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-13-39_EXP-003_s43",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-23-21_EXP-003_s44"
  ],
  "bedingung": "zylinder_seitlich",
  "je_seed": [
@@ -12,8 +12,8 @@
    "aufgabenerfolg": 0.0,
    "haltequote": 0.0,
    "fehler": {
-    "startfehler": 0.017,
-    "gefallen": 0.983,
+    "startfehler": 0.003,
+    "gefallen": 0.997,
     "instabil": 0.0,
     "anforderung_verletzt": 0.0
    },
@@ -31,8 +31,8 @@
    "aufgabenerfolg": 0.0,
    "haltequote": 0.0,
    "fehler": {
-    "startfehler": 0.02,
-    "gefallen": 0.98,
+    "startfehler": 0.003,
+    "gefallen": 0.997,
     "instabil": 0.0,
     "anforderung_verletzt": 0.0
    },
@@ -50,8 +50,8 @@
    "aufgabenerfolg": 0.0,
    "haltequote": 0.0,
    "fehler": {
-    "startfehler": 0.017,
-    "gefallen": 0.983,
+    "startfehler": 0.008,
+    "gefallen": 0.992,
     "instabil": 0.0,
     "anforderung_verletzt": 0.0
    },
@@ -66,7 +66,7 @@
    }
   }
  ],
- "anforderung_max_kipp_deg": 20,
+ "anforderung_max_kipp_deg": 45,
  "aufgabenerfolg": {
   "mittel": 0.0,
   "ki95": [
@@ -114,13 +114,13 @@
   "unruhe": null
  },
  "fehler": {
-  "startfehler": 0.018000000000000002,
-  "gefallen": 0.9820000000000001,
+  "startfehler": 0.004666666666666667,
+  "gefallen": 0.9953333333333333,
   "instabil": 0.0,
   "anforderung_verletzt": 0.0
  },
  "vergleich": {
-  "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+  "urteil": "kein messbarer Unterschied",
   "differenz_aufgabenerfolg": 0.0,
   "differenz_ki95": [
    0.0,
@@ -129,20 +129,15 @@
   "leitplanken_verletzt": []
  },
  "konfig_unterschiede": [
-  "env.observations.critic.object_quat.clip: ∅ → None",
-  "env.observations.critic.object_quat.flatten_history_dim: ∅ → True",
-  "env.observations.critic.object_quat.func: ∅ → pib_grasp.mdp:object_quat_in_root",
-  "env.observations.critic.object_quat.history_length: ∅ → 0",
-  "env.observations.critic.object_quat.modifiers: ∅ → None",
-  "env.observations.critic.object_quat.noise: ∅ → None",
-  "env.observations.critic.object_quat.scale: ∅ → None",
-  "env.rewards.early_termination.params.term_keys: ['object_dropped', 'abnormal_robot'] → ['object_dropped', 'object_tilted', 'abnormal_robot']",
-  "env.rewards.upright.func: ∅ → pib_grasp.mdp:object_upright",
-  "env.rewards.upright.params.drop_start_s: ∅ → 2.0",
-  "env.rewards.upright.params.std: ∅ → 0.2",
-  "env.rewards.upright.weight: ∅ → 2.0",
-  "env.terminations.object_tilted.func: ∅ → pib_grasp.mdp:object_tilted",
-  "env.terminations.object_tilted.params.max_tilt_deg: ∅ → 20.0",
-  "env.terminations.object_tilted.time_out: ∅ → False"
+  "env.rewards.early_termination.params.term_keys: ['object_dropped', 'object_tilted', 'abnormal_robot'] → ['object_dropped', 'abnormal_robot']",
+  "env.rewards.held.func: pib_grasp.mdp:object_held → pib_grasp.mdp:object_held_upright",
+  "env.rewards.held.params.rot_std: ∅ → 0.5",
+  "env.rewards.upright.func: pib_grasp.mdp:object_upright → ∅",
+  "env.rewards.upright.params.drop_start_s: 2.0 → ∅",
+  "env.rewards.upright.params.std: 0.2 → ∅",
+  "env.rewards.upright.weight: 2.0 → ∅",
+  "env.terminations.object_tilted.func: pib_grasp.mdp:object_tilted → ∅",
+  "env.terminations.object_tilted.params.max_tilt_deg: 20.0 → ∅",
+  "env.terminations.object_tilted.time_out: False → ∅"
  ]
 }

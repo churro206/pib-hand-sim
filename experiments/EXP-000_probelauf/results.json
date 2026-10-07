@@ -26,6 +26,7 @@
    }
   }
  ],
+ "anforderung_max_kipp_deg": 20,
  "aufgabenerfolg": {
   "mittel": 0.0,
   "ki95": [
@@ -76,7 +77,7 @@
   "startfehler": 0.019,
   "gefallen": 0.121,
   "instabil": 0.0,
-  "anforderung_verletzt": 0.86
+  "anforderung_verletzt": 0.861
  },
  "vergleich": {
   "urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)"

@@ -1,0 +1,48 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-004
+titel: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
+datum: '2026-10-07'
+eltern: EXP-000
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'EXP-001–003 scheiterten an der Belohnung, nicht am Kippabbruch: Annäherung
+  praktisch 0 (std 0,1), unbegrenzte Kraftstrafe > Annäherung → Policy spreizt die
+  Finger; ohne dichtes Haltesignal wird Halten nie entdeckt. Mit Dexsuites Belohnungssatz
+  (Annäherung std 0,4, Gegengriff, dichtes Halten und Aufrecht nur bei Gegengriff,
+  scharfer Erfolg Halten × Aufrecht, keine Kraftstrafe) greift die Policy wieder zu:
+  Haltequote deutlich > 0 (Richtung EXP-000: 86 %) und Kippwinkel deutlich < 104°;
+  Aufgabenerfolg ≤ 45° > 0. Erwartet: Kraft > 15 N und Stall-Anteil hoch (keine Kraftstrafe
+  mehr).'
+aenderung: 'Belohnungssatz nach Dexsuite (dexsuite_env_cfg.RewardsCfg) statt Eigenbau:
+  Annäherung std 0,4; Halten (2) und Aufrecht (4, std 1,5 rad) dicht, ab dem Absenken,
+  × Gegengriff; Erfolg (10) = Halten × Aufrecht (rot_std 0,5); Aktionsstrafen gekappt
+  (Dexsuite-Funktionen); Kraftstrafe entfällt; Abbruchstrafe nur für instabile Physik;
+  Absinken gegen die Höhe beim Absenken (Fehlerbehebung). Kein Kippabbruch (wie EXP-000).
+  Belohnungsterme vorab geprüft (isaac_sim/tools/_reward_diag.txt).'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:
+  - 42
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment

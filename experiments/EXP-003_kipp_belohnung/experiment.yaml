@@ -3,8 +3,7 @@ id: EXP-003
 titel: Kippen über multiplikative Belohnung statt Abbruch (Dexsuite)
 datum: '2026-10-07'
 eltern: EXP-001
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Der Kippabbruch (EXP-001/002) verhinderte das Erkunden des Greifens: die
   Policy spreizte die Finger (0 % gehalten). Dexsuite bricht bei Orientierung nicht
@@ -39,9 +38,11 @@ training:
 fenstertest: false              # nur Belohnung/Abbruch geändert, ohne trainierte Policy nichts zu sehen
 
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: f6a1b9b
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-03-30_EXP-003_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-13-39_EXP-003_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-23-21_EXP-003_s44
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

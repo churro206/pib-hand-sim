@@ -33,6 +33,8 @@ from isaaclab.utils import configclass
 
 from pib_hand_left_v5_cfg import PIB_HAND_LEFT_V5_CFG, SERVO_JOINTS
 
+from isaaclab_tasks.manager_based.manipulation.dexsuite.mdp import rewards as dexsuite_rewards
+
 from . import mdp
 
 # ── Geometrie (Hand-Root-Frame aus isaac_lab/_probe_geometry.py, 2026-10-04) ───
@@ -67,6 +69,8 @@ FSR_CLIP_N = 20.0             # Dexsuite: "contact force in finger tips is under
 # rot_std 0,5 rad wie Dexsuites success_reward. EXP-001/002: Abbruch bei 20° → Policy griff
 # gar nicht mehr zu (experiments/).
 UPRIGHT_ROT_STD = 0.5
+HOLD_STD_M = 0.02            # Absinken [m] für 1 − tanh(s/std)
+CONTACT_N = 1.0              # Kontaktschwelle Gegengriff (Dexsuite: threshold 1.0)
 
 
 @configclass
@@ -256,18 +260,25 @@ class EventCfg:
 
 @configclass
 class RewardsCfg:
-    # Gewichte für Aktion/Kontakt aus Dexsuite
-    action_l2 = RewTerm(func=base_mdp.action_l2, weight=-0.005)
-    action_rate_l2 = RewTerm(func=base_mdp.action_rate_l2, weight=-0.005)
-    fingertips_to_object = RewTerm(func=mdp.fingertips_to_object, weight=1.0, params={"std": 0.1})
-    good_contact = RewTerm(func=mdp.thumb_opposition_contact, weight=0.5, params={"threshold": 1.0})
-    # Erfolg: Dose bleibt nach dem Tisch-Absenken aufrecht in der Hand — multiplikativ wie Dexsuites
-    # success_reward (Position × Orientierung), ersetzt Dexsuites Zielpose
-    held = RewTerm(func=mdp.object_held_upright, weight=5.0,
-                   params={"drop_start_s": GRASP_TIME_S, "std": 0.02, "rot_std": UPRIGHT_ROT_STD})
-    excess_force = RewTerm(func=mdp.excess_fingertip_force, weight=-0.02, params={"limit": 15.0})
+    """Belohnungssatz wie Isaac Lab Dexsuite (dexsuite_env_cfg.RewardsCfg + KukaAllegroReorientRewardCfg),
+    Zielpose ersetzt durch „nach dem Absenken auf Starthöhe gehalten, aufrecht“ (EXP-004).
+    Alle Terme begrenzt; Beitrag je Sekunde = Gewicht × Term (Isaac Lab multipliziert mit dt)."""
+    # Aktion: Dexsuite-Funktionen direkt (gekappt bei 1000 als Schutz gegen Ausreißer)
+    action_l2 = RewTerm(func=dexsuite_rewards.action_l2_clamped, weight=-0.005)
+    action_rate_l2 = RewTerm(func=dexsuite_rewards.action_rate_l2_clamped, weight=-0.005)
+    # Annäherung (Dexsuite object_ee_distance, std 0,4) und Gegengriff (Dexsuite contacts, 0,5)
+    fingertips_to_object = RewTerm(func=mdp.fingertips_to_object, weight=1.0, params={"std": 0.4})
+    good_contact = RewTerm(func=mdp.thumb_opposition_contact, weight=0.5, params={"threshold": CONTACT_N})
+    # Dicht, ab dem Absenken, nur bei Gegengriff (Dexsuite position/orientation_command_error_tanh)
+    held = RewTerm(func=mdp.held_in_grasp, weight=2.0,
+                   params={"drop_start_s": GRASP_TIME_S, "std": HOLD_STD_M, "threshold": CONTACT_N})
+    upright = RewTerm(func=mdp.upright_in_grasp, weight=4.0,
+                      params={"drop_start_s": GRASP_TIME_S, "rot_std": 1.5, "threshold": CONTACT_N})
+    # Scharf: Halten × aufrecht (Dexsuite success_reward, pos_std/rot_std → Absinken/Kippwinkel)
+    success = RewTerm(func=mdp.object_held_upright, weight=10.0,
+                      params={"drop_start_s": GRASP_TIME_S, "std": HOLD_STD_M, "rot_std": UPRIGHT_ROT_STD})
     early_termination = RewTerm(func=base_mdp.is_terminated_term, weight=-1.0,
-                                params={"term_keys": ["object_dropped", "abnormal_robot"]})
+                                params={"term_keys": ["abnormal_robot"]})
 
 
 @configclass

@@ -1,6 +1,6 @@
 # EXP-000: Probelauf Dexsuite-Muster (Ausgangswert)
 
-Bedingung `zylinder_seitlich`, Protokoll eval-v1, 1 Seed(s)
+Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 1 Seed(s); Eltern-Spalte unter derselben Bedingung
 
 | Metrik | Wert | 95-%-KI | Eltern |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Bedingung `zylinder_seitlich`, Protokoll eval-v1, 1 Seed(s)
 | Absinken [mm] | 0 | | – |
 | Unruhe | 0.244 | | – |
 
-Fehlerarten: startfehler 1.9 %, gefallen 12.1 %, instabil 0.0 %, anforderung_verletzt 86.0 %
+Fehlerarten: startfehler 1.9 %, gefallen 12.1 %, instabil 0.0 %, anforderung_verletzt 86.1 %
 
 **Urteilsvorschlag: kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)**
 
