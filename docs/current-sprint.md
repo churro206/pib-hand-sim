@@ -198,7 +198,21 @@ Entscheidungen (Leon, 2026-10-06):
   **Hakengriff** (Tasche vom Gast übernehmen) — Stütz-/Randgriff, Besteck vorerst nicht
 - Actor bleibt blind (nur reale Sensoren), Objektpose **inkl. Orientierung** nur im Critic
 - Kein Lehrer/Schüler, kein LSTM: der Actor sieht schon nur reale Sensoren; eine Policy mit
-  Griffart als One-Hot statt Spezialisten + Destillation (nur falls das scheitert)
+  Griffart als One-Hot statt Spezialisten + Destillation (nur falls das scheitert) —
+  **abgelöst am 2026-10-07**, siehe unten
+
+Entscheidungen (Leon, 2026-10-07) — Greif-Architektur (`docs/architecture.md` → „Ziel-Architektur
+Greifen“):
+- Zweistufig wie Stand der Technik (GR00T System 2/1, DexGraspVLA, GRIT): oben wählt ein Planer
+  Objektkategorie → Startpose + Greifart (zuerst Regeltabelle), der Arm fährt die Vorgreifpose an,
+  unten schließt die blinde Hand-Policy aus Gelenkwinkeln + FSR
+- **Ein Spezialist je Greifart/Startpose** (der blinde Actor sieht die Handausrichtung nicht); ein
+  Spezialist deckt alle Objekte seiner Kategorie ab. Für den PoC zwei: **Kraftgriff seitlich**
+  (Milch, Becher, Flasche) und **Griff von oben** (Obst). Später ggf. in ein Netz mit Greifart als
+  One-Hot destillieren (UniDexGrasp++/UniGraspTransformer: erst Spezialisten, dann destillieren)
+- **Hakengriff hinten angestellt** (Stufe 5)
+- Offen mit dem IK-Team: Vorgreifpose je Greifart (in der Sim: Handfläche 3,5 cm vor der
+  Objektoberfläche) und Signal „Griff steht“ für das Anheben (in der Sim fest nach 2 s)
 
 **Phase 0 — Risiken zuerst**
 - [x] ONNX der Probelauf-Policy geprüft: 4× Gemm, 3× Elu, Sub/Div (Normalisierung), Opset 18,
@@ -278,9 +292,18 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 **Stufe 4 — andere Objekte** ← **als Nächstes** (Leon, 2026-10-07: Fokus von der Belohnung auf
 die Objekte; Fingernutzung/Seed-Streuung hängen vermutlich am 6-cm-Zylinder — Ring/kleiner Finger
 erreichen ihn kaum)
-- [ ] Bewertung: Objekt als Teil der Bedingung austauschbar (eval_policy.py + experiment.yaml)
-- [ ] Ohne Nachtraining (seitlich): EXP-004/006-Policies an Quader 7 × 7 × 20 cm (Milchpackung),
-      Zylinder Ø 8 cm (Becher), Zylinder Ø 6 cm (Referenz), ggf. Kugel Ø 7 cm; Masse wie Training
+Plan (Leon, 2026-10-07): Objektkatalog in `env_cfg.py` (Standard `zylinder_d6` = bisherige Szene),
+Abstand Handfläche ↔ **Objektoberfläche** konstant 3,5 cm, Quader mit einer Fläche zur Hand
+(Drehung ±15° statt beliebig), Masse wie Training; Kugel gehört zu Stufe 4b (seitlich liegt sie
+unter dem Daumen).
+- [ ] Objektkatalog + `apply_object()` (`env_cfg.py`); `eval_policy.py --objekt --bedingung` →
+      `eval-v1_<bedingung>.json` (Standardbedingung bleibt `eval-v1.json`)
+- [ ] `experiments.py`: mehrere Bedingungen je Experiment (`objekt_id` in `bedingungen`),
+      Bericht/Index je Bedingung, Experimente ohne Training (`training: null`, bewertet fremde Läufe)
+- [ ] Fenstertest je Objekt (Spawn, Reset-Überlappung) — Leon schaut zu
+- [ ] **EXP-008** Transfer ohne Nachtraining: EXP-004-Läufe an Zylinder Ø 6 cm (Referenz), Ø 8 cm
+      (Becher), Quader 7 × 7 × 20 cm (Milchpackung)
+- [ ] **EXP-009** dasselbe für EXP-006 (Masse 0,04–0,4 kg, greift mit 3 Fingern)
 - [ ] Machbarkeit je Objekt mit realistischer Masse (1-l-Milch ≈ 1 kg)
 - [ ] Training mit Objektvielfalt (Dexsuite `MultiAssetSpawnerCfg`), 5 Seeds
 
@@ -292,8 +315,9 @@ passen auf den Nucleo), später ggf. Startpose als One-Hot-Eingang (GRIT).
 - [ ] Szene „von oben“ (Hand gedreht, Tisch/Objekt angepasst), Machbarkeitstest Kugel/kleiner Zylinder
 - [ ] Spezialist mit Dexsuite-Belohnung, Bedingung ohne Kippanforderung
 
-**Stufe 5 — Hakengriff (Tasche)**: eigene Startpose (von oben), Henkel als starrer Körper;
-weiterer Spezialist oder Griffart-One-Hot (passt auf den Nucleo)
+**Stufe 5 — Hakengriff (Tasche)** — **hinten angestellt** (Leon, 2026-10-07): eigene Startpose
+(von oben), Henkel als starrer Körper; voraussichtlich eigener Spezialist (Bewegung grundverschieden:
+Finger um den Henkel, Daumen fast passiv)
 
 **Zurückgestellt** (erst bei Bedarf, mit Begründung aus einer Messung): ReLU statt ELU (ELU
 läuft auf der NPU; erst wenn int8 vs. float es verlangt), Stall-Strafe, Masse-Curriculum,

@@ -172,6 +172,30 @@ Isaac Lab (conda env_isaaclab)                         reale Hand (Ziel)
   (Machbarkeit ohne Policy), `_probe_geometry.py`/`_debug_scene.py` (Diagnose).
 - Schnittstelle Policy ↔ Firmware: `docs/conventions.md` → „Isaac Lab“.
 
+### Ziel-Architektur Greifen (Vorschlag, 2026-10-07)
+
+```
+oben   Planer (PC, später Jetson Thor)    Objektkategorie → Startpose + Greifart
+       zuerst Regeltabelle, später gelernt (VLM, GraspGen)
+Arm    IK-Team (ros2_control)             fährt die Vorgreifpose an, hebt nach „Griff steht“
+unten  Hand-Policy (STM32N657, NPU)       Spezialist der Greifart, blind: 8 Gelenkwinkel + 5 FSR
+```
+
+| Greifart | Startpose | Objekte | Stand |
+|---|---|---|---|
+| Kraftgriff seitlich | seitlich, Daumen oben | Milch, Becher, Flasche | Stufe 4 (`pib_grasp`, EXP-004) |
+| Griff von oben | von oben | Obst | Stufe 4b |
+| Hakengriff | von oben | Tasche | hinten angestellt |
+
+- Stand der Technik ist zweistufig: Planer wählt *was/wie*, schneller Regler führt aus (GR00T
+  N1.6 System 2/1, DexGraspVLA, GRIT mit Greifart als Kommando). Ein einzelnes Netz für alles
+  (DextrAH-RGB) sieht das Objekt — unser Actor ist blind und kennt die Handausrichtung nicht.
+- Ein Spezialist je Greifart, der alle Objekte seiner Kategorie über Tasten abdeckt (HORA);
+  Umschalten = andere Gewichte laden (je ~70 kB int8). Später ggf. Destillation in ein Netz mit
+  Greifart-One-Hot (UniDexGrasp++, UniGraspTransformer: erst Spezialisten, dann destillieren).
+- Offen mit dem IK-/Greifpunkt-Team: Vorgreifpose je Greifart (Sim: Handfläche 3,5 cm vor der
+  Objektoberfläche) und das Signal „Griff steht“ (Sim: Tisch senkt sich fest nach 2 s).
+
 ---
 
 ## Robot-Prim (v4)
