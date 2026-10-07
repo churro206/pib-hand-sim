@@ -29,8 +29,17 @@ logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     video_eval/videos/            Video der ersten Episoden (erster Seed)
 ```
 
-`experiments/` ist im Git (nur Text), Checkpoints/Logs nicht. Meilenstein-Policies zusätzlich
-als GitHub Release mit Tag am Trainings-Commit.
+`experiments/` ist im Git (nur Text), Checkpoints/Logs nicht. **Sicherung der Policies** nach jedem
+Experiment in das private Hugging-Face-Repo [`churro206/pib-grasp-policies`](https://huggingface.co/churro206/pib-grasp-policies)
+(je Lauf letzter Checkpoint, Export, Konfiguration, Metadaten, Bewertung, Log, Video; ~5 MB/Lauf;
+unveränderte Dateien werden nicht erneut hochgeladen):
+```bash
+~/IsaacLab/isaaclab.sh -p isaac_lab/backup_policies.py            # Probelauf
+~/IsaacLab/isaaclab.sh -p isaac_lab/backup_policies.py --upload   # hochladen
+```
+Anmeldung einmalig `hf auth login` (fine-grained Token „pib-hand-sim backup“: Repos lesen, Repos
+anlegen/nur selbst angelegte beschreiben). Meilenstein-Policies zusätzlich als GitHub Release mit
+Tag am Trainings-Commit.
 
 ## Ablauf (7 Schritte)
 
@@ -42,7 +51,7 @@ als GitHub Release mit Tag am Trainings-Commit.
 | 4 | **Evaluieren**: festes Protokoll (unten), letzter Checkpoint | automatisch | `experiments.py run` → `eval_policy.py` |
 | 5 | **Sichten**: Video, Auffälligkeiten | automatisch aufgenommen, Leon schaut | `videos/` im Laufordner |
 | 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel | automatisch, Leon bestätigt | `results.json`, `bericht.md` |
-| 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment | Leon (Claude schlägt vor) | `experiments.py done` |
+| 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment; Policies sichern | Leon (Claude schlägt vor) | `experiments.py done`, `backup_policies.py --upload` |
 
 Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 ```bash
