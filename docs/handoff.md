@@ -16,7 +16,7 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 ### Offene Punkte
 
 - **Seed 43 scheitert in jedem Experiment** (14–56 %, Griff mit dem kleinen Finger) — Hauptquelle der Streuung; EXP-004–007 haben nur 3 Seeds (45, 46 nachrechnen, wenn ein Vergleich nötig wird).
-- Urteile in EXP-001–007 sind Entwürfe („von Leon zu bestätigen“); EXP-005–007 haben noch keinen Schluss-Text.
+- Urteile in EXP-001–007 sind Entwürfe („von Leon zu bestätigen“); alle haben Ergebnis und Schluss.
 - Kraft/Stall hoch (Griffkraft 58–85 N, Stall ~100 %) — Kraftstrafe vorerst bewusst nicht (Leon).
 - Manche Seeds beugen das Handgelenk an den Anschlag (−60°, Pleuel-Totlage; EXP-005 s42, Dose 7 cm näher am Arm) — in der Sim bis 12 Nm, Wert ist eine Annahme (ADR-014).
 - Reset-Überlappung Daumen ↔ Dose (~0,5–2 % Startfehler) noch nicht behoben.
