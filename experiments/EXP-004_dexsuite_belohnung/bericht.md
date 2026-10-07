@@ -1,8 +1,8 @@
 # EXP-004: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 
-Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-000 unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-000 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 77.3 % | 56.4 % – 88.9 % | 82.5 % | 0.0 % | 2.0 % / 2.0 % |
 | haltequote | 90.1 % | 88.7 % – 91.5 % | 90.3 % | 0.0 % | 86.1 % / 86.1 % |
@@ -16,7 +16,7 @@ Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s
 
 Fehlerarten: startfehler 0.5 %, gefallen 9.4 %, instabil 0.0 %, anforderung_verletzt 12.8 %
 
-**Urteilsvorschlag: Leitplanke verletzt (vorläufig: < 3 Seeds)**
+**Urteilsvorschlag: Leitplanke verletzt (vorläufig: < 3 Seeds)** (gegenüber EXP-000)
 Unterschied Aufgabenerfolg +75.0 Prozentpunkte (95-%-KI +54.5 … +87.1)
 - Leitplanke: Griffkraft Mittel [N]: 58.4 > 28.7
 - Leitplanke: Kraft > 15 N [Anteil]: 0.992 > 0.143
@@ -24,7 +24,7 @@ Unterschied Aufgabenerfolg +75.0 Prozentpunkte (95-%-KI +54.5 … +87.1)
 
 Je Seed: 88.3 %, 56.0 %, 87.7 %
 
-Fingernutzung (Haltephase): im Mittel 2.00 Finger an der Dose; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 98/100/0/1/2 · 99/5/1/6/91 · 100/0/99/0/0
+Fingernutzung (Haltephase): im Mittel 2.00 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 98/100/0/1/2 · 99/5/1/6/91 · 100/0/99/0/0
 
 ## Trainingsverlauf
 

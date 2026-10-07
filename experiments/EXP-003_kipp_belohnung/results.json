@@ -7,6 +7,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-23-21_EXP-003_s44"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.0,
@@ -141,7 +142,8 @@
    0.0,
    0.0
   ],
-  "leitplanken_verletzt": []
+  "leitplanken_verletzt": [],
+  "gegen": "EXP-001"
  },
  "konfig_unterschiede": [
   "env.rewards.early_termination.params.term_keys: ['object_dropped', 'object_tilted', 'abnormal_robot'] → ['object_dropped', 'abnormal_robot']",

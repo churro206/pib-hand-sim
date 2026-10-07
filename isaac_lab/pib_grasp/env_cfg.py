@@ -45,13 +45,14 @@ HAND_ROT = (math.cos(math.pi / 4), 0.0, math.sin(math.pi / 4), 0.0)   # (w, x, y
 
 OBJECT_RADIUS = 0.03          # Dose Ø 6 cm
 OBJECT_HEIGHT = 0.15
+PALM_GAP = 0.035              # Handfläche ↔ Objektoberfläche (Vorgreifpose, für alle Objekte gleich)
 # Tischplatte 8,5 cm unter dem Hand-Root: die Spitze des kleinen Fingers liegt bei
 # −6,3 cm (_debug_scene.py), bei −6 cm stieß sie an den Tisch
 TABLE_TOP_Z = HAND_POS[2] - 0.085
 # Dosenmitte: 6,5 cm vor der Handfläche (−x), auf Höhe der Grundglieder zwischen MCP
 # (y ≈ −0,31) und PIP (y ≈ −0,35), steht auf dem Tisch. Bis 2026-10-04 y = −0,32: die
 # Finger zogen die Dose Richtung Handgelenk, bis sie hinten vom Tisch rutschte.
-OBJECT_POS = (HAND_POS[0] - 0.065, HAND_POS[1] - 0.34, TABLE_TOP_Z + OBJECT_HEIGHT / 2)
+OBJECT_POS = (HAND_POS[0] - PALM_GAP - OBJECT_RADIUS, HAND_POS[1] - 0.34, TABLE_TOP_Z + OBJECT_HEIGHT / 2)
 OBJECT_POS_RANGE = {"x": (-0.01, 0.01), "y": (-0.02, 0.02)}
 # Tisch: endet 4 cm vor dem Hand-Root (x), damit die Hand ihn nie berührt; in y von
 # 16 cm vor bis 29 cm hinter der Dose, damit eine verrutschte Dose nicht sofort fällt
@@ -71,6 +72,20 @@ FSR_CLIP_N = 20.0             # Dexsuite: "contact force in finger tips is under
 UPRIGHT_ROT_STD = 0.5
 HOLD_STD_M = 0.02            # Absinken [m] für 1 − tanh(s/std)
 CONTACT_N = 1.0              # Kontaktschwelle Gegengriff (Dexsuite: threshold 1.0)
+
+
+# ── Objektkatalog (Bedingungen, experiments/README.md) ───────────────────────────────────
+# Seitlich greifen braucht ≥ ~15 cm Höhe: die Fingerspitzen liegen 2,5–16,5 cm über der
+# Tischplatte (kleiner Finger … Daumen, _debug_scene.py, 2026-10-07); tiefer geht die Hand
+# nicht, sonst stößt der kleine Finger an den Tisch.
+# form, Maße [m] (Zylinder: Radius, Höhe; Quader: x, y, z), Drehung beim Reset [rad]
+OBJECTS = {
+    "zylinder_d6": {"form": "zylinder", "masse": (0.03, 0.15), "gier": (-math.pi, math.pi)},      # Dose (Training)
+    "zylinder_d8": {"form": "zylinder", "masse": (0.04, 0.15), "gier": (-math.pi, math.pi)},      # dicke Dose/Becher
+    # Milchpackung: eine Fläche zur Hand ±15° (so würde ein Greifplaner anfahren)
+    "quader_7x7x20": {"form": "quader", "masse": (0.07, 0.07, 0.20), "gier": (-math.radians(15), math.radians(15))},
+}
+DEFAULT_OBJECT = "zylinder_d6"
 
 
 @configclass
@@ -328,6 +343,26 @@ class PibGraspEnvCfg_Heavy(PibGraspEnvCfg):
     def __post_init__(self):
         super().__post_init__()
         self.events.object_mass.params["mass_distribution_params"] = (0.04, 0.4)
+
+
+def apply_object(cfg: PibGraspEnvCfg, key: str) -> PibGraspEnvCfg:
+    """Objekt aus OBJECTS einsetzen: Form/Maße, Startlage (Oberfläche PALM_GAP vor der Handfläche,
+    steht auf dem Tisch) und Drehung beim Reset. Physik, Masse, Material bleiben wie konfiguriert."""
+    spec = OBJECTS[key]
+    old = cfg.scene.object.spawn
+    common = {k: getattr(old, k) for k in ("rigid_props", "collision_props", "mass_props", "physics_material",
+                                           "visual_material")}
+    if spec["form"] == "zylinder":
+        radius, height = spec["masse"]
+        cfg.scene.object.spawn = sim_utils.CylinderCfg(radius=radius, height=height, **common)
+        depth = radius
+    else:
+        size = spec["masse"]
+        cfg.scene.object.spawn = sim_utils.CuboidCfg(size=size, **common)
+        depth, height = size[0] / 2, size[2]
+    cfg.scene.object.init_state.pos = (HAND_POS[0] - PALM_GAP - depth, OBJECT_POS[1], TABLE_TOP_Z + height / 2)
+    cfg.events.reset_object.params["pose_range"]["yaw"] = spec["gier"]
+    return cfg
 
 
 @configclass

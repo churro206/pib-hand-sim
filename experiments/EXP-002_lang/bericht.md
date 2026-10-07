@@ -1,8 +1,8 @@
 # EXP-002: Langer Lauf (Lift-Rezept: 1500 Iterationen)
 
-Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-001 unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-001 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 0.0 % / 0.0 % |
 | haltequote | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 0.0 % / 0.0 % |
@@ -16,7 +16,7 @@ Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s
 
 Fehlerarten: startfehler 2.1 %, gefallen 97.9 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
-**Urteilsvorschlag: kein messbarer Unterschied**
+**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-001)
 Unterschied Aufgabenerfolg +0.0 Prozentpunkte (95-%-KI +0.0 … +0.0)
 
 Je Seed: 0.0 %, 0.0 %, 0.0 %

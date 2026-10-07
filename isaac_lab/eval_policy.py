@@ -6,7 +6,9 @@ Exportierter Actor (TorchScript, deterministisch) in der Greifaufgabe; nur die A
 Ende, größter Kippwinkel, Unterarmdrehung, Griffkraft/Kraft > 15 N in der Haltephase,
 Stall-Anteil, Absinken, Unruhe. Ausgabe: <protokoll>.txt + <protokoll>.json (Metriken, Erfolg je
 Episode für den Bootstrap in experiments.py) — je Protokollversion eine Datei, nichts wird
-bei einer neuen Version überschrieben.
+bei einer neuen Version überschrieben. Andere Bedingung (Objekt aus env_cfg.OBJECTS):
+--objekt quader_7x7x20 --bedingung quader_seitlich → <protokoll>_<bedingung>.json/.txt
+(Standardbedingung zylinder_seitlich bleibt <protokoll>.json).
 
   ~/IsaacLab/isaaclab.sh -p isaac_lab/eval_policy.py --policy <run>/exported/policy.pt --num_envs 16 --real_time
   ~/IsaacLab/isaaclab.sh -p isaac_lab/eval_policy.py --checkpoint <run>/model_299.pt --headless
@@ -29,6 +31,8 @@ parser.add_argument("--num_envs", type=int, default=256)
 parser.add_argument("--episodes", type=int, default=1000, help="Zahl der gewerteten Episoden")
 parser.add_argument("--seed", type=int, default=1000, help="Bewertungs-Seed (≠ Trainings-Seeds)")
 parser.add_argument("--max_kipp_deg", type=float, default=20.0, help="Anforderung; < 0 = keine")
+parser.add_argument("--objekt", type=str, default="zylinder_d6", help="Objekt aus env_cfg.OBJECTS")
+parser.add_argument("--bedingung", type=str, default="zylinder_seitlich", help="Name der Bedingung (Dateiname)")
 parser.add_argument("--out", type=str, default=None, help="Ausgabeordner (<protokoll>.json/.txt); "
                     "Standard: Laufordner bzw. isaac_sim/tools/")
 parser.add_argument("--video", type=int, default=0, help="Schritte Video am Anfang (0 = aus)")
@@ -50,7 +54,7 @@ import torch  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pib_grasp  # noqa: E402,F401
 from pib_grasp import mdp  # noqa: E402
-from pib_grasp.env_cfg import DROP_DEPTH, DROP_SPEED, GRASP_TIME_S, PibGraspEnvCfg  # noqa: E402
+from pib_grasp.env_cfg import DROP_DEPTH, DROP_SPEED, GRASP_TIME_S, PibGraspEnvCfg, apply_object  # noqa: E402
 from pib_hand_left_v5_cfg import SERVO_JOINTS, WRIST_JOINT  # noqa: E402
 
 HOLD_START_S = GRASP_TIME_S + DROP_DEPTH / DROP_SPEED     # Tisch unten → Haltephase
@@ -60,7 +64,7 @@ STALL_FRACTION = 0.9
 REQ_DEG = args_cli.max_kipp_deg if args_cli.max_kipp_deg >= 0 else None
 
 # ── Umgebung: wie im Training, nur Abbrüche „gefallen“ und „instabil“ ─────────────────────
-cfg = PibGraspEnvCfg()
+cfg = apply_object(PibGraspEnvCfg(), args_cli.objekt)
 cfg.scene.num_envs = args_cli.num_envs
 cfg.seed = args_cli.seed
 if getattr(cfg.terminations, "object_tilted", None) is not None:   # trainingsspezifisch (EXP-001/002)
@@ -89,8 +93,9 @@ out_dir = Path(args_cli.out) if args_cli.out else (
     Path(args_cli.policy).resolve().parent.parent if "exported" in args_cli.policy
     else Path(__file__).resolve().parent.parent / "isaac_sim" / "tools")
 out_dir.mkdir(parents=True, exist_ok=True)
+STEM = PROTOCOL if args_cli.bedingung == "zylinder_seitlich" else f"{PROTOCOL}_{args_cli.bedingung}"
 if args_cli.video:
-    env = gym.wrappers.RecordVideo(env, video_folder=str(out_dir / "videos"), step_trigger=lambda s: s == 0,
+    env = gym.wrappers.RecordVideo(env, video_folder=str(out_dir / ("videos" if STEM == PROTOCOL else f"videos_{args_cli.bedingung}")), step_trigger=lambda s: s == 0,
                                    video_length=args_cli.video, disable_logger=True)
 policy = torch.jit.load(args_cli.policy, map_location=uenv.device).eval()
 obs, _ = env.reset(seed=args_cli.seed)
@@ -222,7 +227,8 @@ summary = {
     },
 }
 result = {
-    "protokoll": PROTOCOL, "policy": str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
+    "protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt,
+    "policy": str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
     "episoden": E, "umgebungen": N, "anforderung": {"max_kipp_deg": REQ_DEG},
     "dauer_s": round(time.time() - t_start, 1), "zusammenfassung": summary,
     "netz": {"eingaenge": int(obs["policy"].shape[-1]), "ausgaenge": int(uenv.action_manager.total_action_dim),
@@ -243,7 +249,7 @@ def num(x, unit="", digits=1):
 
 L = summary["leitplanken"]
 lines = [
-    f"Bewertung {PROTOCOL}: {args_cli.policy}",
+    f"Bewertung {PROTOCOL}, Bedingung {args_cli.bedingung} (Objekt {args_cli.objekt}): {args_cli.policy}",
     f"{E} Episoden, {N} Umgebungen, Seed {args_cli.seed}, Anforderung Kippwinkel ≤ {REQ_DEG}°",
     "",
     f"Aufgabenerfolg      {pct(summary['aufgabenerfolg'])}",
@@ -264,8 +270,8 @@ lines = [
 ]
 if args_cli.video and getattr(env, "recording", False):
     env.stop_recording()                        # Video schreiben, auch wenn kürzer als --video
-(out_dir / f"{PROTOCOL}.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
-(out_dir / f"{PROTOCOL}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+(out_dir / f"{STEM}.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+(out_dir / f"{STEM}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 print("\n".join(lines), flush=True)
-print(f"Bericht: {out_dir / (PROTOCOL + '.txt')}", flush=True)
+print(f"Bericht: {out_dir / (STEM + '.txt')}", flush=True)
 os._exit(0)

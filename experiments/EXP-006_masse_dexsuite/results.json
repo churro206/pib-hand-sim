@@ -7,6 +7,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-21-47_EXP-006_s44"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.933,
@@ -242,7 +243,8 @@
    "Kippwinkel Median [°]: 33.8 > 31.6",
    "Unterarm Median [°]: 42.6 > 35.8",
    "Griffkraft Mittel [N]: 85.3 > 70.1"
-  ]
+  ],
+  "gegen": "EXP-004"
  },
  "konfig_unterschiede": [
   "env.events.object_mass.params.mass_distribution_params: (0.05, 0.2) → (0.04, 0.4)"

@@ -5,6 +5,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.0,
@@ -91,7 +92,8 @@
   "anforderung_verletzt": 0.861
  },
  "vergleich": {
-  "urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)"
+  "urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)",
+  "gegen": null
  },
  "konfig_unterschiede": []
 }

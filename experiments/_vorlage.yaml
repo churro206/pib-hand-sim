@@ -11,6 +11,7 @@ aenderung: ""                   # genau eine Änderung gegenüber den Eltern
 bedingungen:                    # Objekt × Startpose × Anforderung
   - name: zylinder_seitlich
     objekt: "Zylinder Ø 6 cm, 15 cm, 0,05–0,2 kg"
+    objekt_id: zylinder_d6      # pib_grasp/env_cfg.py → OBJECTS
     startpose: "seitlich, Daumen oben"
     anforderung:
       max_kipp_deg: 20          # null = keine Kippanforderung

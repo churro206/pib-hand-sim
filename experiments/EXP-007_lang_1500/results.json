@@ -7,6 +7,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.92,
@@ -240,7 +241,8 @@
   ],
   "leitplanken_verletzt": [
    "Unruhe: 1.86 > 1.21"
-  ]
+  ],
+  "gegen": "EXP-004"
  },
  "konfig_unterschiede": [
   "agent.max_iterations: 300 → 1500"

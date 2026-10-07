@@ -1,8 +1,8 @@
 # EXP-007: EXP-004 mit 1500 Iterationen
 
-Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-004 unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-004 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 69.4 % | 21.9 % – 94.4 % | 80.7 % | 33.3 % | 77.3 % / 82.5 % |
 | haltequote | 92.8 % | 91.0 % – 94.6 % | 92.7 % | 0.0 % | 90.1 % / 90.3 % |
@@ -16,13 +16,13 @@ Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s
 
 Fehlerarten: startfehler 0.3 %, gefallen 6.9 %, instabil 0.0 %, anforderung_verletzt 23.4 %
 
-**Urteilsvorschlag: kein messbarer Unterschied**
+**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-004)
 Unterschied Aufgabenerfolg -8.3 Prozentpunkte (95-%-KI -33.6 … +6.7)
 - Leitplanke: Unruhe: 1.86 > 1.21
 
 Je Seed: 92.0 %, 21.7 %, 94.5 %
 
-Fingernutzung (Haltephase): im Mittel 2.25 Finger an der Dose; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 97/100/0/0/2 · 100/75/0/0/100 · 100/0/100/0/0
+Fingernutzung (Haltephase): im Mittel 2.25 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 97/100/0/0/2 · 100/75/0/0/100 · 100/0/100/0/0
 
 ## Trainingsverlauf
 

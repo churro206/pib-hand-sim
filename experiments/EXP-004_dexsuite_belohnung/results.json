@@ -7,6 +7,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-31-37_EXP-004_s44"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.883,
@@ -242,7 +243,8 @@
    "Griffkraft Mittel [N]: 58.4 > 28.7",
    "Kraft > 15 N [Anteil]: 0.992 > 0.143",
    "Unruhe: 1.01 > 0.293"
-  ]
+  ],
+  "gegen": "EXP-000"
  },
  "konfig_unterschiede": [
   "env.observations.critic.object_quat.clip: ∅ → None",

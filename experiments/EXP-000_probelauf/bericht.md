@@ -1,6 +1,6 @@
 # EXP-000: Probelauf Dexsuite-Muster (Ausgangswert)
 
-Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 1 Seed(s); Eltern-Spalte unter derselben Bedingung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Protokoll eval-v1, 1 Seed(s); Spalte Eltern unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
 |---|---|---|---|---|---|

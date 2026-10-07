@@ -5,9 +5,10 @@ Läuft mit System-Python (PyYAML, numpy), Isaac Lab nur als Unterprozess über i
 die conda-Umgebung env_isaaclab muss aktiv sein (isaaclab.sh nimmt deren Python).
 
   /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-001 --kurz name --titel "..."
+  /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-004 --kurz name --titel "..." --ohne-training
   /usr/bin/python3 isaac_lab/experiments.py bench --envs 2048 4096      # Durchsatz → umgebungen: auto
   /usr/bin/python3 isaac_lab/experiments.py run  EXP-001 [EXP-002 ...]  # Kurztest, Training, Bewertung, Bericht
-  /usr/bin/python3 isaac_lab/experiments.py eval EXP-000                # nur (neu) bewerten + Bericht
+  /usr/bin/python3 isaac_lab/experiments.py eval EXP-000 [--neu]        # fehlende (--neu: alle) Bewertungen + Bericht
   /usr/bin/python3 isaac_lab/experiments.py bericht EXP-000             # nur Bericht + Trainingsdiagramme neu
   /usr/bin/python3 isaac_lab/experiments.py done                        # index.md neu erzeugen
 
@@ -174,10 +175,13 @@ def cmd_new(a):
     d.mkdir()
     text = (EXP_DIR / "_vorlage.yaml").read_text(encoding="utf-8")
     (d / "experiment.yaml").write_text(text, encoding="utf-8")
-    training = dict(parent["training"])
-    training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44, 45, 46})   # README: 5 Seeds
+    if a.ohne_training:          # nur bewerten: Läufe der Eltern unter eigenen Bedingungen
+        training, extra = None, {"laeufe_von": a.eltern, "fenstertest": True}
+    else:
+        training, extra = dict(parent["training"]), {}
+        training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44, 45, 46})   # README: 5 Seeds
     save_fields(d, id=new_id, titel=a.titel, datum=f"{dt.date.today()}", eltern=a.eltern,
-                bedingungen=parent["bedingungen"], training=training, protokoll=parent["protokoll"])
+                bedingungen=parent["bedingungen"], training=training, protokoll=parent["protokoll"], **extra)
     log(f"{new_id} angelegt: {d.relative_to(REPO)} (Eltern {a.eltern})")
     if parent.get("commit"):
         base = str(parent["commit"]).split("+")[0]
@@ -253,8 +257,29 @@ def write_meta(run_dir: Path, exp_id: str, seed: int, train_info: dict, cmdline:
         subprocess.run(["tar", "czf", str(run_dir / "pib_hand_sim_untracked.tar.gz"), *untracked], cwd=REPO)
 
 
-def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path) -> dict | None:
-    req = exp["bedingungen"][0]["anforderung"].get("max_kipp_deg")
+DEFAULT_CONDITION = "zylinder_seitlich"      # Bewertung ohne Suffix (eval-v1.json), Objekt zylinder_d6
+DEFAULT_OBJECT = "zylinder_d6"
+
+
+def stem(exp: dict, cond: dict) -> str:
+    """Dateiname der Bewertung je Bedingung (wie eval_policy.py)."""
+    return exp["protokoll"] if cond["name"] == DEFAULT_CONDITION else f"{exp['protokoll']}_{cond['name']}"
+
+
+def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path, neu: bool = False) -> bool:
+    """Lauf unter allen Bedingungen bewerten. Vorhandene Bewertungen bleiben (neu=True: neu bewerten) —
+    Experimente ohne Training teilen sich die Läufe mit ihrer Quelle, deren Zahlen sollen stehen bleiben."""
+    ok = True
+    with open(log_file, "a", encoding="utf-8") as out:
+        for cond in exp["bedingungen"]:
+            if neu or not (run_dir / f"{stem(exp, cond)}.json").exists():
+                evaluate_condition(run_dir, exp, cond, video, out)
+            ok &= (run_dir / f"{stem(exp, cond)}.json").exists()
+    return ok
+
+
+def evaluate_condition(run_dir: Path, exp: dict, cond: dict, video: bool, out):
+    req = cond["anforderung"].get("max_kipp_deg")
     # Regel: immer der LETZTE Checkpoint, nie der beste nach Bewertung (sonst Auswahl-Verzerrung)
     ckpts = sorted(run_dir.glob("model_*.pt"), key=lambda p: int(p.stem.split("_")[1]))
     exported = run_dir / "exported" / "policy.pt"
@@ -264,17 +289,16 @@ def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path) -> dict | No
         src = ["--policy", str(exported)]
     else:
         src = ["--checkpoint", str(ckpts[-1])]
-    base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--max_kipp_deg", str(req if req is not None else -1)]
-    with open(log_file, "w", encoding="utf-8") as out:
-        subprocess.run(base + src + ["--num_envs", str(EVAL["umgebungen"]), "--episodes", str(EVAL["episoden"]),
-                                     "--out", str(run_dir)], cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
-        if video:
-            subprocess.run(base + ["--policy", str(run_dir / "exported" / "policy.pt"),
-                                   "--num_envs", str(EVAL["video_umgebungen"]), "--episodes", str(EVAL["video_umgebungen"]),
-                                   "--video", str(EVAL["video_schritte"]), "--out", str(run_dir / "video_eval")],
-                           cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
-    p = run_dir / f"{exp['protokoll']}.json"
-    return json.loads(p.read_text()) if p.exists() else None
+    base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--max_kipp_deg", str(req if req is not None else -1),
+            "--objekt", cond.get("objekt_id") or DEFAULT_OBJECT, "--bedingung", cond["name"]]
+    log(f"    Bedingung {cond['name']}")
+    subprocess.run(base + src + ["--num_envs", str(EVAL["umgebungen"]), "--episodes", str(EVAL["episoden"]),
+                                 "--out", str(run_dir)], cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
+    if video:
+        subprocess.run(base + ["--policy", str(run_dir / "exported" / "policy.pt"),
+                               "--num_envs", str(EVAL["video_umgebungen"]), "--episodes", str(EVAL["video_umgebungen"]),
+                               "--video", str(EVAL["video_schritte"]), "--out", str(run_dir / "video_eval")],
+                       cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
 
 
 # ── Statistik ─────────────────────────────────────────────────────────────────
@@ -302,24 +326,29 @@ def boot_means(per_seed: list[np.ndarray], rng) -> np.ndarray:
     return out
 
 
-def requirement(exp: dict):
-    return exp["bedingungen"][0]["anforderung"].get("max_kipp_deg")
+def requirement(cond: dict):
+    return cond["anforderung"].get("max_kipp_deg")
 
 
-def aggregate(exp_dir: Path, exp: dict, req="eigene") -> dict:
-    """Ergebnisse aller Seeds; Anforderung (max. Kippwinkel) wird hier angewandt — für den
-    Vergleich mit den Eltern deren Rohdaten unter der Bedingung des Kindes (req=...)."""
-    req = requirement(exp) if req == "eigene" else req
+def find_condition(exp: dict, name: str) -> dict | None:
+    return next((c for c in exp["bedingungen"] if c["name"] == name), None)
+
+
+def aggregate(exp: dict, cond: dict, req="eigene") -> dict:
+    """Ergebnisse aller Seeds unter einer Bedingung; Anforderung (max. Kippwinkel) wird hier angewandt —
+    für den Vergleich mit den Eltern deren Rohdaten unter der Anforderung des Kindes (req=...)."""
+    req = requirement(cond) if req == "eigene" else req
     evals = []
     for r in dict.fromkeys(exp.get("laeufe") or []):      # doppelte Einträge nur einmal zählen
-        p = REPO / r / f"{exp['protokoll']}.json"
+        p = REPO / r / f"{stem(exp, cond)}.json"
         if p.exists():
             evals.append(json.loads(p.read_text()))
     if not evals:
         return {}
     rng = np.random.default_rng(0)
     res = {"protokoll": evals[0]["protokoll"], "seeds": len(evals), "laeufe": exp.get("laeufe"),
-           "bedingung": exp["bedingungen"][0]["name"], "je_seed": [e["zusammenfassung"] for e in evals]}
+           "bedingung": cond["name"], "objekt": cond.get("objekt_id") or DEFAULT_OBJECT,
+           "je_seed": [e["zusammenfassung"] for e in evals]}
     def success(e):
         held = np.array(e["gehalten_je_episode"], bool)
         if "kipp_je_episode" not in e:          # ältere Bewertung: Anforderung schon angewandt
@@ -423,40 +452,56 @@ def training_section(tr: dict) -> list[str]:
     return lines
 
 
-def report(exp_id: str):
-    d, exp = load(exp_id)
-    res = aggregate(d, exp)
+def _clean(res: dict) -> dict:
+    return {k: ({kk: vv for kk, vv in v.items() if kk != "_boot"} if isinstance(v, dict) else v)
+            for k, v in res.items() if k != "_params"}
+
+
+def _pct(x):
+    return "–" if x is None else f"{100 * x:.1f} %"
+
+
+def condition_result(exp: dict, cond: dict, pexp: dict | None, first: dict | None) -> tuple[dict, dict, str]:
+    """Ergebnis einer Bedingung + Vergleichspartner: die Eltern unter derselben Bedingung (eigene Läufe
+    vorausgesetzt), sonst — bei Experimenten auf fremden Läufen — die Referenzbedingung (erste)."""
+    res = aggregate(exp, cond)
     if not res:
-        log(f"{exp_id}: keine Bewertungen gefunden")
-        return
-    tr = training_plots(d, exp)
-    parent_res = {}
-    if exp.get("eltern"):
-        pd, pexp = load(exp["eltern"])
-        parent_res = aggregate(pd, pexp, req=requirement(exp))     # Eltern unter der Bedingung des Kindes
-    res["vergleich"] = verdict(res, parent_res)
-    res["konfig_unterschiede"] = config_diff(res["_params"], parent_res["_params"]) if parent_res else []
-    clean = {k: ({kk: vv for kk, vv in v.items() if kk != "_boot"} if isinstance(v, dict) else v)
-             for k, v in res.items() if k != "_params"}
-    (d / "results.json").write_text(json.dumps(clean, indent=1, ensure_ascii=False), encoding="utf-8")
-    pct = lambda x: "–" if x is None else f"{100 * x:.1f} %"  # noqa: E731
-    v = res["vergleich"]
-    lines = [f"# {exp_id}: {exp.get('titel', '')}", "",
-             f"Bedingung `{res['bedingung']}` (Kippwinkel ≤ {res['anforderung_max_kipp_deg']}°), Protokoll "
-             f"{res['protokoll']}, {res['seeds']} Seed(s); Eltern-Spalte unter derselben Bedingung", "",
-             "| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |",
+        return {}, {}, ""
+    ref, label = {}, ""
+    same_runs = pexp is not None and set(pexp.get("laeufe") or []) == set(exp.get("laeufe") or [])
+    if pexp is not None and not same_runs:          # Eltern-Läufe unter dieser Bedingung (falls bewertet)
+        ref, label = aggregate(pexp, cond, req=requirement(cond)), exp["eltern"]
+    if not ref and first is not None and first["name"] != cond["name"]:
+        ref, label = aggregate(exp, first), f"Referenz {first['name']}"
+    if ref:
+        res["vergleich"] = verdict(res, ref)
+    elif same_runs and first is not None and first["name"] == cond["name"]:
+        res["vergleich"] = {"urteil": "Referenzbedingung"}
+    else:
+        ref, label = {}, ""
+        res["vergleich"] = {"urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)"}
+    res["vergleich"]["gegen"] = label or None
+    return res, ref, label
+
+
+def condition_lines(res: dict, ref: dict, label: str) -> list[str]:
+    pct, v = _pct, res["vergleich"]
+    col = label or "Eltern"
+    lines = [f"Bedingung `{res['bedingung']}` (Objekt `{res['objekt']}`, Kippwinkel ≤ {res['anforderung_max_kipp_deg']}°), "
+             f"Protokoll {res['protokoll']}, {res['seeds']} Seed(s); Spalte {col} unter derselben Anforderung", "",
+             f"| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | {col} (Mittel / IQM) |",
              "|---|---|---|---|---|---|"]
     for key in ("aufgabenerfolg", "haltequote"):
-        pv = f"{pct(parent_res[key]['mittel'])} / {pct(parent_res[key]['iqm'])}" if parent_res else "–"
+        pv = f"{pct(ref[key]['mittel'])} / {pct(ref[key]['iqm'])}" if ref else "–"
         lines.append(f"| {key} | {pct(res[key]['mittel'])} | {pct(res[key]['ki95'][0])} – {pct(res[key]['ki95'][1])} | "
                      f"{pct(res[key]['iqm'])} | {pct(res[key]['fehlschlag_seeds'])} | {pv} |")
-    for key, label, _, kind in GUARDRAILS:
+    for key, lab, _, kind in GUARDRAILS:
         c = res["leitplanken"].get(key)
-        p = parent_res.get("leitplanken", {}).get(key) if parent_res else None
+        p = ref.get("leitplanken", {}).get(key) if ref else None
         f = (lambda x: "–" if x is None else (pct(x) if "anteil" in key else f"{x:.3g}"))
-        lines.append(f"| {label} | {f(c)} | | | | {f(p)} |")
+        lines.append(f"| {lab} | {f(c)} | | | | {f(p)} |")
     lines += ["", "Fehlerarten: " + ", ".join(f"{k} {pct(x)}" for k, x in res["fehler"].items()), "",
-              f"**Urteilsvorschlag: {v['urteil']}**"]
+              f"**Urteilsvorschlag: {v['urteil']}**" + (f" (gegenüber {label})" if label else "")]
     if "differenz_ki95" in v:
         lines.append(f"Unterschied Aufgabenerfolg {100 * v['differenz_aufgabenerfolg']:+.1f} Prozentpunkte "
                      f"(95-%-KI {100 * v['differenz_ki95'][0]:+.1f} … {100 * v['differenz_ki95'][1]:+.1f})")
@@ -465,9 +510,50 @@ def report(exp_id: str):
     lines += ["", "Je Seed: " + ", ".join(f"{pct(s['aufgabenerfolg'])}" for s in res["je_seed"])]
     if res.get("fingernutzung"):
         fn = res["fingernutzung"]
-        lines += ["", f"Fingernutzung (Haltephase): im Mittel {fn['finger_mit_kontakt']:.2f} Finger an der Dose; "
+        lines += ["", f"Fingernutzung (Haltephase): im Mittel {fn['finger_mit_kontakt']:.2f} Finger am Objekt; "
                   "Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): "
                   + " · ".join("/".join("–" if x is None else f"{100 * x:.0f}" for x in s) for s in fn["je_seed_kontakt"])]
+    return lines
+
+
+def report(exp_id: str):
+    d, exp = load(exp_id)
+    pexp = load(exp["eltern"])[1] if exp.get("eltern") else None
+    conds = exp["bedingungen"]
+    results = [condition_result(exp, c, pexp, conds[0] if len(conds) > 1 else None) for c in conds]
+    results = [r for r in results if r[0]]
+    if not results:
+        log(f"{exp_id}: keine Bewertungen gefunden")
+        return
+    res, ref, _ = results[0]
+    own_training = exp.get("training") is not None
+    tr = training_plots(d, exp) if own_training else None
+    parent_main = aggregate(pexp, pexp["bedingungen"][0]) if pexp and own_training else {}
+    res["konfig_unterschiede"] = config_diff(res["_params"], parent_main["_params"]) if parent_main else []
+    out = _clean(res)
+    if len(results) > 1:
+        out["weitere_bedingungen"] = {r["bedingung"]: _clean(r) for r, _, _ in results[1:]}
+    (d / "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+
+    lines = [f"# {exp_id}: {exp.get('titel', '')}", ""]
+    if not own_training:
+        lines += [f"Ohne eigenes Training — bewertet die Läufe von {exp.get('laeufe_von') or exp.get('eltern')}.", ""]
+    if len(results) > 1:
+        g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
+        lines += ["| Bedingung | Objekt | Kipp ≤ | Aufgabenerfolg [95-%-KI] | IQM | Haltequote | Kipp° | Finger | Urteilsvorschlag |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        for r, _, label in results:
+            fn = (r.get("fingernutzung") or {}).get("finger_mit_kontakt")
+            lines.append(f"| `{r['bedingung']}` | `{r['objekt']}` | {r['anforderung_max_kipp_deg']}° | "
+                         f"{_pct(r['aufgabenerfolg']['mittel'])} [{_pct(r['aufgabenerfolg']['ki95'][0])} – "
+                         f"{_pct(r['aufgabenerfolg']['ki95'][1])}] | {_pct(r['aufgabenerfolg']['iqm'])} | "
+                         f"{_pct(r['haltequote']['mittel'])} | {g(r['leitplanken'].get('kipp_median_deg'))} | "
+                         f"{'–' if fn is None else f'{fn:.1f}'} | {r['vergleich']['urteil']}"
+                         f"{f' (ggü. {label})' if label else ''} |")
+        for r, rf, label in results:
+            lines += ["", f"## Bedingung `{r['bedingung']}`", ""] + condition_lines(r, rf, label)
+    else:
+        lines += condition_lines(*results[0])
     if tr:
         lines += training_section(tr)
     n = res["netz"]
@@ -476,7 +562,7 @@ def report(exp_id: str):
               f"(Verlauf {n['verlauf']}) · Critic {n['critic']} · PPO: Lernrate {n['lernrate']}, Entropie {n['entropie']}, "
               f"{n['epochen']} Epochen × {n['mini_batches']} Mini-Batches, {n['schritte_je_umgebung']} Schritte/Umgebung · "
               f"{n['umgebungen']} Umgebungen × {n['iterationen']} Iterationen"]
-    if parent_res:
+    if parent_main:
         diffs = res["konfig_unterschiede"]
         lines += ["", f"## Konfiguration gegenüber {exp['eltern']} ({len(diffs)} Unterschiede)", "",
                   f"Geplante Änderung: {exp.get('aenderung', '')}", ""]
@@ -484,8 +570,9 @@ def report(exp_id: str):
         if len(diffs) > 80:
             lines.append(f"- … {len(diffs) - 80} weitere (results.json)")
     (d / "bericht.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    log(f"{exp_id}: Aufgabenerfolg {pct(res['aufgabenerfolg']['mittel'])}, Haltequote "
-        f"{pct(res['haltequote']['mittel'])} → {v['urteil']}")
+    for r, _, _ in results:
+        log(f"{exp_id} [{r['bedingung']}]: Aufgabenerfolg {_pct(r['aufgabenerfolg']['mittel'])}, Haltequote "
+            f"{_pct(r['haltequote']['mittel'])} → {r['vergleich']['urteil']}")
 
 
 # ── bench / run / eval / done ─────────────────────────────────────────────────
@@ -526,6 +613,9 @@ def cmd_run(a):
     for exp_id in a.ids:
         d, exp = load(exp_id)
         t = exp["training"]
+        if t is None:
+            run_without_training(d, exp)
+            continue
         envs = t["umgebungen"]
         if envs == "auto":
             envs = json.loads(BENCH.read_text())["beste"] if BENCH.exists() else 1024
@@ -552,11 +642,28 @@ def cmd_run(a):
             runs.append(str(run_dir.relative_to(REPO)))
             save_fields(d, laeufe=runs)
             exp["laeufe"] = runs
-            if evaluate(run_dir, exp, video=(i == 0), log_file=LOGS / f"{name}_eval.log") is None:
+            if not evaluate(run_dir, exp, video=(i == 0), log_file=LOGS / f"{name}_eval.log"):
                 log(f"  Bewertung {name} fehlgeschlagen ({LOGS / (name + '_eval.log')})")
         save_fields(d, status="trainiert")
         report(exp_id)
     cmd_done(a)
+
+
+def run_without_training(d: Path, exp: dict):
+    """Experiment ohne eigenes Training (z. B. Transfer an andere Objekte): bewertet die Läufe von
+    `laeufe_von` unter den eigenen Bedingungen; vorhandene Bewertungen der Quelle bleiben unverändert."""
+    src_id = exp.get("laeufe_von") or exp.get("eltern")
+    runs = list(dict.fromkeys(load(src_id)[1].get("laeufe") or []))
+    log(f"== {exp['id']}: {exp.get('titel')} (ohne Training, {len(runs)} Läufe von {src_id}, "
+        f"Bedingungen {[c['name'] for c in exp['bedingungen']]})")
+    save_fields(d, status="läuft", commit=sh("git", "rev-parse", "--short", "HEAD"), laeufe=runs)
+    exp["laeufe"] = runs
+    for i, r in enumerate(runs):
+        log(f"  Bewertung {Path(r).name}")
+        if not evaluate(REPO / r, exp, video=(i == 0), log_file=LOGS / f"{exp['id']}_{Path(r).name}_eval.log"):
+            log(f"  Bewertung {Path(r).name} unvollständig ({LOGS / (exp['id'] + '_' + Path(r).name + '_eval.log')})")
+    save_fields(d, status="bewertet")
+    report(exp["id"])
 
 
 def cmd_eval(a):
@@ -565,7 +672,7 @@ def cmd_eval(a):
         d, exp = load(exp_id)
         for r in exp.get("laeufe") or []:
             log(f"  Bewertung {exp_id}: {r}")
-            evaluate(REPO / r, exp, video=a.video, log_file=LOGS / f"{exp_id}_{Path(r).name}_eval.log")
+            evaluate(REPO / r, exp, video=a.video, log_file=LOGS / f"{exp_id}_{Path(r).name}_eval.log", neu=a.neu)
         report(exp_id)
     cmd_done(a)
 
@@ -582,23 +689,36 @@ def cmd_done(a):
             "in %, [95-%-KI]; Leitplanken Mittel über Seeds. Definitionen: README.md.", "",
             "| ID | Titel | Eltern | Bedingung | Seeds | Netz (Actor) | Param. | Iter. × Umg. | Aufgabenerfolg | IQM | Fehlschlag | Haltequote | Kipp° | Unterarm° | Stall | Finger | Vorschlag | Urteil (bestätigt) |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    n_exp = 0
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
         exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
-        r = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
-        ae, hq, lp = r.get("aufgabenerfolg"), r.get("haltequote"), r.get("leitplanken", {})
-        f = lambda m: f"{pct(m['mittel'])} [{pct(m['ki95'][0])}–{pct(m['ki95'][1])}]" if m else "–"  # noqa: E731
-        g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
-        rows.append(f"| [{exp['id']}]({d.name}/experiment.yaml) | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | "
-                    f"{exp['bedingungen'][0]['name']} ≤{requirement(exp)}° | {r.get('seeds', '–')} | "
-                    f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
-                    f"{_budget_cell(r.get('netz'))} | {f(ae)} | {pct((ae or {}).get('iqm'))} | {pct((ae or {}).get('fehlschlag_seeds'))} | {f(hq)} | "
-                    f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
-                    f"{_finger_cell(r.get('fingernutzung'))} | "
-                    f"{r.get('vergleich', {}).get('urteil', '–')} | {exp.get('urteil') or '–'} |")
+        main = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
+        n_exp += 1
+        for k, cond in enumerate(exp["bedingungen"]):
+            r = main if k == 0 else (main.get("weitere_bedingungen") or {}).get(cond["name"], {})
+            rows.append(_index_row(d, exp, cond, r, first=k == 0))
     (EXP_DIR / "index.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
-    log(f"index.md aktualisiert ({len(rows) - 6} Experimente)")
+    log(f"index.md aktualisiert ({n_exp} Experimente)")
     if not a.kein_backup:
         backup()
+
+
+def _index_row(d: Path, exp: dict, cond: dict, r: dict, first: bool) -> str:
+    pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
+    ae, hq, lp = r.get("aufgabenerfolg"), r.get("haltequote"), r.get("leitplanken", {})
+    f = lambda m: f"{pct(m['mittel'])} [{pct(m['ki95'][0])}–{pct(m['ki95'][1])}]" if m else "–"  # noqa: E731
+    g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
+    ident = f"[{exp['id']}]({d.name}/experiment.yaml)" if first else f"↳ {exp['id']}"
+    head = (f"| {ident} | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | " if first else f"| {ident} | | | ")
+    vs = r.get("vergleich", {})
+    gegen = f" (ggü. {vs['gegen']})" if vs.get("gegen") and not first else ""
+    return (head + f"{cond['name']} ≤{requirement(cond)}° | {r.get('seeds', '–')} | "
+            f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
+            f"{_budget_cell(r.get('netz'))} | {f(ae)} | {pct((ae or {}).get('iqm'))} | {pct((ae or {}).get('fehlschlag_seeds'))} | {f(hq)} | "
+            f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
+            f"{_finger_cell(r.get('fingernutzung'))} | "
+            f"{vs.get('urteil', '–')}{gegen} | "
+            f"{(exp.get('urteil') or '–') if first else ''} |")
 
 
 def backup():
@@ -640,6 +760,7 @@ def main():
     n.add_argument("--eltern", required=True)
     n.add_argument("--kurz", required=True, help="Kurzname für den Ordner")
     n.add_argument("--titel", required=True)
+    n.add_argument("--ohne-training", action="store_true", help="nur bewerten (Läufe der Eltern, z. B. Transfer)")
     b = sub.add_parser("bench")
     b.add_argument("--envs", type=int, nargs="+", default=[2048, 4096])
     b.add_argument("--iter", type=int, default=20)
@@ -648,6 +769,7 @@ def main():
     e = sub.add_parser("eval")
     e.add_argument("ids", nargs="+")
     e.add_argument("--video", action="store_true")
+    e.add_argument("--neu", action="store_true", help="vorhandene Bewertungen neu rechnen (sonst nur fehlende)")
     bt = sub.add_parser("bericht")
     bt.add_argument("ids", nargs="+")
     d = sub.add_parser("done")

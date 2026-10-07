@@ -7,6 +7,7 @@
   "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-47-02_EXP-001_s44"
  ],
  "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
  "je_seed": [
   {
    "aufgabenerfolg": 0.0,
@@ -141,7 +142,8 @@
    0.0,
    0.0
   ],
-  "leitplanken_verletzt": []
+  "leitplanken_verletzt": [],
+  "gegen": "EXP-000"
  },
  "konfig_unterschiede": [
   "env.observations.critic.object_quat.clip: ∅ → None",

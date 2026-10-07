@@ -60,7 +60,9 @@ Tag am Trainings-Commit.
 Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 ```bash
 /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-001 --kurz name --titel "..."
+/usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-004 --kurz name --titel "..." --ohne-training
 /usr/bin/python3 isaac_lab/experiments.py run  EXP-002 [EXP-003 ...]     # 2–6, unbeaufsichtigt
+/usr/bin/python3 isaac_lab/experiments.py eval EXP-002 [--neu]           # fehlende Bewertungen (--neu: alle)
 /usr/bin/python3 isaac_lab/experiments.py done                           # 7: index.md + Sicherung
 /usr/bin/python3 isaac_lab/experiments.py bericht EXP-002                # Bericht + Diagramme neu, ohne Neubewertung
 ```
@@ -91,7 +93,25 @@ Regeln:
   der Kippwinkel wird gemessen — so bleiben Experimente mit unterschiedlichen
   Trainingsabbrüchen vergleichbar.
 - **Bedingung** = Objekt × Startpose × Anforderung (in `experiment.yaml`). Ergebnisse
-  immer je Bedingung, nie über Bedingungen gemittelt.
+  immer je Bedingung, nie über Bedingungen gemittelt. Ein Experiment kann mehrere Bedingungen
+  haben; jeder Lauf wird unter allen bewertet. `objekt_id` wählt das Objekt aus
+  `pib_grasp/env_cfg.py` → `OBJECTS` (fehlt es: `zylinder_d6`); die Objektoberfläche liegt immer
+  3,5 cm vor der Handfläche (`PALM_GAP`). Dateien je Lauf: `eval-v1_<bedingung>.json/.txt`, nur die
+  Standardbedingung `zylinder_seitlich` heißt `eval-v1.json`. Vorhandene Bewertungen werden nicht
+  neu gerechnet (`eval --neu` erzwingt es).
+  ```yaml
+  bedingungen:
+    - name: quader_seitlich
+      objekt: "Quader 7 × 7 × 20 cm (Milchpackung), 0,05–0,2 kg"
+      objekt_id: quader_7x7x20
+      startpose: "seitlich, Daumen oben"
+      anforderung: {max_kipp_deg: 45}
+  ```
+- **Vergleich** je Bedingung gegen die Eltern unter derselben Bedingung (wenn deren Läufe dafür
+  bewertet sind), sonst gegen die erste Bedingung des Experiments (Referenz).
+- **Experimente ohne Training** (`new --ohne-training`, `training: null`, `laeufe_von: EXP-…`)
+  bewerten die Läufe eines anderen Experiments unter eigenen Bedingungen, z. B. Objekttransfer;
+  Vergleich gegen die Referenzbedingung, keine Trainingsdiagramme.
 
 ### Metriken
 

@@ -1,8 +1,8 @@
 # EXP-001: Kippabbruch + Aufrecht-Belohnung
 
-Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-000 unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-000 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 0.0 % / 0.0 % |
 | haltequote | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 86.1 % / 86.1 % |
@@ -16,7 +16,7 @@ Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s
 
 Fehlerarten: startfehler 1.8 %, gefallen 98.2 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
-**Urteilsvorschlag: kein messbarer Unterschied (vorläufig: < 3 Seeds)**
+**Urteilsvorschlag: kein messbarer Unterschied (vorläufig: < 3 Seeds)** (gegenüber EXP-000)
 Unterschied Aufgabenerfolg +0.0 Prozentpunkte (95-%-KI +0.0 … +0.0)
 
 Je Seed: 0.0 %, 0.0 %, 0.0 %
