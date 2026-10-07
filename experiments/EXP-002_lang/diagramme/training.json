@@ -1,0 +1,86 @@
+{
+ "tail_iterationen": 10,
+ "je_seed": [
+  {
+   "seed": 42,
+   "lauf": "2026-10-06_22-57-01_EXP-002_s42",
+   "iterationen": 1500,
+   "simulationsschritte_mio": 49.2,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.004298839764669537,
+    "Episode_Reward/action_rate_l2": -0.005505801225081086,
+    "Episode_Reward/early_termination": -0.0037037041038274765,
+    "Episode_Reward/excess_force": -8.519144768115438e-06,
+    "Episode_Reward/fingertips_to_object": 0.0010054167651105672,
+    "Episode_Reward/good_contact": 0.0,
+    "Episode_Reward/held": 0.10003246292471886,
+    "Episode_Reward/upright": 0.11411876752972602,
+    "Episode_Termination/abnormal_robot": 0.0,
+    "Episode_Termination/object_dropped": 0.9548370361328125,
+    "Episode_Termination/object_tilted": 0.0451629638671875,
+    "Episode_Termination/time_out": 0.0,
+    "Loss/entropy": 2.833017182350159,
+    "Loss/learning_rate": 0.00027213183348067104,
+    "Loss/surrogate": -0.002226585060998332,
+    "Loss/value_function": 0.000912449554016348,
+    "Policy/mean_noise_std": 0.3455889254808426,
+    "Train/mean_episode_length": 130.68499984741212,
+    "Train/mean_reward": 0.9088149726390838
+   }
+  },
+  {
+   "seed": 43,
+   "lauf": "2026-10-06_23-42-14_EXP-002_s43",
+   "iterationen": 1500,
+   "simulationsschritte_mio": 49.2,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.003740297653712332,
+    "Episode_Reward/action_rate_l2": -0.004369540838524699,
+    "Episode_Reward/early_termination": -0.0037037041038274765,
+    "Episode_Reward/excess_force": -2.5988588254222124e-05,
+    "Episode_Reward/fingertips_to_object": 0.0010254580643959343,
+    "Episode_Reward/good_contact": 0.0,
+    "Episode_Reward/held": 0.1038107693195343,
+    "Episode_Reward/upright": 0.11551421210169792,
+    "Episode_Termination/abnormal_robot": 0.0,
+    "Episode_Termination/object_dropped": 0.9544036865234375,
+    "Episode_Termination/object_tilted": 0.0455963134765625,
+    "Episode_Termination/time_out": 0.0,
+    "Loss/entropy": 1.7433914542198181,
+    "Loss/learning_rate": 0.0004183286066108849,
+    "Loss/surrogate": -0.006670233886688947,
+    "Loss/value_function": 0.00013920076962676832,
+    "Policy/mean_noise_std": 0.30185680985450747,
+    "Train/mean_episode_length": 132.4319984436035,
+    "Train/mean_reward": 0.9404126763343811
+   }
+  },
+  {
+   "seed": 44,
+   "lauf": "2026-10-07_00-27-37_EXP-002_s44",
+   "iterationen": 1500,
+   "simulationsschritte_mio": 49.2,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.003110223030671477,
+    "Episode_Reward/action_rate_l2": -0.004335352312773466,
+    "Episode_Reward/early_termination": -0.0037037041038274765,
+    "Episode_Reward/excess_force": -7.4146188035229e-05,
+    "Episode_Reward/fingertips_to_object": 0.0010183405713178218,
+    "Episode_Reward/good_contact": 0.0,
+    "Episode_Reward/held": 0.1025723822414875,
+    "Episode_Reward/upright": 0.1143280677497387,
+    "Episode_Termination/abnormal_robot": 0.0,
+    "Episode_Termination/object_dropped": 0.9490509033203125,
+    "Episode_Termination/object_tilted": 0.0509490966796875,
+    "Episode_Termination/time_out": 0.0,
+    "Loss/entropy": 2.148504114151001,
+    "Loss/learning_rate": 0.00044537475732795426,
+    "Loss/surrogate": -0.006129168241750449,
+    "Loss/value_function": 0.00015313268595491537,
+    "Policy/mean_noise_std": 0.3169655591249466,
+    "Train/mean_episode_length": 130.8299987792969,
+    "Train/mean_reward": 0.9309724152088166
+   }
+  }
+ ]
+}

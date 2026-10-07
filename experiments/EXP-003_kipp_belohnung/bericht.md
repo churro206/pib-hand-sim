@@ -2,17 +2,17 @@
 
 Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
 
-| Metrik | Wert | 95-%-KI | Eltern |
-|---|---|---|---|
-| aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % |
-| haltequote | 0.0 % | 0.0 % – 0.0 % | 0.0 % |
-| Kippwinkel Median [°] | – | | – |
-| Unterarm Median [°] | – | | – |
-| Griffkraft Mittel [N] | – | | – |
-| Kraft > 15 N [Anteil] | – | | – |
-| Stall-Anteil [Anteil] | – | | – |
-| Absinken [mm] | – | | – |
-| Unruhe | – | | – |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+|---|---|---|---|---|---|
+| aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 0.0 % / 0.0 % |
+| haltequote | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | 0.0 % / 0.0 % |
+| Kippwinkel Median [°] | – | | | | – |
+| Unterarm Median [°] | – | | | | – |
+| Griffkraft Mittel [N] | – | | | | – |
+| Kraft > 15 N [Anteil] | – | | | | – |
+| Stall-Anteil [Anteil] | – | | | | – |
+| Absinken [mm] | – | | | | – |
+| Unruhe | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 99.5 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -20,6 +20,31 @@ Fehlerarten: startfehler 0.5 %, gefallen 99.5 %, instabil 0.0 %, anforderung_ver
 Unterschied Aufgabenerfolg +0.0 Prozentpunkte (95-%-KI +0.0 … +0.0)
 
 Je Seed: 0.0 %, 0.0 %, 0.0 %
+
+## Trainingsverlauf
+
+Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
+
+| Größe | Seed 42 | Seed 43 | Seed 44 | Mittel |
+|---|---|---|---|---|
+| mean_reward | 0.405 | 0.405 | 0.393 | 0.401 |
+| action_l2 | -0.00357 | -0.00402 | -0.00544 | -0.00434 |
+| action_rate_l2 | -0.00434 | -0.00466 | -0.0051 | -0.0047 |
+| early_termination | -0.0037 | -0.0037 | -0.0037 | -0.0037 |
+| excess_force | -3.25e-05 | -1.91e-05 | -0.000168 | -7.33e-05 |
+| fingertips_to_object | 0.00106 | 0.00107 | 0.00108 | 0.00107 |
+| good_contact | 0 | 0 | 0 | 0 |
+| held | 0.0989 | 0.101 | 0.1 | 0.1 |
+| object_dropped | 100.0 % | 100.0 % | 100.0 % | 100.0 % |
+| mean_noise_std | 0.325 | 0.328 | 0.347 | 0.333 |
+
+![Lernkurve](diagramme/lernkurve.svg)
+
+![Belohnungsanteile](diagramme/belohnung.svg)
+
+![Abbrüche](diagramme/abbrueche.svg)
+
+![PPO-Diagnose](diagramme/ppo.svg)
 
 ## Netz und Training
 

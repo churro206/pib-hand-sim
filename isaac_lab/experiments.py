@@ -8,6 +8,7 @@ die conda-Umgebung env_isaaclab muss aktiv sein (isaaclab.sh nimmt deren Python)
   /usr/bin/python3 isaac_lab/experiments.py bench --envs 2048 4096      # Durchsatz → umgebungen: auto
   /usr/bin/python3 isaac_lab/experiments.py run  EXP-001 [EXP-002 ...]  # Kurztest, Training, Bewertung, Bericht
   /usr/bin/python3 isaac_lab/experiments.py eval EXP-000                # nur (neu) bewerten + Bericht
+  /usr/bin/python3 isaac_lab/experiments.py bericht EXP-000             # nur Bericht + Trainingsdiagramme neu
   /usr/bin/python3 isaac_lab/experiments.py done                        # index.md neu erzeugen
 
 run, eval und done enden mit der Sicherung nach Hugging Face (backup_policies.py --upload;
@@ -377,12 +378,58 @@ def verdict(child: dict, parent: dict) -> dict:
             "leitplanken_verletzt": violated}
 
 
+def training_plots(d: Path, exp: dict) -> dict | None:
+    """Trainingsdiagramme (plot_training.py über isaaclab.sh) → <experiment>/diagramme/; Fehler nur als Warnung."""
+    runs = list(dict.fromkeys(exp.get("laeufe") or []))
+    out = d / "diagramme" / "training.json"
+    if not runs:
+        return None
+    if os.environ.get("CONDA_DEFAULT_ENV") != "env_isaaclab":
+        log("  WARNUNG: Trainingsdiagramme übersprungen — conda-Umgebung env_isaaclab nicht aktiv")
+    else:
+        cmd = [str(ISAACLAB), "-p", "isaac_lab/plot_training.py", "--exp-dir", str(d.relative_to(REPO)), "--runs", *runs]
+        if exp.get("eltern"):
+            _, pexp = load(exp["eltern"])
+            cmd += ["--eltern-runs", *dict.fromkeys(pexp.get("laeufe") or []), "--eltern-name", exp["eltern"]]
+        log_file = LOGS / f"{exp['id']}_diagramme.log"
+        with open(log_file, "w", encoding="utf-8") as f:
+            if subprocess.run(cmd, cwd=REPO, stdout=f, stderr=subprocess.STDOUT).returncode != 0:
+                log(f"  WARNUNG: Trainingsdiagramme fehlgeschlagen ({log_file})")
+    return json.loads(out.read_text()) if out.exists() else None
+
+
+def training_section(tr: dict) -> list[str]:
+    figs = [("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
+            ("ppo", "PPO-Diagnose")]
+    seeds = tr["je_seed"]
+    lines = ["", "## Trainingsverlauf", "",
+             "Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen "
+             "Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten "
+             f"{tr['tail_iterationen']} Iterationen (Belohnungsanteile je Sekunde Episode).", "",
+             "| Größe | " + " | ".join(f"Seed {s['seed']}" for s in seeds) + " | Mittel |",
+             "|---|" + "---|" * (len(seeds) + 1)]
+    tags = ["Train/mean_reward"] + sorted({t for s in seeds for t in s["endwerte"] if t.startswith("Episode_Reward/")}) \
+        + ["Episode_Termination/object_dropped", "Policy/mean_noise_std"]
+    for tag in tags:
+        vals = [s["endwerte"].get(tag) for s in seeds]
+        if all(v is None for v in vals):
+            continue
+        fmt = (lambda v: f"{100 * v:.1f} %") if tag.startswith("Episode_Termination/") else (lambda v: f"{v:.3g}")
+        cells = ["–" if v is None else fmt(v) for v in vals]
+        known = [v for v in vals if v is not None]
+        lines.append(f"| {tag.split('/', 1)[1]} | " + " | ".join(cells) + f" | {fmt(float(np.mean(known)))} |")
+    for name, title in figs:
+        lines += ["", f"![{title}](diagramme/{name}.svg)"]
+    return lines
+
+
 def report(exp_id: str):
     d, exp = load(exp_id)
     res = aggregate(d, exp)
     if not res:
         log(f"{exp_id}: keine Bewertungen gefunden")
         return
+    tr = training_plots(d, exp)
     parent_res = {}
     if exp.get("eltern"):
         pd, pexp = load(exp["eltern"])
@@ -421,6 +468,8 @@ def report(exp_id: str):
         lines += ["", f"Fingernutzung (Haltephase): im Mittel {fn['finger_mit_kontakt']:.2f} Finger an der Dose; "
                   "Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): "
                   + " · ".join("/".join("–" if x is None else f"{100 * x:.0f}" for x in s) for s in fn["je_seed_kontakt"])]
+    if tr:
+        lines += training_section(tr)
     n = res["netz"]
     lines += ["", "## Netz und Training", "",
               f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "
@@ -521,6 +570,12 @@ def cmd_eval(a):
     cmd_done(a)
 
 
+def cmd_bericht(a):
+    for exp_id in a.ids:
+        report(exp_id)
+    cmd_done(a)
+
+
 def cmd_done(a):
     pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
     rows = ["# Experimente — Übersicht", "", "Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote "
@@ -593,11 +648,13 @@ def main():
     e = sub.add_parser("eval")
     e.add_argument("ids", nargs="+")
     e.add_argument("--video", action="store_true")
+    bt = sub.add_parser("bericht")
+    bt.add_argument("ids", nargs="+")
     d = sub.add_parser("done")
-    for s in (r, e, d):
+    for s in (r, e, bt, d):
         s.add_argument("--kein-backup", action="store_true", help="nicht nach Hugging Face sichern")
     a = p.parse_args()
-    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "done": cmd_done}[a.cmd](a)
+    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "done": cmd_done}[a.cmd](a)
 
 
 if __name__ == "__main__":

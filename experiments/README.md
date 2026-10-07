@@ -19,7 +19,8 @@ experiments/
   EXP-NNN_<kurzname>/
     experiment.yaml         Plan (vor dem Start) + Schluss (nach der Auswertung), von Hand
     results.json            automatisch: Metriken je Seed + Zusammenfassung + Urteilsvorschlag
-    bericht.md              automatisch: lesbarer Bericht des Laufs
+    bericht.md              automatisch: lesbarer Bericht des Laufs (mit Trainingsverlauf)
+    diagramme/              automatisch: Trainingsdiagramme (SVG) + training.json (Endwerte je Seed)
 logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     params/env.yaml, agent.yaml   Isaac Lab: vollständige Konfiguration
     meta.json                     Commit, Versionen, GPU, Befehl, Zeiten
@@ -53,7 +54,7 @@ Tag am Trainings-Commit.
 | 3 | **Trainieren**: alle Seeds, Metadaten werden gesichert | automatisch | `experiments.py run` |
 | 4 | **Evaluieren**: festes Protokoll (unten), letzter Checkpoint | automatisch | `experiments.py run` → `eval_policy.py` |
 | 5 | **Sichten**: Video, Auffälligkeiten | automatisch aufgenommen, Leon schaut | `videos/` im Laufordner |
-| 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel | automatisch, Leon bestätigt | `results.json`, `bericht.md` |
+| 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel, Trainingsverlauf | automatisch, Leon bestätigt | `results.json`, `bericht.md`, `diagramme/` |
 | 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment; Policies sichern | Leon (Claude schlägt vor) | `experiments.py done` (sichert automatisch) |
 
 Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
@@ -61,6 +62,7 @@ Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-001 --kurz name --titel "..."
 /usr/bin/python3 isaac_lab/experiments.py run  EXP-002 [EXP-003 ...]     # 2–6, unbeaufsichtigt
 /usr/bin/python3 isaac_lab/experiments.py done                           # 7: index.md + Sicherung
+/usr/bin/python3 isaac_lab/experiments.py bericht EXP-002                # Bericht + Diagramme neu, ohne Neubewertung
 ```
 
 Regeln:

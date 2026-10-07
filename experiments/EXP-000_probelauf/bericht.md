@@ -2,23 +2,48 @@
 
 Bedingung `zylinder_seitlich` (Kippwinkel ≤ 20°), Protokoll eval-v1, 1 Seed(s); Eltern-Spalte unter derselben Bedingung
 
-| Metrik | Wert | 95-%-KI | Eltern |
-|---|---|---|---|
-| aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | – |
-| haltequote | 86.1 % | 84.1 % – 88.2 % | – |
-| Kippwinkel Median [°] | 104 | | – |
-| Unterarm Median [°] | 90 | | – |
-| Griffkraft Mittel [N] | 23.9 | | – |
-| Kraft > 15 N [Anteil] | 9.3 % | | – |
-| Stall-Anteil [Anteil] | 99.6 % | | – |
-| Absinken [mm] | 0 | | – |
-| Unruhe | 0.244 | | – |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+|---|---|---|---|---|---|
+| aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | – |
+| haltequote | 86.1 % | 84.1 % – 88.2 % | 86.1 % | 0.0 % | – |
+| Kippwinkel Median [°] | 104 | | | | – |
+| Unterarm Median [°] | 90 | | | | – |
+| Griffkraft Mittel [N] | 23.9 | | | | – |
+| Kraft > 15 N [Anteil] | 9.3 % | | | | – |
+| Stall-Anteil [Anteil] | 99.6 % | | | | – |
+| Absinken [mm] | 0 | | | | – |
+| Unruhe | 0.244 | | | | – |
 
 Fehlerarten: startfehler 1.9 %, gefallen 12.1 %, instabil 0.0 %, anforderung_verletzt 86.1 %
 
 **Urteilsvorschlag: kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)**
 
 Je Seed: 0.0 %
+
+## Trainingsverlauf
+
+Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
+
+| Größe | Seed 42 | Mittel |
+|---|---|---|
+| mean_reward | 11.3 | 11.3 |
+| action_l2 | -0.0562 | -0.0562 |
+| action_rate_l2 | -0.043 | -0.043 |
+| early_termination | -0.000681 | -0.000681 |
+| excess_force | -0.0595 | -0.0595 |
+| fingertips_to_object | 0.00796 | 0.00796 |
+| good_contact | 0.374 | 0.374 |
+| held | 2.3 | 2.3 |
+| object_dropped | 19.6 % | 19.6 % |
+| mean_noise_std | 0.683 | 0.683 |
+
+![Lernkurve](diagramme/lernkurve.svg)
+
+![Belohnungsanteile](diagramme/belohnung.svg)
+
+![Abbrüche](diagramme/abbrueche.svg)
+
+![PPO-Diagnose](diagramme/ppo.svg)
 
 ## Netz und Training
 

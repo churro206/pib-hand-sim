@@ -26,6 +26,32 @@ Je Seed: 93.3 %, 26.9 %, 94.3 %
 
 Fingernutzung (Haltephase): im Mittel 2.96 Finger an der Dose; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/95/100/95/0 · 100/0/94/0/100 · 97/99/4/3/0
 
+## Trainingsverlauf
+
+Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
+
+| Größe | Seed 42 | Seed 43 | Seed 44 | Mittel |
+|---|---|---|---|---|
+| mean_reward | 29.4 | 28.3 | 27.6 | 28.4 |
+| action_l2 | -0.0915 | -0.0873 | -0.0632 | -0.0807 |
+| action_rate_l2 | -0.0762 | -0.0535 | -0.047 | -0.0589 |
+| early_termination | -4.34e-06 | -5.58e-05 | 0 | -2e-05 |
+| fingertips_to_object | 0.361 | 0.37 | 0.323 | 0.351 |
+| good_contact | 0.433 | 0.42 | 0.412 | 0.422 |
+| held | 0.919 | 0.883 | 0.888 | 0.897 |
+| success | 3.19 | 2.98 | 3.04 | 3.07 |
+| upright | 1.77 | 1.71 | 1.62 | 1.7 |
+| object_dropped | 11.1 % | 10.6 % | 11.7 % | 11.1 % |
+| mean_noise_std | 0.846 | 0.712 | 0.687 | 0.748 |
+
+![Lernkurve](diagramme/lernkurve.svg)
+
+![Belohnungsanteile](diagramme/belohnung.svg)
+
+![Abbrüche](diagramme/abbrueche.svg)
+
+![PPO-Diagnose](diagramme/ppo.svg)
+
 ## Netz und Training
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 300 Iterationen

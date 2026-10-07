@@ -1,0 +1,30 @@
+{
+ "tail_iterationen": 10,
+ "je_seed": [
+  {
+   "seed": 42,
+   "lauf": "2026-10-04_16-23-59",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.05618474930524826,
+    "Episode_Reward/action_rate_l2": -0.04295037463307381,
+    "Episode_Reward/early_termination": -0.0006811270373873413,
+    "Episode_Reward/excess_force": -0.059481681510806086,
+    "Episode_Reward/fingertips_to_object": 0.007961114030331373,
+    "Episode_Reward/good_contact": 0.37414090931415556,
+    "Episode_Reward/held": 2.3023168087005614,
+    "Episode_Termination/abnormal_robot": 0.0,
+    "Episode_Termination/object_dropped": 0.1961578369140625,
+    "Episode_Termination/time_out": 0.8046844482421875,
+    "Loss/entropy": 6.59551157951355,
+    "Loss/learning_rate": 0.0003289042942924425,
+    "Loss/surrogate": -0.005937254941090942,
+    "Loss/value_function": 0.017858981061726807,
+    "Policy/mean_noise_std": 0.6832265555858612,
+    "Train/mean_episode_length": 234.9010009765625,
+    "Train/mean_reward": 11.288706493377685
+   }
+  }
+ ]
+}

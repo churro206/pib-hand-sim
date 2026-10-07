@@ -1,0 +1,83 @@
+{
+ "tail_iterationen": 10,
+ "je_seed": [
+  {
+   "seed": 42,
+   "lauf": "2026-10-07_12-56-52_EXP-006_s42",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.09152466282248498,
+    "Episode_Reward/action_rate_l2": -0.07616723254323006,
+    "Episode_Reward/early_termination": -4.340277973824413e-06,
+    "Episode_Reward/fingertips_to_object": 0.3605995386838913,
+    "Episode_Reward/good_contact": 0.43254563510417937,
+    "Episode_Reward/held": 0.9194540619850159,
+    "Episode_Reward/success": 3.185803270339966,
+    "Episode_Reward/upright": 1.773915994167328,
+    "Episode_Termination/abnormal_robot": 0.001495361328125,
+    "Episode_Termination/object_dropped": 0.1107940673828125,
+    "Episode_Termination/time_out": 0.8877105712890625,
+    "Loss/entropy": 9.799347591400146,
+    "Loss/learning_rate": 0.0005028090745327063,
+    "Loss/surrogate": -0.003404184163082391,
+    "Loss/value_function": 0.12297232821583748,
+    "Policy/mean_noise_std": 0.8455636084079743,
+    "Train/mean_episode_length": 250.8800018310547,
+    "Train/mean_reward": 29.388377571105956
+   }
+  },
+  {
+   "seed": 43,
+   "lauf": "2026-10-07_13-09-35_EXP-006_s43",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.08733024597167968,
+    "Episode_Reward/action_rate_l2": -0.05346970595419407,
+    "Episode_Reward/early_termination": -5.5776016597519626e-05,
+    "Episode_Reward/fingertips_to_object": 0.37017998695373533,
+    "Episode_Reward/good_contact": 0.42014827132225036,
+    "Episode_Reward/held": 0.8827658772468567,
+    "Episode_Reward/success": 2.97728431224823,
+    "Episode_Reward/upright": 1.7128778934478759,
+    "Episode_Termination/abnormal_robot": 0.0132781982421875,
+    "Episode_Termination/object_dropped": 0.105517578125,
+    "Episode_Termination/time_out": 0.8817596435546875,
+    "Loss/entropy": 7.989087867736816,
+    "Loss/learning_rate": 0.00037802637089043853,
+    "Loss/surrogate": -0.004355613910593093,
+    "Loss/value_function": 0.10070298835635186,
+    "Policy/mean_noise_std": 0.71187042593956,
+    "Train/mean_episode_length": 248.9729995727539,
+    "Train/mean_reward": 28.27571506500244
+   }
+  },
+  {
+   "seed": 44,
+   "lauf": "2026-10-07_13-21-47_EXP-006_s44",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.06324062421917916,
+    "Episode_Reward/action_rate_l2": -0.04701139815151691,
+    "Episode_Reward/early_termination": 0.0,
+    "Episode_Reward/fingertips_to_object": 0.32305912375450135,
+    "Episode_Reward/good_contact": 0.41191746592521666,
+    "Episode_Reward/held": 0.8879077911376954,
+    "Episode_Reward/success": 3.044684338569641,
+    "Episode_Reward/upright": 1.6165822505950929,
+    "Episode_Termination/abnormal_robot": 0.0012542724609375,
+    "Episode_Termination/object_dropped": 0.1171173095703125,
+    "Episode_Termination/time_out": 0.88162841796875,
+    "Loss/entropy": 8.111369323730468,
+    "Loss/learning_rate": 0.0005641918978653848,
+    "Loss/surrogate": -0.001854665915016085,
+    "Loss/value_function": 0.16881296113133432,
+    "Policy/mean_noise_std": 0.6874308586120605,
+    "Train/mean_episode_length": 249.14999694824218,
+    "Train/mean_reward": 27.59856834411621
+   }
+  }
+ ]
+}

@@ -116,6 +116,7 @@ isaac_lab/check_hand_asset.py            Prüfung Hand-USD in Isaac Lab (Mimic, 
 isaac_lab/scripted_grasp_test.py         Machbarkeitstest ohne Policy (Fenster, Echtzeit)
 isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eval/done (ADR-016)
 isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
+isaac_lab/plot_training.py               Trainingsdiagramme (TensorBoard → SVG) für die Experiment-Berichte
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
 experiments/                             Experimente (experiment.yaml, Berichte), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
