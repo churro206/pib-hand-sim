@@ -62,9 +62,11 @@ DROP_DEPTH = 0.10             # m
 EPISODE_S = 4.5
 
 FSR_CLIP_N = 20.0             # Dexsuite: "contact force in finger tips is under 20N normally"
-# Dose muss aufrecht bleiben (Unterarm darf sie nicht auf die Handfläche kippen, Probelauf
-# 2026-10-04). 20° aus docs/rl-greifen-poc-prompt.md; gear_assembly nutzt 7° für ein Zahnrad.
-MAX_TILT_DEG = 20.0
+# Dose soll aufrecht bleiben (Probelauf 2026-10-04: Unterarm kippte sie auf die Handfläche).
+# Seit EXP-003 nur über die Belohnung (Dexsuite: Orientierung belohnt, nicht abgebrochen);
+# rot_std 0,5 rad wie Dexsuites success_reward. EXP-001/002: Abbruch bei 20° → Policy griff
+# gar nicht mehr zu (experiments/).
+UPRIGHT_ROT_STD = 0.5
 
 
 @configclass
@@ -259,20 +261,19 @@ class RewardsCfg:
     action_rate_l2 = RewTerm(func=base_mdp.action_rate_l2, weight=-0.005)
     fingertips_to_object = RewTerm(func=mdp.fingertips_to_object, weight=1.0, params={"std": 0.1})
     good_contact = RewTerm(func=mdp.thumb_opposition_contact, weight=0.5, params={"threshold": 1.0})
-    # Erfolg: Dose bleibt nach dem Tisch-Absenken in der Hand (ersetzt Dexsuites Zielpose)
-    held = RewTerm(func=mdp.object_held, weight=5.0, params={"drop_start_s": GRASP_TIME_S, "std": 0.02})
-    # Aufrecht halten (nach dem Absenken), ergänzt den Kippabbruch
-    upright = RewTerm(func=mdp.object_upright, weight=2.0, params={"drop_start_s": GRASP_TIME_S, "std": 0.2})
+    # Erfolg: Dose bleibt nach dem Tisch-Absenken aufrecht in der Hand — multiplikativ wie Dexsuites
+    # success_reward (Position × Orientierung), ersetzt Dexsuites Zielpose
+    held = RewTerm(func=mdp.object_held_upright, weight=5.0,
+                   params={"drop_start_s": GRASP_TIME_S, "std": 0.02, "rot_std": UPRIGHT_ROT_STD})
     excess_force = RewTerm(func=mdp.excess_fingertip_force, weight=-0.02, params={"limit": 15.0})
     early_termination = RewTerm(func=base_mdp.is_terminated_term, weight=-1.0,
-                                params={"term_keys": ["object_dropped", "object_tilted", "abnormal_robot"]})
+                                params={"term_keys": ["object_dropped", "abnormal_robot"]})
 
 
 @configclass
 class TerminationsCfg:
     time_out = DoneTerm(func=base_mdp.time_out, time_out=True)
     object_dropped = DoneTerm(func=mdp.object_dropped, params={"max_sink": 0.05})
-    object_tilted = DoneTerm(func=mdp.object_tilted, params={"max_tilt_deg": MAX_TILT_DEG})
     abnormal_robot = DoneTerm(func=mdp.abnormal_robot_state)
 
 

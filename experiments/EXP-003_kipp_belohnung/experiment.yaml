@@ -1,0 +1,48 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-003
+titel: Kippen über multiplikative Belohnung statt Abbruch (Dexsuite)
+datum: '2026-10-07'
+eltern: EXP-001
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Der Kippabbruch (EXP-001/002) verhinderte das Erkunden des Greifens: die
+  Policy spreizte die Finger (0 % gehalten). Dexsuite bricht bei Orientierung nicht
+  ab, sondern belohnt multiplikativ (Position × Orientierung). Mit Halten × (1 − tanh(Kippwinkel/0,5
+  rad)) ohne Kippabbruch greift die Policy wieder zu (Haltequote deutlich > 0, Richtung
+  EXP-000: 86 %) und hält die Dose aufrechter als EXP-000 (Kippwinkel-Median deutlich
+  < 104°). Machbarkeitstest: fester Gegengriff kippt 43–78° — Aufgabenerfolg ≤ 45°
+  daher eher moderat erwartet.'
+aenderung: 'Kippabbruch entfernt; Halte-Belohnung multiplikativ mit Aufrecht-Faktor
+  (rot_std 0,5 rad wie Dexsuite success_reward) statt additiver Aufrecht-Belohnung.
+  Bedingung: Anforderung ≤ 45° (Leon 2026-10-07, verschlossene Packung) — wird bei
+  der Auswertung angewandt, Eltern unter derselben Bedingung.'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:
+  - 42
+  - 43
+  - 44
+  zusatz_args: []
+fenstertest: false              # nur Belohnung/Abbruch geändert, ohne trainierte Policy nichts zu sehen
+
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment

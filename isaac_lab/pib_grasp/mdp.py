@@ -155,6 +155,13 @@ def object_held(env: ManagerBasedRLEnv, drop_start_s: float, std: float,
     return active * (1.0 - torch.tanh(sink / std))
 
 
+def object_held_upright(env: ManagerBasedRLEnv, drop_start_s: float, std: float, rot_std: float,
+                        object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Halten × aufrecht (Dexsuite success_reward: (1 − tanh(Fehler/pos_std))·(1 − tanh(Winkel/rot_std))).
+    Gekippt halten bringt fast nichts, ohne die Episode abzubrechen — das Greifen bleibt erkundbar."""
+    return object_held(env, drop_start_s, std, object_cfg) * (1.0 - torch.tanh(object_tilt(env, object_cfg) / rot_std))
+
+
 def object_upright(env: ManagerBasedRLEnv, drop_start_s: float, std: float) -> torch.Tensor:
     """Ab dem Tisch-Absenken: 1 − tanh(Kippwinkel / std). Vorher 0 — auf dem Tisch steht die
     Dose ohnehin aufrecht, die Belohnung gäbe es dort ohne Zutun."""
