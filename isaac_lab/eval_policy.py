@@ -63,8 +63,9 @@ REQ_DEG = args_cli.max_kipp_deg if args_cli.max_kipp_deg >= 0 else None
 cfg = PibGraspEnvCfg()
 cfg.scene.num_envs = args_cli.num_envs
 cfg.seed = args_cli.seed
-cfg.terminations.object_tilted = None
-cfg.rewards.early_termination = None          # verweist auf object_tilted; Belohnung hier unbenutzt
+if getattr(cfg.terminations, "object_tilted", None) is not None:   # trainingsspezifisch (EXP-001/002)
+    cfg.terminations.object_tilted = None
+    cfg.rewards.early_termination = None      # verweist auf object_tilted; Belohnung hier unbenutzt
 torch.manual_seed(args_cli.seed)
 env = gym.make("Pib-Grasp-Hand-Left-v0", cfg=cfg, render_mode="rgb_array" if args_cli.video else None)
 uenv = env.unwrapped
@@ -137,9 +138,12 @@ def finish(i, reason):
 
 
 t_start = time.time()
+total_steps = 0
 with torch.inference_mode():
-    while len(episodes) < args_cli.episodes and simulation_app.is_running():
+    # mit Video mindestens bis zur vollen Videolänge (sonst fehlt z. B. das Absenken des Tischs)
+    while (len(episodes) < args_cli.episodes or total_steps < args_cli.video) and simulation_app.is_running():
         t0 = time.time()
+        total_steps += 1
         obs, _, terminated, truncated, _ = env.step(policy(obs["policy"]))
         done = terminated | truncated
         for i in done.nonzero().flatten().tolist():
@@ -210,6 +214,7 @@ result = {
              "actor_parameter": int(sum(p.numel() for p in policy.parameters()))},
     "erfolg_je_episode": [int(e["erfolg"]) for e in episodes],
     "gehalten_je_episode": [int(e["gehalten"]) for e in episodes],
+    "kipp_je_episode": [round(e["kipp_max_deg"], 2) for e in episodes],
 }
 
 

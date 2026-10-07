@@ -2,7 +2,9 @@
 scripted_grasp_test.py — Szene der Greifaufgabe ohne Policy prüfen.
 
 Fester Griff: erst fährt der Daumen-Rotator 0,4 s auf --thumb_rot (Grad, je Episode
-ein Wert), dann schließen alle Finger-/Daumen-MCPs mit voller Schrittweite. Handgelenk
+ein Wert), dann schließen alle Finger-/Daumen-MCPs mit voller Schrittweite. Misst zusätzlich
+den größten Kippwinkel der Dose (Kippabbruch wie in eval-v1 aus) — ist „aufrecht halten“ mit
+dieser Hand überhaupt erreichbar? Handgelenk
 und Unterarm bleiben. Nur Machbarkeitstest der Szene — die Policy soll die Opposition
 selbst lernen. Zeigt, ob die Szene stimmt (Startkontakte, Tisch
 senkt sich, Sensoren) und ob ein stumpfer Griff die Dose überhaupt hält.
@@ -88,6 +90,7 @@ for episode, rot_deg in enumerate(rot_targets):
     prev = start.clone()
     total_reward = torch.zeros(uenv.num_envs, device=uenv.device)
     dropped_at = torch.full((uenv.num_envs,), -1.0, device=uenv.device)
+    max_tilt = torch.zeros(uenv.num_envs, device=uenv.device)
     drop_pos = torch.zeros_like(start)
     for k in range(steps):
         t0 = time.time()
@@ -101,6 +104,8 @@ for episode, rot_deg in enumerate(rot_targets):
         dropped_at[newly] = t
         drop_pos[newly] = prev[newly]          # letzte Lage vor dem automatischen Reset
         prev = obj.data.root_pos_w.clone() - uenv.scene.env_origins
+        alive = dropped_at < 0
+        max_tilt[alive] = torch.maximum(max_tilt[alive], mdp.object_tilt(uenv)[alive])
         if abs(t - (GRASP_TIME_S - 0.05)) < uenv.step_dt / 2 or abs(t - 4.4) < uenv.step_dt / 2 or k == 30:
             q = torch.rad2deg(robot.data.joint_pos[0])
             mcp = {n.split("_")[0]: round(q[robot.joint_names.index(n)].item(), 1) for n in names if n.endswith("proximal")}
@@ -116,6 +121,10 @@ for episode, rot_deg in enumerate(rot_targets):
     log()
     held = dropped_at < 0
     log(f"Dose gehalten bis Episodenende: {int(held.sum())}/{uenv.num_envs}   Return (Mittel): {total_reward.mean().item():.2f}")
+    tilt_deg = torch.rad2deg(max_tilt)
+    upright = held & (tilt_deg <= 20.0)
+    log(f"davon aufrecht (größter Kippwinkel ≤ 20°): {int(upright.sum())}/{uenv.num_envs}   "
+        f"Kippwinkel gehaltener Dosen [°]: {sorted(round(v, 1) for v in tilt_deg[held].tolist())}")
     for i in (~held).nonzero().flatten().tolist():
         d = 1000 * (drop_pos[i] - start[i])
         over_edge = drop_pos[i, 0] + cfg.scene.object.spawn.radius > table_edge_x

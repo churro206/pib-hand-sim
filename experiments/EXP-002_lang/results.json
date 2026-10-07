@@ -1,0 +1,193 @@
+{
+ "protokoll": "eval-v1",
+ "seeds": 6,
+ "laeufe": [
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_23-42-14_EXP-002_s43",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_00-27-37_EXP-002_s44",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_23-42-14_EXP-002_s43",
+  "logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42"
+ ],
+ "bedingung": "zylinder_seitlich",
+ "je_seed": [
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.019,
+    "gefallen": 0.981,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  },
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.022,
+    "gefallen": 0.978,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  },
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.022,
+    "gefallen": 0.978,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  },
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.019,
+    "gefallen": 0.981,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  },
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.022,
+    "gefallen": 0.978,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  },
+  {
+   "aufgabenerfolg": 0.0,
+   "haltequote": 0.0,
+   "fehler": {
+    "startfehler": 0.019,
+    "gefallen": 0.981,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": null,
+    "unterarm_median_deg": null,
+    "kraft_mittel_n": null,
+    "kraft_ueber_15n_anteil": null,
+    "stall_anteil": null,
+    "absinken_mm": null,
+    "unruhe": null
+   }
+  }
+ ],
+ "aufgabenerfolg": {
+  "mittel": 0.0,
+  "ki95": [
+   0.0,
+   0.0
+  ]
+ },
+ "haltequote": {
+  "mittel": 0.0,
+  "ki95": [
+   0.0,
+   0.0
+  ]
+ },
+ "netz": {
+  "actor": [
+   256,
+   128,
+   64
+  ],
+  "critic": [
+   512,
+   256,
+   128
+  ],
+  "aktivierung": "elu",
+  "verlauf": 5,
+  "eingaenge": 105,
+  "actor_parameter": 68808,
+  "lernrate": 0.001,
+  "entropie": 0.005,
+  "epochen": 5,
+  "mini_batches": 4,
+  "schritte_je_umgebung": 32,
+  "iterationen": 1500,
+  "umgebungen": 1024
+ },
+ "leitplanken": {
+  "kipp_median_deg": null,
+  "unterarm_median_deg": null,
+  "kraft_mittel_n": null,
+  "kraft_ueber_15n_anteil": null,
+  "stall_anteil": null,
+  "absinken_mm": null,
+  "unruhe": null
+ },
+ "fehler": {
+  "startfehler": 0.0205,
+  "gefallen": 0.9794999999999999,
+  "instabil": 0.0,
+  "anforderung_verletzt": 0.0
+ },
+ "vergleich": {
+  "urteil": "kein messbarer Unterschied",
+  "differenz_aufgabenerfolg": 0.0,
+  "differenz_ki95": [
+   0.0,
+   0.0
+  ],
+  "leitplanken_verletzt": []
+ },
+ "konfig_unterschiede": [
+  "agent.max_iterations: 300 → 1500"
+ ]
+}

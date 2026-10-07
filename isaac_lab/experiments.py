@@ -151,7 +151,8 @@ def save_fields(d: Path, **fields):
     text = p.read_text(encoding="utf-8")
     for key, value in fields.items():
         dumped = yaml.safe_dump({key: value}, allow_unicode=True, default_flow_style=False, sort_keys=False).rstrip()
-        pattern = re.compile(rf"^{key}:.*?(?=^\S|\Z)", re.M | re.S)
+        # Feld endet an der nächsten Zeile, die weder eingerückt noch Listeneintrag ist
+        pattern = re.compile(rf"^{key}:.*?(?=^[^\s-]|\Z)", re.M | re.S)
         if pattern.search(text):
             text = pattern.sub(lambda _: dumped + "\n", text, count=1)
         else:
@@ -282,9 +283,16 @@ def boot_means(per_seed: list[np.ndarray], rng) -> np.ndarray:
     return out
 
 
-def aggregate(exp_dir: Path, exp: dict) -> dict:
+def requirement(exp: dict):
+    return exp["bedingungen"][0]["anforderung"].get("max_kipp_deg")
+
+
+def aggregate(exp_dir: Path, exp: dict, req="eigene") -> dict:
+    """Ergebnisse aller Seeds; Anforderung (max. Kippwinkel) wird hier angewandt — für den
+    Vergleich mit den Eltern deren Rohdaten unter der Bedingung des Kindes (req=...)."""
+    req = requirement(exp) if req == "eigene" else req
     evals = []
-    for r in exp.get("laeufe") or []:
+    for r in dict.fromkeys(exp.get("laeufe") or []):      # doppelte Einträge nur einmal zählen
         p = REPO / r / f"{exp['protokoll']}.json"
         if p.exists():
             evals.append(json.loads(p.read_text()))
@@ -293,8 +301,15 @@ def aggregate(exp_dir: Path, exp: dict) -> dict:
     rng = np.random.default_rng(0)
     res = {"protokoll": evals[0]["protokoll"], "seeds": len(evals), "laeufe": exp.get("laeufe"),
            "bedingung": exp["bedingungen"][0]["name"], "je_seed": [e["zusammenfassung"] for e in evals]}
-    for key, field in (("aufgabenerfolg", "erfolg_je_episode"), ("haltequote", "gehalten_je_episode")):
-        per_seed = [np.array(e[field], float) for e in evals]
+    def success(e):
+        held = np.array(e["gehalten_je_episode"], bool)
+        if "kipp_je_episode" not in e:          # ältere Bewertung: Anforderung schon angewandt
+            return np.array(e["erfolg_je_episode"], float)
+        return (held & ((np.array(e["kipp_je_episode"]) <= req) if req is not None else True)).astype(float)
+
+    res["anforderung_max_kipp_deg"] = req
+    for key, per_seed in (("aufgabenerfolg", [success(e) for e in evals]),
+                          ("haltequote", [np.array(e["gehalten_je_episode"], float) for e in evals])):
         bm = boot_means(per_seed, rng)
         res[key] = {"mittel": float(np.mean([s.mean() for s in per_seed])),
                     "ki95": [float(np.percentile(bm, 2.5)), float(np.percentile(bm, 97.5))], "_boot": bm}
@@ -303,6 +318,8 @@ def aggregate(exp_dir: Path, exp: dict) -> dict:
     res["_params"] = load_params(first)
     res["leitplanken"] = {g[0]: _mean([e["zusammenfassung"]["leitplanken"].get(g[0]) for e in evals]) for g in GUARDRAILS}
     res["fehler"] = {k: _mean([e["zusammenfassung"]["fehler"][k] for e in evals]) for k in evals[0]["zusammenfassung"]["fehler"]}
+    res["fehler"]["anforderung_verletzt"] = float(np.mean([
+        np.mean(np.array(e["gehalten_je_episode"], bool) & ~success(e).astype(bool)) for e in evals]))
     return res
 
 
@@ -344,7 +361,7 @@ def report(exp_id: str):
     parent_res = {}
     if exp.get("eltern"):
         pd, pexp = load(exp["eltern"])
-        parent_res = aggregate(pd, pexp)
+        parent_res = aggregate(pd, pexp, req=requirement(exp))     # Eltern unter der Bedingung des Kindes
     res["vergleich"] = verdict(res, parent_res)
     res["konfig_unterschiede"] = config_diff(res["_params"], parent_res["_params"]) if parent_res else []
     clean = {k: ({kk: vv for kk, vv in v.items() if kk != "_boot"} if isinstance(v, dict) else v)
@@ -353,7 +370,8 @@ def report(exp_id: str):
     pct = lambda x: "–" if x is None else f"{100 * x:.1f} %"  # noqa: E731
     v = res["vergleich"]
     lines = [f"# {exp_id}: {exp.get('titel', '')}", "",
-             f"Bedingung `{res['bedingung']}`, Protokoll {res['protokoll']}, {res['seeds']} Seed(s)", "",
+             f"Bedingung `{res['bedingung']}` (Kippwinkel ≤ {res['anforderung_max_kipp_deg']}°), Protokoll "
+             f"{res['protokoll']}, {res['seeds']} Seed(s); Eltern-Spalte unter derselben Bedingung", "",
              "| Metrik | Wert | 95-%-KI | Eltern |", "|---|---|---|---|"]
     for key in ("aufgabenerfolg", "haltequote"):
         pv = pct(parent_res[key]["mittel"]) if parent_res else "–"
@@ -431,7 +449,9 @@ def cmd_run(a):
         if envs == "auto":
             envs = json.loads(BENCH.read_text())["beste"] if BENCH.exists() else 1024
         log(f"== {exp_id}: {exp.get('titel')} ({envs} Umgebungen, {t['iterationen']} Iterationen, Seeds {t['seeds']})")
-        commit = sh("git", "rev-parse", "--short", "HEAD") + ("+lokal" if sh("git", "status", "--porcelain") else "")
+        # nur Code zählt (experiments/ ändert das Framework selbst während des Laufs)
+        commit = sh("git", "rev-parse", "--short", "HEAD") + (
+            "+lokal" if sh("git", "status", "--porcelain", "--", "isaac_lab", "config", "isaac_sim") else "")
         save_fields(d, status="läuft", commit=commit)
         if not smoke(exp_id, t):
             log(f"{exp_id}: Kurztest fehlgeschlagen — übersprungen ({LOGS / (exp_id + '_smoke.log')})")
@@ -482,7 +502,7 @@ def cmd_done(a):
         f = lambda m: f"{pct(m['mittel'])} [{pct(m['ki95'][0])}–{pct(m['ki95'][1])}]" if m else "–"  # noqa: E731
         g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
         rows.append(f"| [{exp['id']}]({d.name}/experiment.yaml) | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | "
-                    f"{exp['bedingungen'][0]['name']} | {r.get('seeds', '–')} | "
+                    f"{exp['bedingungen'][0]['name']} ≤{requirement(exp)}° | {r.get('seeds', '–')} | "
                     f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
                     f"{_budget_cell(r.get('netz'))} | {f(ae)} | {f(hq)} | "
                     f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
