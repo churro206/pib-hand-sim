@@ -10,6 +10,9 @@ die conda-Umgebung env_isaaclab muss aktiv sein (isaaclab.sh nimmt deren Python)
   /usr/bin/python3 isaac_lab/experiments.py eval EXP-000                # nur (neu) bewerten + Bericht
   /usr/bin/python3 isaac_lab/experiments.py done                        # index.md neu erzeugen
 
+run, eval und done enden mit der Sicherung nach Hugging Face (backup_policies.py --upload;
+abschalten mit --kein-backup).
+
 Isaac Labs train.py hängt nach dem Ende in simulation_app.close() — sobald der letzte
 Checkpoint geschrieben ist, wird der Prozess nach 60 s beendet.
 """
@@ -539,6 +542,28 @@ def cmd_done(a):
                     f"{r.get('vergleich', {}).get('urteil', '–')} | {exp.get('urteil') or '–'} |")
     (EXP_DIR / "index.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
     log(f"index.md aktualisiert ({len(rows) - 6} Experimente)")
+    if not a.kein_backup:
+        backup()
+
+
+def backup():
+    """Policies + experiments/ nach Hugging Face (backup_policies.py) — Fehler nur als Warnung."""
+    commits = {json.loads(m.read_text()).get("commit") for m in RUNS.glob("*/meta.json")} - {None}
+    unpushed = [c[:7] for c in sorted(commits) if not sh("git", "branch", "-r", "--contains", c)]
+    if unpushed:
+        log(f"WARNUNG: Trainings-Commit(s) {', '.join(unpushed)} nicht auf origin — Sicherung verweist auf "
+            "einen nur lokal vorhandenen Code-Stand (git push)")
+    if os.environ.get("CONDA_DEFAULT_ENV") != "env_isaaclab":
+        log("WARNUNG: Sicherung übersprungen — conda-Umgebung env_isaaclab nicht aktiv")
+        return
+    log_file = LOGS / "backup.log"
+    with open(log_file, "w", encoding="utf-8") as out:
+        rc = subprocess.run([str(ISAACLAB), "-p", "isaac_lab/backup_policies.py", "--upload"], cwd=REPO,
+                            stdout=out, stderr=subprocess.STDOUT).returncode
+    if rc == 0:
+        log("Sicherung auf Hugging Face fertig")
+    else:
+        log(f"WARNUNG: Sicherung fehlgeschlagen ({log_file}) — wird beim nächsten done nachgeholt")
 
 
 def _net_cell(n):
@@ -568,7 +593,9 @@ def main():
     e = sub.add_parser("eval")
     e.add_argument("ids", nargs="+")
     e.add_argument("--video", action="store_true")
-    sub.add_parser("done")
+    d = sub.add_parser("done")
+    for s in (r, e, d):
+        s.add_argument("--kein-backup", action="store_true", help="nicht nach Hugging Face sichern")
     a = p.parse_args()
     {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "done": cmd_done}[a.cmd](a)
 

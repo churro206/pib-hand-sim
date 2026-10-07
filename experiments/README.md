@@ -29,12 +29,15 @@ logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     video_eval/videos/            Video der ersten Episoden (erster Seed)
 ```
 
-`experiments/` ist im Git (nur Text), Checkpoints/Logs nicht. **Sicherung der Policies** nach jedem
-Experiment in das private Hugging-Face-Repo [`churro206/pib-grasp-policies`](https://huggingface.co/churro206/pib-grasp-policies)
+`experiments/` ist im Git (nur Text), Checkpoints/Logs nicht. **Sicherung der Policies** in das
+private Hugging-Face-Repo [`churro206/pib-grasp-policies`](https://huggingface.co/churro206/pib-grasp-policies)
 (je Lauf letzter Checkpoint, Export, Konfiguration, Metadaten, Bewertung, Log, Video; ~5 MB/Lauf;
-unveränderte Dateien werden nicht erneut hochgeladen):
+dazu `experiments/`; unveränderte Dateien werden nicht erneut hochgeladen) — **automatisch** am Ende
+von `experiments.py done`, also auch nach `run` und `eval`. Ein Fehlschlag (kein Netz, Login) ist nur
+eine Warnung (`logs/experiments/backup.log`) und wird beim nächsten `done` nachgeholt; Warnung auch,
+wenn ein Trainings-Commit nicht auf `origin` liegt. Abschalten mit `--kein-backup`, von Hand:
 ```bash
-~/IsaacLab/isaaclab.sh -p isaac_lab/backup_policies.py            # Probelauf
+~/IsaacLab/isaaclab.sh -p isaac_lab/backup_policies.py            # Probelauf: was, wie groß
 ~/IsaacLab/isaaclab.sh -p isaac_lab/backup_policies.py --upload   # hochladen
 ```
 Anmeldung einmalig `hf auth login` (fine-grained Token „pib-hand-sim backup“: Repos lesen, Repos
@@ -51,13 +54,13 @@ Tag am Trainings-Commit.
 | 4 | **Evaluieren**: festes Protokoll (unten), letzter Checkpoint | automatisch | `experiments.py run` → `eval_policy.py` |
 | 5 | **Sichten**: Video, Auffälligkeiten | automatisch aufgenommen, Leon schaut | `videos/` im Laufordner |
 | 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel | automatisch, Leon bestätigt | `results.json`, `bericht.md` |
-| 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment; Policies sichern | Leon (Claude schlägt vor) | `experiments.py done`, `backup_policies.py --upload` |
+| 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment; Policies sichern | Leon (Claude schlägt vor) | `experiments.py done` (sichert automatisch) |
 
 Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 ```bash
 /usr/bin/python3 isaac_lab/experiments.py new  --eltern EXP-001 --kurz name --titel "..."
 /usr/bin/python3 isaac_lab/experiments.py run  EXP-002 [EXP-003 ...]     # 2–6, unbeaufsichtigt
-/usr/bin/python3 isaac_lab/experiments.py done EXP-002                   # 7: index.md
+/usr/bin/python3 isaac_lab/experiments.py done                           # 7: index.md + Sicherung
 ```
 
 Regeln:
