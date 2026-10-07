@@ -203,6 +203,8 @@ def train(run_name: str, task: str, envs: int, iters: int, seed: int, extra: lis
            "--max_iterations", str(iters), "--seed", str(seed), "--run_name", run_name, *extra]
     log(f"  Training {run_name}: {envs} Umgebungen, {iters} Iterationen, Seed {seed}")
     start, vram, run_dir, done_at = time.time(), 0, None, None
+    # Schutz gegen Hänger: 3× erwartete Dauer (~2,3 s/Iteration bei 1024 Umgebungen), mind. 30 min
+    limit_s = max(1800.0, 3 * 2.3 * iters * envs / 1024 + 300)
     with open(log_file, "w", encoding="utf-8") as out:
         proc = subprocess.Popen(cmd, cwd=REPO, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
         while proc.poll() is None:
@@ -221,8 +223,8 @@ def train(run_name: str, task: str, envs: int, iters: int, seed: int, extra: lis
                     time.sleep(5)
                     if proc.poll() is None:
                         os.killpg(proc.pid, signal.SIGKILL)
-            if time.time() - start > 8 * 3600:
-                log("  Abbruch: über 8 h")
+            if time.time() - start > limit_s:
+                log(f"  Abbruch: über {limit_s / 3600:.1f} h (3× erwartete Dauer) — Training hängt?")
                 os.killpg(proc.pid, signal.SIGKILL)
     text = log_file.read_text(encoding="utf-8", errors="ignore")
     sps = [int(x) for x in re.findall(r"Computation: (\d+) steps/s", text)]

@@ -1,0 +1,44 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-009
+titel: Objekttransfer ohne Nachtraining (EXP-006-Policy, Masse 0,04–0,4 kg)
+datum: '2026-10-07'
+eltern: EXP-006
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Die EXP-006-Policy (Masse 0,04–0,4 kg, greift mit im Mittel 3,0 Fingern statt 2,0) überträgt ohne Nachtraining besser auf andere Objekte als EXP-004: Abstand des Aufgabenerfolgs (≤ 45°) zur Referenz Ø 6 cm an Ø 8 cm und Quader kleiner als in EXP-008.'
+aenderung: 'Kein Training — Bewertung der EXP-006-Läufe (5 Seeds) unter Zylinder Ø 8 cm und Quader 7 × 7 × 20 cm wie EXP-008; Referenz ist die bisherige Bedingung.'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg (Training, Referenz)
+  objekt_id: zylinder_d6
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: zylinder_d8_seitlich
+  objekt: Zylinder Ø 8 cm (±10 %), 15 cm, 0,05–0,2 kg (dicke Dose/Becher)
+  objekt_id: zylinder_d8
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: quader_seitlich
+  objekt: Quader 7 × 7 × 20 cm (±10 %), Fläche zur Hand ±15°, 0,05–0,2 kg (Milchpackung)
+  objekt_id: quader_7x7x20
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training: null
+fenstertest: true
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment
+laeufe_von: EXP-006
