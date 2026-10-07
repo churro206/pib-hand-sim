@@ -3,8 +3,7 @@ id: EXP-005
 titel: Kontaktbelohnung nach Fingerzahl
 datum: '2026-10-07'
 eltern: EXP-004
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-004 hält mit genau 2 Fingern (Daumen + einer), weil der Gegengriff-Term
   nur das verlangt. Eine zusätzliche Belohnung, die mit der Zahl der Finger an der
@@ -35,9 +34,11 @@ training:
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: c5f71d9
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-19-15_EXP-005_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-32-21_EXP-005_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-44-39_EXP-005_s44
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

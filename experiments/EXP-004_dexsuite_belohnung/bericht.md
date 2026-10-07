@@ -2,17 +2,17 @@
 
 Bedingung `zylinder_seitlich` (Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Eltern-Spalte unter derselben Bedingung
 
-| Metrik | Wert | 95-%-KI | Eltern |
-|---|---|---|---|
-| aufgabenerfolg | 77.3 % | 56.4 % – 88.9 % | 2.0 % |
-| haltequote | 90.1 % | 88.7 % – 91.5 % | 86.1 % |
-| Kippwinkel Median [°] | 26.6 | | 104 |
-| Unterarm Median [°] | 25.8 | | 90 |
-| Griffkraft Mittel [N] | 58.4 | | 23.9 |
-| Kraft > 15 N [Anteil] | 99.2 % | | 9.3 % |
-| Stall-Anteil [Anteil] | 99.7 % | | 99.6 % |
-| Absinken [mm] | 0.0255 | | 0 |
-| Unruhe | 1.01 | | 0.244 |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
+|---|---|---|---|---|---|
+| aufgabenerfolg | 77.3 % | 56.4 % – 88.9 % | 82.5 % | 0.0 % | 2.0 % / 2.0 % |
+| haltequote | 90.1 % | 88.7 % – 91.5 % | 90.3 % | 0.0 % | 86.1 % / 86.1 % |
+| Kippwinkel Median [°] | 26.6 | | | | 104 |
+| Unterarm Median [°] | 25.8 | | | | 90 |
+| Griffkraft Mittel [N] | 58.4 | | | | 23.9 |
+| Kraft > 15 N [Anteil] | 99.2 % | | | | 9.3 % |
+| Stall-Anteil [Anteil] | 99.7 % | | | | 99.6 % |
+| Absinken [mm] | 0.0255 | | | | 0 |
+| Unruhe | 1.01 | | | | 0.244 |
 
 Fehlerarten: startfehler 0.5 %, gefallen 9.4 %, instabil 0.0 %, anforderung_verletzt 12.8 %
 

@@ -171,7 +171,7 @@ def cmd_new(a):
     text = (EXP_DIR / "_vorlage.yaml").read_text(encoding="utf-8")
     (d / "experiment.yaml").write_text(text, encoding="utf-8")
     training = dict(parent["training"])
-    training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44})   # README: ≥ 3 Seeds
+    training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44, 45, 46})   # README: 5 Seeds
     save_fields(d, id=new_id, titel=a.titel, datum=f"{dt.date.today()}", eltern=a.eltern,
                 bedingungen=parent["bedingungen"], training=training, protokoll=parent["protokoll"])
     log(f"{new_id} angelegt: {d.relative_to(REPO)} (Eltern {a.eltern})")
@@ -275,6 +275,19 @@ def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path) -> dict | No
 
 # ── Statistik ─────────────────────────────────────────────────────────────────
 
+def iqm(values) -> float:
+    """Interquartilsmittel (Agarwal et al. 2021, rliable): Mittel der mittleren 50 % — untere und obere
+    25 % verworfen, Randwerte anteilig gewichtet (wie scipy.stats.trim_mean mit 0,25)."""
+    v = np.sort(np.asarray(values, float))
+    n = len(v)
+    lo, hi = 0.25 * n, 0.75 * n
+    w = np.clip(np.minimum(np.arange(1, n + 1), hi) - np.maximum(np.arange(n), lo), 0, None)
+    return float((v * w).sum() / w.sum())
+
+
+FAIL_BELOW = 0.5        # Seed gilt als Fehlschlag unter 50 % Aufgabenerfolg
+
+
 def boot_means(per_seed: list[np.ndarray], rng) -> np.ndarray:
     """Zweistufiger Bootstrap: Seeds ziehen, darin Episoden ziehen → BOOT Mittelwerte."""
     k = len(per_seed)
@@ -313,7 +326,9 @@ def aggregate(exp_dir: Path, exp: dict, req="eigene") -> dict:
     for key, per_seed in (("aufgabenerfolg", [success(e) for e in evals]),
                           ("haltequote", [np.array(e["gehalten_je_episode"], float) for e in evals])):
         bm = boot_means(per_seed, rng)
-        res[key] = {"mittel": float(np.mean([s.mean() for s in per_seed])),
+        seed_rates = [float(s.mean()) for s in per_seed]
+        res[key] = {"mittel": float(np.mean(seed_rates)), "iqm": iqm(seed_rates), "je_seed": seed_rates,
+                    "fehlschlag_seeds": float(np.mean([r < FAIL_BELOW for r in seed_rates])),
                     "ki95": [float(np.percentile(bm, 2.5)), float(np.percentile(bm, 97.5))], "_boot": bm}
     first = REPO / exp["laeufe"][0]
     res["netz"] = net_profile(load_params(first), evals[0])
@@ -379,15 +394,17 @@ def report(exp_id: str):
     lines = [f"# {exp_id}: {exp.get('titel', '')}", "",
              f"Bedingung `{res['bedingung']}` (Kippwinkel ≤ {res['anforderung_max_kipp_deg']}°), Protokoll "
              f"{res['protokoll']}, {res['seeds']} Seed(s); Eltern-Spalte unter derselben Bedingung", "",
-             "| Metrik | Wert | 95-%-KI | Eltern |", "|---|---|---|---|"]
+             "| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |",
+             "|---|---|---|---|---|---|"]
     for key in ("aufgabenerfolg", "haltequote"):
-        pv = pct(parent_res[key]["mittel"]) if parent_res else "–"
-        lines.append(f"| {key} | {pct(res[key]['mittel'])} | {pct(res[key]['ki95'][0])} – {pct(res[key]['ki95'][1])} | {pv} |")
+        pv = f"{pct(parent_res[key]['mittel'])} / {pct(parent_res[key]['iqm'])}" if parent_res else "–"
+        lines.append(f"| {key} | {pct(res[key]['mittel'])} | {pct(res[key]['ki95'][0])} – {pct(res[key]['ki95'][1])} | "
+                     f"{pct(res[key]['iqm'])} | {pct(res[key]['fehlschlag_seeds'])} | {pv} |")
     for key, label, _, kind in GUARDRAILS:
         c = res["leitplanken"].get(key)
         p = parent_res.get("leitplanken", {}).get(key) if parent_res else None
         f = (lambda x: "–" if x is None else (pct(x) if "anteil" in key else f"{x:.3g}"))
-        lines.append(f"| {label} | {f(c)} | | {f(p)} |")
+        lines.append(f"| {label} | {f(c)} | | | | {f(p)} |")
     lines += ["", "Fehlerarten: " + ", ".join(f"{k} {pct(x)}" for k, x in res["fehler"].items()), "",
               f"**Urteilsvorschlag: {v['urteil']}**"]
     if "differenz_ki95" in v:
@@ -505,8 +522,8 @@ def cmd_done(a):
     pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
     rows = ["# Experimente — Übersicht", "", "Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote "
             "in %, [95-%-KI]; Leitplanken Mittel über Seeds. Definitionen: README.md.", "",
-            "| ID | Titel | Eltern | Bedingung | Seeds | Netz (Actor) | Param. | Iter. × Umg. | Aufgabenerfolg | Haltequote | Kipp° | Unterarm° | Stall | Finger | Vorschlag | Urteil (bestätigt) |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+            "| ID | Titel | Eltern | Bedingung | Seeds | Netz (Actor) | Param. | Iter. × Umg. | Aufgabenerfolg | IQM | Fehlschlag | Haltequote | Kipp° | Unterarm° | Stall | Finger | Vorschlag | Urteil (bestätigt) |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
         exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
         r = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
@@ -516,7 +533,7 @@ def cmd_done(a):
         rows.append(f"| [{exp['id']}]({d.name}/experiment.yaml) | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | "
                     f"{exp['bedingungen'][0]['name']} ≤{requirement(exp)}° | {r.get('seeds', '–')} | "
                     f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
-                    f"{_budget_cell(r.get('netz'))} | {f(ae)} | {f(hq)} | "
+                    f"{_budget_cell(r.get('netz'))} | {f(ae)} | {pct((ae or {}).get('iqm'))} | {pct((ae or {}).get('fehlschlag_seeds'))} | {f(hq)} | "
                     f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
                     f"{_finger_cell(r.get('fingernutzung'))} | "
                     f"{r.get('vergleich', {}).get('urteil', '–')} | {exp.get('urteil') or '–'} |")

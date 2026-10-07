@@ -54,7 +54,9 @@ Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 Regeln:
 - **Eine Änderung** pro Experiment gegenüber den Eltern (`new` listet die Code-Unterschiede).
 - Hypothese, Bedingungen und Entscheidungsregel **vor** dem Lauf festlegen, nicht danach anpassen.
-- Mindestens **3 Seeds** (42, 43, 44), sonst kein Urteil „besser/schlechter“.
+- **5 Seeds** (42–46) für Entscheidungen (seit 2026-10-07; vorher 3 — ein einzelner schlechter Seed
+  bestimmte das Urteil, EXP-004–007: Seed 43 jedes Mal 14–56 %). Henderson et al. 2018: ≥ 5;
+  Colas et al. 2018: für kleine Effekte per Power-Analyse eher 10–20.
 - **Vor dem Lauf committen** (`run` warnt sonst) — nur ein committeter Stand ist reproduzierbar.
 - Bewertet wird immer der **letzte Checkpoint**, nie der beste nach Bewertung (Auswahl-Verzerrung).
 - Ändert ein Experiment das Trainingsbudget (Iterationen, Umgebungen), ist das **eine** Änderung
@@ -128,6 +130,10 @@ int8 − float (M2).
 - Je Seed die Quote; zusammengefasst Mittel über die Seeds mit **95-%-Konfidenzintervall**
   per zweistufigem Bootstrap (Seeds, darin Episoden ziehen; 2000 Wiederholungen).
 - Unterschied Kind − Eltern ebenso per Bootstrap.
+- Zusätzlich je Experiment: **IQM** der Seed-Quoten (Interquartilsmittel, Agarwal et al. 2021 —
+  robust gegen Ausreißer-Seeds, ab ~5 Seeds sinnvoll) und **Fehlschlagquote** (Anteil der Seeds
+  unter 50 % Aufgabenerfolg = Zuverlässigkeit des Trainings). Mittelwert = was ein einzelner
+  Trainingslauf im Schnitt bringt; IQM = wie gut die Variante typischerweise wird.
 - **Urteilsvorschlag**:
   - *besser*: Intervall des Unterschieds im Aufgabenerfolg komplett > 0 und keine Leitplanke
     über der Toleranz

@@ -3,8 +3,7 @@ id: EXP-006
 titel: Objektmasse wie Dexsuite (0,04–0,4 kg)
 datum: '2026-10-07'
 eltern: EXP-004
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Mit schwereren Objekten im Training (wie Dexsuite) reicht der Pinzettengriff
   nicht mehr; die Policy lernt, mehr Finger einzusetzen (Fingerzahl > 2) und hält
@@ -35,9 +34,11 @@ training:
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: c5f71d9
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-56-52_EXP-006_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-09-35_EXP-006_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-21-47_EXP-006_s44
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

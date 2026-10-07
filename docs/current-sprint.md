@@ -251,8 +251,15 @@ Unterarm 90°, Stall-Anteil 99,6 %).
       (Halten × Aufrecht ohne Abbruch). Ursache: Belohnung (ADR-017)
 - [x] **EXP-004 Belohnungssatz wie Dexsuite: Aufgabenerfolg 77 % (≤ 45°), Haltequote 90 %,
       Kippwinkel 27°** — neue Baseline. Anforderung für den Zylinder ≤ 45° (Leon)
-- [ ] Fingernutzung: EXP-004 greift mit Daumen + einem Finger (Pinzettengriff) → EXP-005 ff.
+- [x] Fingernutzung: EXP-004 greift mit genau 2 Fingern. EXP-005 (Kontakt nach Fingerzahl) 2,6,
+      EXP-006 (Masse 0,04–0,4 kg) 3,0 Finger, EXP-007 (1500 It.) 2,3 — Aufgabenerfolg-IQM aller
+      vier 81–83 %, kein messbarer Unterschied; Kippwinkel/Unterarm bei 005/006 schlechter
+- [x] Seed 43 scheitert in jedem Experiment (14–56 %, Griff mit dem kleinen Finger) → Standard
+      jetzt **5 Seeds**, Bericht mit IQM und Fehlschlagquote (README)
 - [ ] Kraft/Stall (Griffkraft 58 N, Stall 99,7 %) — Kraftstrafe vorerst bewusst nicht (Leon)
+- Entschieden (Leon, 2026-10-07): Reibung bleibt (Fingerinnenseiten **und** Handfläche real aus
+  TPU, Sim mit 0,5–1,0 eher konservativ); FSR real ebenfalls bis 20 N → Beobachtung passt;
+  Handgelenkwinkel nicht in die Bewertung
 - [ ] Reset-Überlappung Daumen ↔ Dose (~6 %) beheben — reiner Bugfix, separat geprüft
 
 **Stufe 2 — Rezept der Lift-Aufgabe vollständig**
@@ -268,11 +275,25 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 - [ ] Auswertung „FSR-Kraft über Masse“ (passt die Policy die Kraft an?)
 - [ ] erst wenn das nicht reicht: längerer Verlauf (10–15 Schritte), später LSTM
 
-**Stufe 4 — andere Objekte**: Zylinder-Policy **ohne Nachtraining** an Quader (Milchpackung)/
-Flasche testen (HORA-Erfahrung); nur bei Bedarf Formen ins Training (`MultiAssetSpawnerCfg`)
+**Stufe 4 — andere Objekte** ← **als Nächstes** (Leon, 2026-10-07: Fokus von der Belohnung auf
+die Objekte; Fingernutzung/Seed-Streuung hängen vermutlich am 6-cm-Zylinder — Ring/kleiner Finger
+erreichen ihn kaum)
+- [ ] Bewertung: Objekt als Teil der Bedingung austauschbar (eval_policy.py + experiment.yaml)
+- [ ] Ohne Nachtraining (seitlich): EXP-004/006-Policies an Quader 7 × 7 × 20 cm (Milchpackung),
+      Zylinder Ø 8 cm (Becher), Zylinder Ø 6 cm (Referenz), ggf. Kugel Ø 7 cm; Masse wie Training
+- [ ] Machbarkeit je Objekt mit realistischer Masse (1-l-Milch ≈ 1 kg)
+- [ ] Training mit Objektvielfalt (Dexsuite `MultiAssetSpawnerCfg`), 5 Seeds
 
-**Stufe 5 — Hakengriff (Tasche)**: eigene Startpose, Henkel als starrer Körper; zweiter
-Spezialist oder Griffart-One-Hot (beides passt auf den Nucleo)
+**Stufe 4b — Startpose „von oben“** (Leon, 2026-10-07): runde/kleine Objekte (Obst) von oben
+greifen statt seitlich — Anfahrrichtung je Objektkategorie (wie Greifplaner, z. B. GraspGen).
+Objekt hängt zwischen den Fingern (keine Handflächenstütze), Anforderung ohne Kippwinkel.
+Der blinde Actor sieht die Handausrichtung nicht → **eigener Spezialist je Startpose** (beide
+passen auf den Nucleo), später ggf. Startpose als One-Hot-Eingang (GRIT).
+- [ ] Szene „von oben“ (Hand gedreht, Tisch/Objekt angepasst), Machbarkeitstest Kugel/kleiner Zylinder
+- [ ] Spezialist mit Dexsuite-Belohnung, Bedingung ohne Kippanforderung
+
+**Stufe 5 — Hakengriff (Tasche)**: eigene Startpose (von oben), Henkel als starrer Körper;
+weiterer Spezialist oder Griffart-One-Hot (passt auf den Nucleo)
 
 **Zurückgestellt** (erst bei Bedarf, mit Begründung aus einer Messung): ReLU statt ELU (ELU
 läuft auf der NPU; erst wenn int8 vs. float es verlangt), Stall-Strafe, Masse-Curriculum,
