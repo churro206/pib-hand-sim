@@ -151,7 +151,7 @@ class GraspDifficultyScheduler(ManagerTermBase):
     def __init__(self, cfg, env):
         super().__init__(cfg, env)
         self.current = torch.ones(env.num_envs, device=env.device) * self.cfg.params.get("init_difficulty", 0)
-        self.difficulty_frac = 0.0
+        self.difficulty_frac = torch.zeros((), device=env.device)
 
     def __call__(self, env: ManagerBasedRLEnv, env_ids, max_kipp_deg: float = 45.0, init_difficulty: int = 0,
                  min_difficulty: int = 0, max_difficulty: int = 10):
@@ -159,7 +159,8 @@ class GraspDifficultyScheduler(ManagerTermBase):
         ok = env.termination_manager.time_outs[env_ids] & (object_tilt(env)[env_ids] <= math.radians(max_kipp_deg))
         self.current[env_ids] = torch.where(ok, self.current[env_ids] + 1, self.current[env_ids] - 1).clamp(
             min=min_difficulty, max=max_difficulty)
-        self.difficulty_frac = float(self.current.mean() / max(max_difficulty, 1))
+        # Tensor wie bei Dexsuite: initial_final_interpolate_fn ruft .item() auf den interpolierten Werten auf
+        self.difficulty_frac = self.current.mean() / max(max_difficulty, 1)
         return self.difficulty_frac
 
 

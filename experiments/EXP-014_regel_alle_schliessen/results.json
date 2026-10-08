@@ -1,0 +1,1928 @@
+{
+ "protokoll": "eval-v1",
+ "seeds": 1,
+ "laeufe": [
+  "logs/regel/EXP-014"
+ ],
+ "bedingung": "zylinder_seitlich",
+ "objekt": "zylinder_d6",
+ "seed_ids": [
+  null
+ ],
+ "je_seed": [
+  {
+   "aufgabenerfolg": 0.775,
+   "haltequote": 0.775,
+   "fehler": {
+    "startfehler": 0.005,
+    "gefallen": 0.22,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "leitplanken": {
+    "kipp_median_deg": 14.783838590560464,
+    "unterarm_median_deg": 0.30848277246012845,
+    "kraft_mittel_n": 46.19908795362896,
+    "kraft_ueber_15n_anteil": 0.9200752688172045,
+    "stall_anteil": 1.4390214654035255e-05,
+    "absinken_mm": 0.04284947149215206,
+    "unruhe": 0.005725856530950838
+   },
+   "fingernutzung": {
+    "finger": [
+     "daumen",
+     "zeige",
+     "mittel",
+     "ring",
+     "klein"
+    ],
+    "kontakt_anteil": [
+     0.9706021506002834,
+     0.9951182795916834,
+     0.9998924731439159,
+     0.9699032259371972,
+     0.9274623655648001
+    ],
+    "kraft_n": [
+     22.16703421616266,
+     6.817943582919336,
+     5.856568270960162,
+     5.572543420830081,
+     5.11119210550862
+    ],
+    "finger_mit_kontakt": 4.86297849483788
+   }
+  }
+ ],
+ "anforderung_max_kipp_deg": 45,
+ "aufgabenerfolg": {
+  "mittel": 0.775,
+  "iqm": 0.775,
+  "je_seed": [
+   0.775
+  ],
+  "iqm_ki95": [
+   0.75,
+   0.801
+  ],
+  "fehlschlag_seeds": 0.0,
+  "ki95": [
+   0.75,
+   0.8
+  ]
+ },
+ "haltequote": {
+  "mittel": 0.775,
+  "iqm": 0.775,
+  "je_seed": [
+   0.775
+  ],
+  "iqm_ki95": [
+   0.75,
+   0.801
+  ],
+  "fehlschlag_seeds": 0.0,
+  "ki95": [
+   0.749975,
+   0.8
+  ]
+ },
+ "netz": {
+  "actor": null,
+  "critic": null,
+  "aktivierung": null,
+  "verlauf": null,
+  "eingaenge": 105,
+  "actor_parameter": 0,
+  "lernrate": null,
+  "entropie": null,
+  "epochen": null,
+  "mini_batches": null,
+  "schritte_je_umgebung": null,
+  "iterationen": null,
+  "umgebungen": null
+ },
+ "fingernutzung": {
+  "je_seed_kontakt": [
+   [
+    0.9706021506002834,
+    0.9951182795916834,
+    0.9998924731439159,
+    0.9699032259371972,
+    0.9274623655648001
+   ]
+  ],
+  "finger_mit_kontakt": 4.86297849483788
+ },
+ "leitplanken": {
+  "kipp_median_deg": 14.783838590560464,
+  "unterarm_median_deg": 0.30848277246012845,
+  "kraft_mittel_n": 46.19908795362896,
+  "kraft_ueber_15n_anteil": 0.9200752688172045,
+  "stall_anteil": 1.4390214654035255e-05,
+  "absinken_mm": 0.04284947149215206,
+  "unruhe": 0.005725856530950838
+ },
+ "fehler": {
+  "startfehler": 0.005,
+  "gefallen": 0.22,
+  "instabil": 0.0,
+  "anforderung_verletzt": 0.0
+ },
+ "vergleich": {
+  "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+  "differenz_aufgabenerfolg": 0.2691633,
+  "differenz_ki95": [
+   -0.07320500000000003,
+   0.6164149999999999
+  ],
+  "leitplanken_verletzt": [],
+  "gegen": "EXP-013"
+ },
+ "konfig_unterschiede": [
+  "agent.algorithm.class_name: PPO → ∅",
+  "agent.algorithm.clip_param: 0.2 → ∅",
+  "agent.algorithm.desired_kl: 0.01 → ∅",
+  "agent.algorithm.entropy_coef: 0.005 → ∅",
+  "agent.algorithm.gamma: 0.99 → ∅",
+  "agent.algorithm.lam: 0.95 → ∅",
+  "agent.algorithm.learning_rate: 0.001 → ∅",
+  "agent.algorithm.max_grad_norm: 1.0 → ∅",
+  "agent.algorithm.normalize_advantage_per_mini_batch: False → ∅",
+  "agent.algorithm.num_learning_epochs: 5 → ∅",
+  "agent.algorithm.num_mini_batches: 4 → ∅",
+  "agent.algorithm.rnd_cfg: None → ∅",
+  "agent.algorithm.schedule: adaptive → ∅",
+  "agent.algorithm.symmetry_cfg: None → ∅",
+  "agent.algorithm.use_clipped_value_loss: True → ∅",
+  "agent.algorithm.value_loss_coef: 1.0 → ∅",
+  "agent.class_name: OnPolicyRunner → ∅",
+  "agent.clip_actions: None → ∅",
+  "agent.device: cuda:0 → ∅",
+  "agent.empirical_normalization: None → ∅",
+  "agent.experiment_name: pib_grasp_hand_left → ∅",
+  "agent.logger: tensorboard → ∅",
+  "agent.max_iterations: 300 → ∅",
+  "agent.neptune_project: isaaclab → ∅",
+  "agent.num_steps_per_env: 32 → ∅",
+  "agent.obs_groups.critic: ['policy', 'critic'] → ∅",
+  "agent.obs_groups.policy: ['policy'] → ∅",
+  "agent.policy.activation: elu → ∅",
+  "agent.policy.actor_hidden_dims: [256, 128, 64] → ∅",
+  "agent.policy.actor_obs_normalization: True → ∅",
+  "agent.policy.class_name: ActorCritic → ∅",
+  "agent.policy.critic_hidden_dims: [512, 256, 128] → ∅",
+  "agent.policy.critic_obs_normalization: True → ∅",
+  "agent.policy.init_noise_std: 1.0 → ∅",
+  "agent.policy.noise_std_type: scalar → ∅",
+  "agent.policy.state_dependent_std: False → ∅",
+  "agent.save_interval: 100 → ∅",
+  "agent.wandb_project: isaaclab → ∅",
+  "env.actions.servos.asset_name: robot → ∅",
+  "env.actions.servos.class_type: isaaclab.envs.mdp.actions.joint_actions:RelativeJointPositionAction → ∅",
+  "env.actions.servos.clip: None → ∅",
+  "env.actions.servos.debug_vis: False → ∅",
+  "env.actions.servos.joint_names: ['forearm_left', 'wrist_left', 'thumb_left_rotator', 'thumb_left_proximal', 'index_left_proximal', 'middle_left_proximal', 'ring_left_proximal', 'pinky_left_proximal'] → ∅",
+  "env.actions.servos.offset: 0.0 → ∅",
+  "env.actions.servos.preserve_order: True → ∅",
+  "env.actions.servos.scale..*_left_(proximal|rotator): 0.1 → ∅",
+  "env.actions.servos.scale.forearm_left: 0.03 → ∅",
+  "env.actions.servos.scale.wrist_left: 0.03 → ∅",
+  "env.actions.servos.use_zero_offset: True → ∅",
+  "env.commands: None → ∅",
+  "env.curriculum: None → ∅",
+  "env.decimation: 2 → ∅",
+  "env.episode_length_s: 4.5 → ∅",
+  "env.events.lower_table.func: pib_grasp.mdp:lower_table → ∅",
+  "env.events.lower_table.interval_range_s: (0.0, 0.0) → ∅",
+  "env.events.lower_table.is_global_time: False → ∅",
+  "env.events.lower_table.min_step_count_between_reset: 0 → ∅",
+  "env.events.lower_table.mode: interval → ∅",
+  "env.events.lower_table.params.drop_depth: 0.1 → ∅",
+  "env.events.lower_table.params.drop_speed: 0.2 → ∅",
+  "env.events.lower_table.params.drop_start_s: 2.0 → ∅",
+  "env.events.object_mass.func: isaaclab.envs.mdp.events:randomize_rigid_body_mass → ∅",
+  "env.events.object_mass.interval_range_s: None → ∅",
+  "env.events.object_mass.is_global_time: False → ∅",
+  "env.events.object_mass.min_step_count_between_reset: 0 → ∅",
+  "env.events.object_mass.mode: startup → ∅",
+  "env.events.object_mass.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_mass.params.asset_cfg.body_names: None → ∅",
+  "env.events.object_mass.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_mass.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.object_mass.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_mass.params.asset_cfg.joint_names: None → ∅",
+  "env.events.object_mass.params.asset_cfg.name: object → ∅",
+  "env.events.object_mass.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_mass.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.object_mass.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.object_mass.params.mass_distribution_params: (0.04, 0.4) → ∅",
+  "env.events.object_mass.params.operation: abs → ∅",
+  "env.events.object_material.func: isaaclab.envs.mdp.events:randomize_rigid_body_material → ∅",
+  "env.events.object_material.interval_range_s: None → ∅",
+  "env.events.object_material.is_global_time: False → ∅",
+  "env.events.object_material.min_step_count_between_reset: 0 → ∅",
+  "env.events.object_material.mode: startup → ∅",
+  "env.events.object_material.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_material.params.asset_cfg.body_names: None → ∅",
+  "env.events.object_material.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_material.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.object_material.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_material.params.asset_cfg.joint_names: None → ∅",
+  "env.events.object_material.params.asset_cfg.name: object → ∅",
+  "env.events.object_material.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_material.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.object_material.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.object_material.params.dynamic_friction_range: (0.5, 1.0) → ∅",
+  "env.events.object_material.params.num_buckets: 250 → ∅",
+  "env.events.object_material.params.restitution_range: (0.0, 0.0) → ∅",
+  "env.events.object_material.params.static_friction_range: (0.5, 1.0) → ∅",
+  "env.events.object_scale.func: isaaclab.envs.mdp.events:randomize_rigid_body_scale → ∅",
+  "env.events.object_scale.interval_range_s: None → ∅",
+  "env.events.object_scale.is_global_time: False → ∅",
+  "env.events.object_scale.min_step_count_between_reset: 0 → ∅",
+  "env.events.object_scale.mode: prestartup → ∅",
+  "env.events.object_scale.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_scale.params.asset_cfg.body_names: None → ∅",
+  "env.events.object_scale.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_scale.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.object_scale.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_scale.params.asset_cfg.joint_names: None → ∅",
+  "env.events.object_scale.params.asset_cfg.name: object → ∅",
+  "env.events.object_scale.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.object_scale.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.object_scale.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.object_scale.params.scale_range: (0.9, 1.1) → ∅",
+  "env.events.place_objects.func: pib_grasp.mdp:place_objects_by_size → ∅",
+  "env.events.place_objects.interval_range_s: None → ∅",
+  "env.events.place_objects.is_global_time: False → ∅",
+  "env.events.place_objects.min_step_count_between_reset: 0 → ∅",
+  "env.events.place_objects.mode: startup → ∅",
+  "env.events.place_objects.params.hand_x: 0.0 → ∅",
+  "env.events.place_objects.params.palm_gap: 0.035 → ∅",
+  "env.events.place_objects.params.table_top_z: 0.415 → ∅",
+  "env.events.reset_hand.func: pib_grasp.mdp:reset_hand_joints → ∅",
+  "env.events.reset_hand.interval_range_s: None → ∅",
+  "env.events.reset_hand.is_global_time: False → ∅",
+  "env.events.reset_hand.min_step_count_between_reset: 0 → ∅",
+  "env.events.reset_hand.mode: reset → ∅",
+  "env.events.reset_hand.params.ranges_deg.index_left_proximal: (0.0, 4.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.middle_left_proximal: (0.0, 4.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.pinky_left_proximal: (0.0, 4.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.ring_left_proximal: (0.0, 4.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.thumb_left_proximal: (0.0, 15.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.thumb_left_rotator: (0.0, 90.0) → ∅",
+  "env.events.reset_hand.params.ranges_deg.wrist_left: (-3.0, 0.0) → ∅",
+  "env.events.reset_object.func: isaaclab.envs.mdp.events:reset_root_state_uniform → ∅",
+  "env.events.reset_object.interval_range_s: None → ∅",
+  "env.events.reset_object.is_global_time: False → ∅",
+  "env.events.reset_object.min_step_count_between_reset: 0 → ∅",
+  "env.events.reset_object.mode: reset → ∅",
+  "env.events.reset_object.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.reset_object.params.asset_cfg.body_names: None → ∅",
+  "env.events.reset_object.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.reset_object.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.reset_object.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.reset_object.params.asset_cfg.joint_names: None → ∅",
+  "env.events.reset_object.params.asset_cfg.name: object → ∅",
+  "env.events.reset_object.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.reset_object.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.reset_object.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.reset_object.params.pose_range.x: (-0.01, 0.01) → ∅",
+  "env.events.reset_object.params.pose_range.y: (-0.02, 0.02) → ∅",
+  "env.events.reset_object.params.pose_range.yaw: (-0.2617993877991494, 0.2617993877991494) → ∅",
+  "env.events.reset_robot.func: isaaclab.envs.mdp.events:reset_scene_to_default → ∅",
+  "env.events.reset_robot.interval_range_s: None → ∅",
+  "env.events.reset_robot.is_global_time: False → ∅",
+  "env.events.reset_robot.min_step_count_between_reset: 0 → ∅",
+  "env.events.reset_robot.mode: reset → ∅",
+  "env.events.reset_robot.params.reset_joint_targets: True → ∅",
+  "env.events.robot_material.func: isaaclab.envs.mdp.events:randomize_rigid_body_material → ∅",
+  "env.events.robot_material.interval_range_s: None → ∅",
+  "env.events.robot_material.is_global_time: False → ∅",
+  "env.events.robot_material.min_step_count_between_reset: 0 → ∅",
+  "env.events.robot_material.mode: startup → ∅",
+  "env.events.robot_material.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.robot_material.params.asset_cfg.body_names: .* → ∅",
+  "env.events.robot_material.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.robot_material.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.robot_material.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.robot_material.params.asset_cfg.joint_names: None → ∅",
+  "env.events.robot_material.params.asset_cfg.name: robot → ∅",
+  "env.events.robot_material.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.robot_material.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.robot_material.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.robot_material.params.dynamic_friction_range: (0.5, 1.0) → ∅",
+  "env.events.robot_material.params.num_buckets: 250 → ∅",
+  "env.events.robot_material.params.restitution_range: (0.0, 0.0) → ∅",
+  "env.events.robot_material.params.static_friction_range: (0.5, 1.0) → ∅",
+  "env.events.servo_gains.func: isaaclab.envs.mdp.events:randomize_actuator_gains → ∅",
+  "env.events.servo_gains.interval_range_s: None → ∅",
+  "env.events.servo_gains.is_global_time: False → ∅",
+  "env.events.servo_gains.min_step_count_between_reset: 0 → ∅",
+  "env.events.servo_gains.mode: startup → ∅",
+  "env.events.servo_gains.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.servo_gains.params.asset_cfg.body_names: None → ∅",
+  "env.events.servo_gains.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.servo_gains.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.events.servo_gains.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.servo_gains.params.asset_cfg.joint_names: ['forearm_left', 'wrist_left', 'thumb_left_rotator', 'thumb_left_proximal', 'index_left_proximal', 'middle_left_proximal', 'ring_left_proximal', 'pinky_left_proximal'] → ∅",
+  "env.events.servo_gains.params.asset_cfg.name: robot → ∅",
+  "env.events.servo_gains.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.events.servo_gains.params.asset_cfg.object_collection_names: None → ∅",
+  "env.events.servo_gains.params.asset_cfg.preserve_order: False → ∅",
+  "env.events.servo_gains.params.damping_distribution_params: (0.8, 1.25) → ∅",
+  "env.events.servo_gains.params.operation: scale → ∅",
+  "env.events.servo_gains.params.stiffness_distribution_params: (0.8, 1.25) → ∅",
+  "env.export_io_descriptors: False → ∅",
+  "env.is_finite_horizon: True → ∅",
+  "env.num_rerenders_on_reset: 0 → ∅",
+  "env.observations.critic.all_joint_pos.clip: None → ∅",
+  "env.observations.critic.all_joint_pos.flatten_history_dim: True → ∅",
+  "env.observations.critic.all_joint_pos.func: isaaclab.envs.mdp.observations:joint_pos → ∅",
+  "env.observations.critic.all_joint_pos.history_length: 0 → ∅",
+  "env.observations.critic.all_joint_pos.modifiers: None → ∅",
+  "env.observations.critic.all_joint_pos.noise: None → ∅",
+  "env.observations.critic.all_joint_pos.scale: None → ∅",
+  "env.observations.critic.all_joint_vel.clip: None → ∅",
+  "env.observations.critic.all_joint_vel.flatten_history_dim: True → ∅",
+  "env.observations.critic.all_joint_vel.func: isaaclab.envs.mdp.observations:joint_vel → ∅",
+  "env.observations.critic.all_joint_vel.history_length: 0 → ∅",
+  "env.observations.critic.all_joint_vel.modifiers: None → ∅",
+  "env.observations.critic.all_joint_vel.noise: None → ∅",
+  "env.observations.critic.all_joint_vel.scale: None → ∅",
+  "env.observations.critic.concatenate_dim: -1 → ∅",
+  "env.observations.critic.concatenate_terms: True → ∅",
+  "env.observations.critic.enable_corruption: False → ∅",
+  "env.observations.critic.flatten_history_dim: True → ∅",
+  "env.observations.critic.history_length: None → ∅",
+  "env.observations.critic.object_forces.clip: (0.0, 50.0) → ∅",
+  "env.observations.critic.object_forces.flatten_history_dim: True → ∅",
+  "env.observations.critic.object_forces.func: pib_grasp.mdp:fingertip_object_forces → ∅",
+  "env.observations.critic.object_forces.history_length: 0 → ∅",
+  "env.observations.critic.object_forces.modifiers: None → ∅",
+  "env.observations.critic.object_forces.noise: None → ∅",
+  "env.observations.critic.object_forces.scale: None → ∅",
+  "env.observations.critic.object_pos.clip: None → ∅",
+  "env.observations.critic.object_pos.flatten_history_dim: True → ∅",
+  "env.observations.critic.object_pos.func: pib_grasp.mdp:object_pos_in_root → ∅",
+  "env.observations.critic.object_pos.history_length: 0 → ∅",
+  "env.observations.critic.object_pos.modifiers: None → ∅",
+  "env.observations.critic.object_pos.noise: None → ∅",
+  "env.observations.critic.object_pos.scale: None → ∅",
+  "env.observations.critic.object_quat.clip: None → ∅",
+  "env.observations.critic.object_quat.flatten_history_dim: True → ∅",
+  "env.observations.critic.object_quat.func: pib_grasp.mdp:object_quat_in_root → ∅",
+  "env.observations.critic.object_quat.history_length: 0 → ∅",
+  "env.observations.critic.object_quat.modifiers: None → ∅",
+  "env.observations.critic.object_quat.noise: None → ∅",
+  "env.observations.critic.object_quat.scale: None → ∅",
+  "env.observations.critic.object_vel.clip: None → ∅",
+  "env.observations.critic.object_vel.flatten_history_dim: True → ∅",
+  "env.observations.critic.object_vel.func: pib_grasp.mdp:object_lin_vel → ∅",
+  "env.observations.critic.object_vel.history_length: 0 → ∅",
+  "env.observations.critic.object_vel.modifiers: None → ∅",
+  "env.observations.critic.object_vel.noise: None → ∅",
+  "env.observations.critic.object_vel.scale: None → ∅",
+  "env.observations.critic.phase.clip: None → ∅",
+  "env.observations.critic.phase.flatten_history_dim: True → ∅",
+  "env.observations.critic.phase.func: pib_grasp.mdp:phase → ∅",
+  "env.observations.critic.phase.history_length: 0 → ∅",
+  "env.observations.critic.phase.modifiers: None → ∅",
+  "env.observations.critic.phase.noise: None → ∅",
+  "env.observations.critic.phase.params.drop_start_s: 2.0 → ∅",
+  "env.observations.critic.phase.scale: None → ∅",
+  "env.observations.policy.concatenate_dim: -1 → ∅",
+  "env.observations.policy.concatenate_terms: True → ∅",
+  "env.observations.policy.enable_corruption: False → ∅",
+  "env.observations.policy.flatten_history_dim: True → ∅",
+  "env.observations.policy.fsr.clip: (0.0, 20.0) → ∅",
+  "env.observations.policy.fsr.flatten_history_dim: True → ∅",
+  "env.observations.policy.fsr.func: pib_grasp.mdp:fingertip_forces → ∅",
+  "env.observations.policy.fsr.history_length: 0 → ∅",
+  "env.observations.policy.fsr.modifiers: None → ∅",
+  "env.observations.policy.fsr.noise: None → ∅",
+  "env.observations.policy.fsr.scale: None → ∅",
+  "env.observations.policy.history_length: 5 → ∅",
+  "env.observations.policy.joint_pos.clip: None → ∅",
+  "env.observations.policy.joint_pos.flatten_history_dim: True → ∅",
+  "env.observations.policy.joint_pos.func: isaaclab.envs.mdp.observations:joint_pos → ∅",
+  "env.observations.policy.joint_pos.history_length: 0 → ∅",
+  "env.observations.policy.joint_pos.modifiers: None → ∅",
+  "env.observations.policy.joint_pos.noise: None → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.body_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.body_names: None → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.fixed_tendon_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.fixed_tendon_names: None → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.joint_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.joint_names: ['forearm_left', 'wrist_left', 'thumb_left_rotator', 'thumb_left_proximal', 'index_left_proximal', 'middle_left_proximal', 'ring_left_proximal', 'pinky_left_proximal'] → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.name: robot → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.object_collection_ids: object/apply:builtins.slice(None, None, None) → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.object_collection_names: None → ∅",
+  "env.observations.policy.joint_pos.params.asset_cfg.preserve_order: True → ∅",
+  "env.observations.policy.joint_pos.scale: None → ∅",
+  "env.observations.policy.last_action.clip: None → ∅",
+  "env.observations.policy.last_action.flatten_history_dim: True → ∅",
+  "env.observations.policy.last_action.func: isaaclab.envs.mdp.observations:last_action → ∅",
+  "env.observations.policy.last_action.history_length: 0 → ∅",
+  "env.observations.policy.last_action.modifiers: None → ∅",
+  "env.observations.policy.last_action.noise: None → ∅",
+  "env.observations.policy.last_action.scale: None → ∅",
+  "env.recorders.dataset_export_dir_path: /tmp/isaaclab/logs → ∅",
+  "env.recorders.dataset_export_mode._name_: EXPORT_ALL → ∅",
+  "env.recorders.dataset_export_mode._sort_order_: 1 → ∅",
+  "env.recorders.dataset_export_mode._value_: 1 → ∅",
+  "env.recorders.dataset_file_handler_class_type: isaaclab.utils.datasets.hdf5_dataset_file_handler:HDF5DatasetFileHandler → ∅",
+  "env.recorders.dataset_filename: dataset → ∅",
+  "env.recorders.export_in_close: False → ∅",
+  "env.recorders.export_in_record_pre_reset: True → ∅",
+  "env.rerender_on_reset: False → ∅",
+  "env.rewards.action_l2.func: isaaclab_tasks.manager_based.manipulation.dexsuite.mdp.rewards:action_l2_clamped → ∅",
+  "env.rewards.action_l2.weight: -0.005 → ∅",
+  "env.rewards.action_rate_l2.func: isaaclab_tasks.manager_based.manipulation.dexsuite.mdp.rewards:action_rate_l2_clamped → ∅",
+  "env.rewards.action_rate_l2.weight: -0.005 → ∅",
+  "env.rewards.early_termination.func: isaaclab.envs.mdp.rewards:is_terminated_term → ∅",
+  "env.rewards.early_termination.params.term_keys: ['abnormal_robot'] → ∅",
+  "env.rewards.early_termination.weight: -1.0 → ∅",
+  "env.rewards.fingertips_to_object.func: pib_grasp.mdp:fingertips_to_object → ∅",
+  "env.rewards.fingertips_to_object.params.std: 0.4 → ∅",
+  "env.rewards.fingertips_to_object.weight: 1.0 → ∅",
+  "env.rewards.good_contact.func: pib_grasp.mdp:thumb_opposition_contact → ∅",
+  "env.rewards.good_contact.params.threshold: 1.0 → ∅",
+  "env.rewards.good_contact.weight: 0.5 → ∅",
+  "env.rewards.held.func: pib_grasp.mdp:held_in_grasp → ∅",
+  "env.rewards.held.params.drop_start_s: 2.0 → ∅",
+  "env.rewards.held.params.std: 0.02 → ∅",
+  "env.rewards.held.params.threshold: 1.0 → ∅",
+  "env.rewards.held.weight: 2.0 → ∅",
+  "env.rewards.success.func: pib_grasp.mdp:object_held_upright → ∅",
+  "env.rewards.success.params.drop_start_s: 2.0 → ∅",
+  "env.rewards.success.params.rot_std: 0.5 → ∅",
+  "env.rewards.success.params.std: 0.02 → ∅",
+  "env.rewards.success.weight: 10.0 → ∅",
+  "env.rewards.upright.func: pib_grasp.mdp:upright_in_grasp → ∅",
+  "env.rewards.upright.params.drop_start_s: 2.0 → ∅",
+  "env.rewards.upright.params.rot_std: 1.5 → ∅",
+  "env.rewards.upright.params.threshold: 1.0 → ∅",
+  "env.rewards.upright.weight: 4.0 → ∅",
+  "env.scene.clone_in_fabric: False → ∅",
+  "env.scene.env_spacing: 0.6 → ∅",
+  "env.scene.filter_collisions: True → ∅",
+  "env.scene.fsr_index.class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor → ∅",
+  "env.scene.fsr_index.debug_vis: False → ∅",
+  "env.scene.fsr_index.filter_prim_paths_expr: ['/World/envs/env_.*/Object'] → ∅",
+  "env.scene.fsr_index.force_threshold: 1.0 → ∅",
+  "env.scene.fsr_index.history_length: 0 → ∅",
+  "env.scene.fsr_index.max_contact_data_count_per_prim: 4 → ∅",
+  "env.scene.fsr_index.prim_path: /World/envs/env_.*/Robot/urdf_finger_tip → ∅",
+  "env.scene.fsr_index.track_air_time: False → ∅",
+  "env.scene.fsr_index.track_contact_points: False → ∅",
+  "env.scene.fsr_index.track_friction_forces: False → ∅",
+  "env.scene.fsr_index.track_pose: False → ∅",
+  "env.scene.fsr_index.update_period: 0.0 → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.collision_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.copy_from_source: True → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.mass_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.physics_material: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.physics_material_path: material → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.radius: 0.02 → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.rigid_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.semantic_tags: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.contact.visible: True → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.collision_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.copy_from_source: True → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.mass_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.physics_material: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.physics_material_path: material → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.radius: 0.02 → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.rigid_props: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.semantic_tags: None → ∅",
+  "env.scene.fsr_index.visualizer_cfg.markers.no_contact.visible: False → ∅",
+  "env.scene.fsr_index.visualizer_cfg.prim_path: /Visuals/ContactSensor → ∅",
+  "env.scene.fsr_middle.class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor → ∅",
+  "env.scene.fsr_middle.debug_vis: False → ∅",
+  "env.scene.fsr_middle.filter_prim_paths_expr: ['/World/envs/env_.*/Object'] → ∅",
+  "env.scene.fsr_middle.force_threshold: 1.0 → ∅",
+  "env.scene.fsr_middle.history_length: 0 → ∅",
+  "env.scene.fsr_middle.max_contact_data_count_per_prim: 4 → ∅",
+  "env.scene.fsr_middle.prim_path: /World/envs/env_.*/Robot/urdf_finger_tip_2 → ∅",
+  "env.scene.fsr_middle.track_air_time: False → ∅",
+  "env.scene.fsr_middle.track_contact_points: False → ∅",
+  "env.scene.fsr_middle.track_friction_forces: False → ∅",
+  "env.scene.fsr_middle.track_pose: False → ∅",
+  "env.scene.fsr_middle.update_period: 0.0 → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.collision_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.copy_from_source: True → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.mass_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.physics_material: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.physics_material_path: material → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.radius: 0.02 → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.rigid_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.semantic_tags: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.contact.visible: True → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.collision_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.copy_from_source: True → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.mass_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.physics_material: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.physics_material_path: material → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.radius: 0.02 → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.rigid_props: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.semantic_tags: None → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.markers.no_contact.visible: False → ∅",
+  "env.scene.fsr_middle.visualizer_cfg.prim_path: /Visuals/ContactSensor → ∅",
+  "env.scene.fsr_pinky.class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor → ∅",
+  "env.scene.fsr_pinky.debug_vis: False → ∅",
+  "env.scene.fsr_pinky.filter_prim_paths_expr: ['/World/envs/env_.*/Object'] → ∅",
+  "env.scene.fsr_pinky.force_threshold: 1.0 → ∅",
+  "env.scene.fsr_pinky.history_length: 0 → ∅",
+  "env.scene.fsr_pinky.max_contact_data_count_per_prim: 4 → ∅",
+  "env.scene.fsr_pinky.prim_path: /World/envs/env_.*/Robot/urdf_finger_tip_4 → ∅",
+  "env.scene.fsr_pinky.track_air_time: False → ∅",
+  "env.scene.fsr_pinky.track_contact_points: False → ∅",
+  "env.scene.fsr_pinky.track_friction_forces: False → ∅",
+  "env.scene.fsr_pinky.track_pose: False → ∅",
+  "env.scene.fsr_pinky.update_period: 0.0 → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.collision_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.copy_from_source: True → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.mass_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.physics_material: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.physics_material_path: material → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.radius: 0.02 → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.rigid_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.semantic_tags: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.contact.visible: True → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.collision_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.copy_from_source: True → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.mass_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.physics_material: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.physics_material_path: material → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.radius: 0.02 → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.rigid_props: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.semantic_tags: None → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.markers.no_contact.visible: False → ∅",
+  "env.scene.fsr_pinky.visualizer_cfg.prim_path: /Visuals/ContactSensor → ∅",
+  "env.scene.fsr_ring.class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor → ∅",
+  "env.scene.fsr_ring.debug_vis: False → ∅",
+  "env.scene.fsr_ring.filter_prim_paths_expr: ['/World/envs/env_.*/Object'] → ∅",
+  "env.scene.fsr_ring.force_threshold: 1.0 → ∅",
+  "env.scene.fsr_ring.history_length: 0 → ∅",
+  "env.scene.fsr_ring.max_contact_data_count_per_prim: 4 → ∅",
+  "env.scene.fsr_ring.prim_path: /World/envs/env_.*/Robot/urdf_finger_tip_3 → ∅",
+  "env.scene.fsr_ring.track_air_time: False → ∅",
+  "env.scene.fsr_ring.track_contact_points: False → ∅",
+  "env.scene.fsr_ring.track_friction_forces: False → ∅",
+  "env.scene.fsr_ring.track_pose: False → ∅",
+  "env.scene.fsr_ring.update_period: 0.0 → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.collision_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.copy_from_source: True → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.mass_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.physics_material: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.physics_material_path: material → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.radius: 0.02 → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.rigid_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.semantic_tags: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.contact.visible: True → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.collision_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.copy_from_source: True → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.mass_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.physics_material: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.physics_material_path: material → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.radius: 0.02 → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.rigid_props: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.semantic_tags: None → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.markers.no_contact.visible: False → ∅",
+  "env.scene.fsr_ring.visualizer_cfg.prim_path: /Visuals/ContactSensor → ∅",
+  "env.scene.fsr_thumb.class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor → ∅",
+  "env.scene.fsr_thumb.debug_vis: False → ∅",
+  "env.scene.fsr_thumb.filter_prim_paths_expr: ['/World/envs/env_.*/Object'] → ∅",
+  "env.scene.fsr_thumb.force_threshold: 1.0 → ∅",
+  "env.scene.fsr_thumb.history_length: 0 → ∅",
+  "env.scene.fsr_thumb.max_contact_data_count_per_prim: 4 → ∅",
+  "env.scene.fsr_thumb.prim_path: /World/envs/env_.*/Robot/urdf_thumb_tip → ∅",
+  "env.scene.fsr_thumb.track_air_time: False → ∅",
+  "env.scene.fsr_thumb.track_contact_points: False → ∅",
+  "env.scene.fsr_thumb.track_friction_forces: False → ∅",
+  "env.scene.fsr_thumb.track_pose: False → ∅",
+  "env.scene.fsr_thumb.update_period: 0.0 → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.collision_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.copy_from_source: True → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.mass_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.physics_material: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.physics_material_path: material → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.radius: 0.02 → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.rigid_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.semantic_tags: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.contact.visible: True → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.activate_contact_sensors: False → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.collision_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.copy_from_source: True → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.func: isaaclab.sim.spawners.shapes.shapes:spawn_sphere → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.mass_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.physics_material: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.physics_material_path: material → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.radius: 0.02 → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.rigid_props: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.semantic_tags: None → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.markers.no_contact.visible: False → ∅",
+  "env.scene.fsr_thumb.visualizer_cfg.prim_path: /Visuals/ContactSensor → ∅",
+  "env.scene.lazy_sensor_update: True → ∅",
+  "env.scene.num_envs: 1024 → ∅",
+  "env.scene.object.class_type: isaaclab.assets.rigid_object.rigid_object:RigidObject → ∅",
+  "env.scene.object.collision_group: 0 → ∅",
+  "env.scene.object.debug_vis: False → ∅",
+  "env.scene.object.init_state.ang_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.object.init_state.lin_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.object.init_state.pos: (-0.065, -0.34, 0.49) → ∅",
+  "env.scene.object.init_state.rot: (1.0, 0.0, 0.0, 0.0) → ∅",
+  "env.scene.object.prim_path: /World/envs/env_.*/Object → ∅",
+  "env.scene.object.spawn.activate_contact_sensors: False → ∅",
+  "env.scene.object.spawn.assets_cfg: [{'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.025, 'height': 0.15, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.025, 'height': 0.2, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.03, 'height': 0.15, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.03, 'height': 0.2, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.035, 'height': 0.15, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.035, 'height': 0.2, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.04, 'height': 0.15, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.04, 'height': 0.2, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.045, 'height': 0.15, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cylinder', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'radius': 0.045, 'height': 0.2, 'axis': 'Z'}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.06, 0.06, 0.16)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.06, 0.06, 0.2)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.07, 0.07, 0.16)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.07, 0.07, 0.2)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.08, 0.08, 0.16)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.08, 0.08, 0.2)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.06, 0.09, 0.16)}, {'func': 'isaaclab.sim.spawners.shapes.shapes:spawn_cuboid', 'visible': True, 'semantic_tags': None, 'copy_from_source': True, 'mass_props': None, 'rigid_props': None, 'collision_props': None, 'activate_contact_sensors': False, 'visual_material_path': 'material', 'visual_material': {'func': 'isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface', 'diffuse_color': (0.8, 0.2, 0.2), 'emissive_color': (0.0, 0.0, 0.0), 'roughness': 0.5, 'metallic': 0.0, 'opacity': 1.0}, 'physics_material_path': 'material', 'physics_material': {'func': 'isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material', 'static_friction': 0.8, 'dynamic_friction': 0.8, 'restitution': 0.0, 'friction_combine_mode': 'average', 'restitution_combine_mode': 'average', 'compliant_contact_stiffness': 0.0, 'compliant_contact_damping': 0.0}, 'size': (0.06, 0.09, 0.2)}] → ∅",
+  "env.scene.object.spawn.collision_props.collision_enabled: None → ∅",
+  "env.scene.object.spawn.collision_props.contact_offset: None → ∅",
+  "env.scene.object.spawn.collision_props.min_torsional_patch_radius: None → ∅",
+  "env.scene.object.spawn.collision_props.rest_offset: None → ∅",
+  "env.scene.object.spawn.collision_props.torsional_patch_radius: None → ∅",
+  "env.scene.object.spawn.copy_from_source: True → ∅",
+  "env.scene.object.spawn.deformable_props: None → ∅",
+  "env.scene.object.spawn.func: isaaclab.sim.spawners.wrappers.wrappers:spawn_multi_asset → ∅",
+  "env.scene.object.spawn.mass_props.density: None → ∅",
+  "env.scene.object.spawn.mass_props.mass: 0.1 → ∅",
+  "env.scene.object.spawn.random_choice: False → ∅",
+  "env.scene.object.spawn.rigid_props.angular_damping: None → ∅",
+  "env.scene.object.spawn.rigid_props.disable_gravity: None → ∅",
+  "env.scene.object.spawn.rigid_props.enable_gyroscopic_forces: None → ∅",
+  "env.scene.object.spawn.rigid_props.kinematic_enabled: None → ∅",
+  "env.scene.object.spawn.rigid_props.linear_damping: None → ∅",
+  "env.scene.object.spawn.rigid_props.max_angular_velocity: None → ∅",
+  "env.scene.object.spawn.rigid_props.max_contact_impulse: None → ∅",
+  "env.scene.object.spawn.rigid_props.max_depenetration_velocity: None → ∅",
+  "env.scene.object.spawn.rigid_props.max_linear_velocity: None → ∅",
+  "env.scene.object.spawn.rigid_props.retain_accelerations: None → ∅",
+  "env.scene.object.spawn.rigid_props.rigid_body_enabled: None → ∅",
+  "env.scene.object.spawn.rigid_props.sleep_threshold: None → ∅",
+  "env.scene.object.spawn.rigid_props.solver_position_iteration_count: 16 → ∅",
+  "env.scene.object.spawn.rigid_props.solver_velocity_iteration_count: 0 → ∅",
+  "env.scene.object.spawn.rigid_props.stabilization_threshold: None → ∅",
+  "env.scene.object.spawn.semantic_tags: None → ∅",
+  "env.scene.object.spawn.visible: True → ∅",
+  "env.scene.replicate_physics: False → ∅",
+  "env.scene.robot.actuator_value_resolution_debug_print: False → ∅",
+  "env.scene.robot.actuators.followers.armature: 0.0005 → ∅",
+  "env.scene.robot.actuators.followers.class_type: isaaclab.actuators.actuator_pd:ImplicitActuator → ∅",
+  "env.scene.robot.actuators.followers.damping: 0.0 → ∅",
+  "env.scene.robot.actuators.followers.dynamic_friction: None → ∅",
+  "env.scene.robot.actuators.followers.effort_limit: None → ∅",
+  "env.scene.robot.actuators.followers.effort_limit_sim: None → ∅",
+  "env.scene.robot.actuators.followers.friction: None → ∅",
+  "env.scene.robot.actuators.followers.joint_names_expr: ['.*_left_distal', '.*_left_tip'] → ∅",
+  "env.scene.robot.actuators.followers.stiffness: 0.0 → ∅",
+  "env.scene.robot.actuators.followers.velocity_limit: None → ∅",
+  "env.scene.robot.actuators.followers.velocity_limit_sim: 8.726646259971648 → ∅",
+  "env.scene.robot.actuators.followers.viscous_friction: None → ∅",
+  "env.scene.robot.actuators.servos.armature.forearm_left: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.index_left_proximal: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.middle_left_proximal: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.pinky_left_proximal: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.ring_left_proximal: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.thumb_left_proximal: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.armature.thumb_left_rotator: 0.005 → ∅",
+  "env.scene.robot.actuators.servos.class_type: isaaclab.actuators.actuator_pd:ImplicitActuator → ∅",
+  "env.scene.robot.actuators.servos.damping.forearm_left: 0.92025269234451 → ∅",
+  "env.scene.robot.actuators.servos.damping.index_left_proximal: 0.8265323715063846 → ∅",
+  "env.scene.robot.actuators.servos.damping.middle_left_proximal: 0.8265323715063846 → ∅",
+  "env.scene.robot.actuators.servos.damping.pinky_left_proximal: 0.8265323715063846 → ∅",
+  "env.scene.robot.actuators.servos.damping.ring_left_proximal: 0.8265323715063846 → ∅",
+  "env.scene.robot.actuators.servos.damping.thumb_left_proximal: 0.8265323715063846 → ∅",
+  "env.scene.robot.actuators.servos.damping.thumb_left_rotator: 0.8340036354573189 → ∅",
+  "env.scene.robot.actuators.servos.dynamic_friction: None → ∅",
+  "env.scene.robot.actuators.servos.effort_limit: None → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.forearm_left: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.index_left_proximal: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.middle_left_proximal: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.pinky_left_proximal: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.ring_left_proximal: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.thumb_left_proximal: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.effort_limit_sim.thumb_left_rotator: 2.941995 → ∅",
+  "env.scene.robot.actuators.servos.friction: None → ∅",
+  "env.scene.robot.actuators.servos.joint_names_expr: ['forearm_left', 'thumb_left_rotator', 'thumb_left_proximal', 'index_left_proximal', 'middle_left_proximal', 'ring_left_proximal', 'pinky_left_proximal'] → ∅",
+  "env.scene.robot.actuators.servos.stiffness.forearm_left: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.index_left_proximal: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.middle_left_proximal: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.pinky_left_proximal: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.ring_left_proximal: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.thumb_left_proximal: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.stiffness.thumb_left_rotator: 33.71277936971813 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit: None → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.forearm_left: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.index_left_proximal: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.middle_left_proximal: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.pinky_left_proximal: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.ring_left_proximal: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.thumb_left_proximal: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.velocity_limit_sim.thumb_left_rotator: 4.717106086471161 → ∅",
+  "env.scene.robot.actuators.servos.viscous_friction: None → ∅",
+  "env.scene.robot.actuators.wrist.armature: 0.019913216658302015 → ∅",
+  "env.scene.robot.actuators.wrist.class_type: isaaclab.actuators.actuator_pd:RemotizedPDActuator → ∅",
+  "env.scene.robot.actuators.wrist.damping: 2.4728913371417582 → ∅",
+  "env.scene.robot.actuators.wrist.dynamic_friction: None → ∅",
+  "env.scene.robot.actuators.wrist.effort_limit: None → ∅",
+  "env.scene.robot.actuators.wrist.effort_limit_sim: None → ∅",
+  "env.scene.robot.actuators.wrist.friction: None → ∅",
+  "env.scene.robot.actuators.wrist.joint_names_expr: ['wrist_left'] → ∅",
+  "env.scene.robot.actuators.wrist.joint_parameter_lookup: [[-1.0471975511965976, 4.078864851911713, 12.0], [-1.0035643198967394, 4.078864851911713, 12.0], [-0.9599310885968813, 3.521727701378699, 10.360905288817625], [-0.9162978572970231, 2.977087574977371, 8.75857676014555], [-0.8726646259971648, 2.6651520212118074, 7.840863920645031], [-0.8290313946973066, 2.4616190229547783, 7.2420708574378425], [-0.7853981633974483, 2.319085055363754, 6.822736637454887], [-0.7417649320975901, 2.2152281304829136, 6.517190083740079], [-0.6981317007977318, 2.1381380522445794, 6.290391459013291], [-0.6544984694978736, 2.080957169984579, 6.122165589308781], [-0.6108652381980153, 2.039584585755717, 6.00044765337039], [-0.5672320068981571, 2.011587029327409, 5.91807898234609], [-0.5235987755982988, 1.9956561155821417, 5.871210313762083], [-0.4799655442984406, 1.9913493024503308, 5.858539691062361], [-0.4363323129985824, 1.999007963590715, 5.881071433844065], [-0.39269908169872414, 2.0198221368160283, 5.942306627402071], [-0.3490658503988659, 2.0560674763696323, 6.0489402351420765], [-0.30543261909900765, 2.111613465318221, 6.21235625689888], [-0.2617993877991494, 2.192950417346886, 6.451649163082452], [-0.2181661564992912, 2.311359466126929, 6.800007992548094], [-0.17453292519943295, 2.4879822914133216, 7.3196314614265345], [-0.1308996938995747, 2.7677025308562206, 8.142567007266347], [-0.08726646259971647, 3.268185992473405, 9.614986848926796], [-0.04363323129985824, 4.078864851911713, 12.0], [0.0, 4.078864851911713, 12.0]] → ∅",
+  "env.scene.robot.actuators.wrist.max_delay: 0 → ∅",
+  "env.scene.robot.actuators.wrist.min_delay: 0 → ∅",
+  "env.scene.robot.actuators.wrist.stiffness: 67.27911432244943 → ∅",
+  "env.scene.robot.actuators.wrist.velocity_limit: None → ∅",
+  "env.scene.robot.actuators.wrist.velocity_limit_sim: 2.363686834439991 → ∅",
+  "env.scene.robot.actuators.wrist.viscous_friction: None → ∅",
+  "env.scene.robot.articulation_root_prim_path: None → ∅",
+  "env.scene.robot.class_type: isaaclab.assets.articulation.articulation:Articulation → ∅",
+  "env.scene.robot.collision_group: 0 → ∅",
+  "env.scene.robot.debug_vis: False → ∅",
+  "env.scene.robot.init_state.ang_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.robot.init_state.joint_pos..*: 0.0 → ∅",
+  "env.scene.robot.init_state.joint_vel..*: 0.0 → ∅",
+  "env.scene.robot.init_state.lin_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.robot.init_state.pos: (0.0, 0.0, 0.5) → ∅",
+  "env.scene.robot.init_state.rot: (0.7071067811865476, 0.0, 0.7071067811865475, 0.0) → ∅",
+  "env.scene.robot.prim_path: /World/envs/env_.*/Robot → ∅",
+  "env.scene.robot.soft_joint_pos_limit_factor: 1.0 → ∅",
+  "env.scene.robot.spawn.activate_contact_sensors: True → ∅",
+  "env.scene.robot.spawn.articulation_props: None → ∅",
+  "env.scene.robot.spawn.collision_props: None → ∅",
+  "env.scene.robot.spawn.copy_from_source: True → ∅",
+  "env.scene.robot.spawn.deformable_props: None → ∅",
+  "env.scene.robot.spawn.fixed_tendons_props: None → ∅",
+  "env.scene.robot.spawn.func: isaaclab.sim.spawners.from_files.from_files:spawn_from_usd → ∅",
+  "env.scene.robot.spawn.joint_drive_props: None → ∅",
+  "env.scene.robot.spawn.mass_props: None → ∅",
+  "env.scene.robot.spawn.rigid_props: None → ∅",
+  "env.scene.robot.spawn.scale: None → ∅",
+  "env.scene.robot.spawn.semantic_tags: None → ∅",
+  "env.scene.robot.spawn.spatial_tendons_props: None → ∅",
+  "env.scene.robot.spawn.usd_path: /home/leon/repos/pib-hand-sim/isaac_sim/usd/pib_hand_left_v5.usd → ∅",
+  "env.scene.robot.spawn.variants: None → ∅",
+  "env.scene.robot.spawn.visible: True → ∅",
+  "env.scene.table.class_type: isaaclab.assets.rigid_object.rigid_object:RigidObject → ∅",
+  "env.scene.table.collision_group: 0 → ∅",
+  "env.scene.table.debug_vis: False → ∅",
+  "env.scene.table.init_state.ang_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.table.init_state.lin_vel: (0.0, 0.0, 0.0) → ∅",
+  "env.scene.table.init_state.pos: (-0.14, -0.275, 0.39499999999999996) → ∅",
+  "env.scene.table.init_state.rot: (1.0, 0.0, 0.0, 0.0) → ∅",
+  "env.scene.table.prim_path: /World/envs/env_.*/Table → ∅",
+  "env.scene.table.spawn.activate_contact_sensors: False → ∅",
+  "env.scene.table.spawn.collision_props.collision_enabled: None → ∅",
+  "env.scene.table.spawn.collision_props.contact_offset: None → ∅",
+  "env.scene.table.spawn.collision_props.min_torsional_patch_radius: None → ∅",
+  "env.scene.table.spawn.collision_props.rest_offset: None → ∅",
+  "env.scene.table.spawn.collision_props.torsional_patch_radius: None → ∅",
+  "env.scene.table.spawn.copy_from_source: True → ∅",
+  "env.scene.table.spawn.func: isaaclab.sim.spawners.shapes.shapes:spawn_cuboid → ∅",
+  "env.scene.table.spawn.mass_props: None → ∅",
+  "env.scene.table.spawn.physics_material: None → ∅",
+  "env.scene.table.spawn.physics_material_path: material → ∅",
+  "env.scene.table.spawn.rigid_props.angular_damping: None → ∅",
+  "env.scene.table.spawn.rigid_props.disable_gravity: None → ∅",
+  "env.scene.table.spawn.rigid_props.enable_gyroscopic_forces: None → ∅",
+  "env.scene.table.spawn.rigid_props.kinematic_enabled: True → ∅",
+  "env.scene.table.spawn.rigid_props.linear_damping: None → ∅",
+  "env.scene.table.spawn.rigid_props.max_angular_velocity: None → ∅",
+  "env.scene.table.spawn.rigid_props.max_contact_impulse: None → ∅",
+  "env.scene.table.spawn.rigid_props.max_depenetration_velocity: None → ∅",
+  "env.scene.table.spawn.rigid_props.max_linear_velocity: None → ∅",
+  "env.scene.table.spawn.rigid_props.retain_accelerations: None → ∅",
+  "env.scene.table.spawn.rigid_props.rigid_body_enabled: None → ∅",
+  "env.scene.table.spawn.rigid_props.sleep_threshold: None → ∅",
+  "env.scene.table.spawn.rigid_props.solver_position_iteration_count: None → ∅",
+  "env.scene.table.spawn.rigid_props.solver_velocity_iteration_count: None → ∅",
+  "env.scene.table.spawn.rigid_props.stabilization_threshold: None → ∅",
+  "env.scene.table.spawn.semantic_tags: None → ∅",
+  "env.scene.table.spawn.size: (0.2, 0.45, 0.04) → ∅",
+  "env.scene.table.spawn.visible: True → ∅",
+  "env.sim.create_stage_in_memory: False → ∅",
+  "env.sim.device: cuda:0 → ∅",
+  "env.sim.dt: 0.008333333333333333 → ∅",
+  "env.sim.enable_scene_query_support: False → ∅",
+  "env.sim.gravity: (0.0, 0.0, -9.81) → ∅",
+  "env.sim.logging_level: WARNING → ∅",
+  "env.sim.physics_material.compliant_contact_damping: 0.0 → ∅",
+  "env.sim.physics_material.compliant_contact_stiffness: 0.0 → ∅",
+  "env.sim.physics_material.dynamic_friction: 0.5 → ∅",
+  "env.sim.physics_material.friction_combine_mode: average → ∅",
+  "env.sim.physics_material.func: isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material → ∅",
+  "env.sim.physics_material.restitution: 0.0 → ∅",
+  "env.sim.physics_material.restitution_combine_mode: average → ∅",
+  "env.sim.physics_material.static_friction: 0.5 → ∅",
+  "env.sim.physics_prim_path: /physicsScene → ∅",
+  "env.sim.physx.bounce_threshold_velocity: 0.01 → ∅",
+  "env.sim.physx.enable_ccd: False → ∅",
+  "env.sim.physx.enable_enhanced_determinism: False → ∅",
+  "env.sim.physx.enable_external_forces_every_iteration: False → ∅",
+  "env.sim.physx.enable_stabilization: False → ∅",
+  "env.sim.physx.friction_correlation_distance: 0.025 → ∅",
+  "env.sim.physx.friction_offset_threshold: 0.04 → ∅",
+  "env.sim.physx.gpu_collision_stack_size: 67108864 → ∅",
+  "env.sim.physx.gpu_found_lost_aggregate_pairs_capacity: 33554432 → ∅",
+  "env.sim.physx.gpu_found_lost_pairs_capacity: 2097152 → ∅",
+  "env.sim.physx.gpu_heap_capacity: 67108864 → ∅",
+  "env.sim.physx.gpu_max_num_partitions: 8 → ∅",
+  "env.sim.physx.gpu_max_particle_contacts: 1048576 → ∅",
+  "env.sim.physx.gpu_max_rigid_contact_count: 8388608 → ∅",
+  "env.sim.physx.gpu_max_rigid_patch_count: 163840 → ∅",
+  "env.sim.physx.gpu_max_soft_body_contacts: 1048576 → ∅",
+  "env.sim.physx.gpu_temp_buffer_capacity: 16777216 → ∅",
+  "env.sim.physx.gpu_total_aggregate_pairs_capacity: 2097152 → ∅",
+  "env.sim.physx.max_position_iteration_count: 255 → ∅",
+  "env.sim.physx.max_velocity_iteration_count: 255 → ∅",
+  "env.sim.physx.min_position_iteration_count: 1 → ∅",
+  "env.sim.physx.min_velocity_iteration_count: 0 → ∅",
+  "env.sim.physx.solve_articulation_contact_last: False → ∅",
+  "env.sim.physx.solver_type: 1 → ∅",
+  "env.sim.render.antialiasing_mode: None → ∅",
+  "env.sim.render.carb_settings: None → ∅",
+  "env.sim.render.dlss_mode: None → ∅",
+  "env.sim.render.dome_light_upper_lower_strategy: None → ∅",
+  "env.sim.render.enable_ambient_occlusion: None → ∅",
+  "env.sim.render.enable_direct_lighting: None → ∅",
+  "env.sim.render.enable_dl_denoiser: None → ∅",
+  "env.sim.render.enable_dlssg: None → ∅",
+  "env.sim.render.enable_global_illumination: None → ∅",
+  "env.sim.render.enable_reflections: None → ∅",
+  "env.sim.render.enable_shadows: None → ∅",
+  "env.sim.render.enable_translucency: None → ∅",
+  "env.sim.render.rendering_mode: None → ∅",
+  "env.sim.render.samples_per_pixel: None → ∅",
+  "env.sim.render_interval: 2 → ∅",
+  "env.sim.save_logs_to_file: True → ∅",
+  "env.sim.use_fabric: True → ∅",
+  "env.terminations.abnormal_robot.func: pib_grasp.mdp:abnormal_robot_state → ∅",
+  "env.terminations.abnormal_robot.time_out: False → ∅",
+  "env.terminations.object_dropped.func: pib_grasp.mdp:object_dropped → ∅",
+  "env.terminations.object_dropped.params.max_sink: 0.05 → ∅",
+  "env.terminations.object_dropped.time_out: False → ∅",
+  "env.terminations.time_out.func: isaaclab.envs.mdp.terminations:time_out → ∅",
+  "env.terminations.time_out.time_out: True → ∅",
+  "env.ui_window_class_type: isaaclab.envs.ui.manager_based_rl_env_window:ManagerBasedRLEnvWindow → ∅",
+  "env.wait_for_textures: True → ∅",
+  "env.xr: None → ∅"
+ ],
+ "weitere_bedingungen": {
+  "zylinder_d8_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "zylinder_d8_seitlich",
+   "objekt": "zylinder_d8",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.735,
+     "haltequote": 0.735,
+     "fehler": {
+      "startfehler": 0.01,
+      "gefallen": 0.255,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 9.294388233864536,
+      "unterarm_median_deg": 0.3211981834563121,
+      "kraft_mittel_n": 41.05691485415777,
+      "kraft_ueber_15n_anteil": 0.9708390022675738,
+      "stall_anteil": 2.0231140783450927e-05,
+      "absinken_mm": 0.07904342242649623,
+      "unruhe": 0.005724507851008324
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       1.0,
+       0.9999659864269957,
+       1.0,
+       0.9945464852715836,
+       0.9664172335090686
+      ],
+      "kraft_n": [
+       20.328549466814312,
+       5.752550743388481,
+       5.153966799885238,
+       4.998892529481123,
+       4.604619841683073
+      ],
+      "finger_mit_kontakt": 4.960929705207648
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.735,
+    "iqm": 0.735,
+    "je_seed": [
+     0.735
+    ],
+    "iqm_ki95": [
+     0.707,
+     0.761
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.707,
+     0.762
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.735,
+    "iqm": 0.735,
+    "je_seed": [
+     0.735
+    ],
+    "iqm_ki95": [
+     0.709,
+     0.764
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.708,
+     0.761
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      1.0,
+      0.9999659864269957,
+      1.0,
+      0.9945464852715836,
+      0.9664172335090686
+     ]
+    ],
+    "finger_mit_kontakt": 4.960929705207648
+   },
+   "leitplanken": {
+    "kipp_median_deg": 9.294388233864536,
+    "unterarm_median_deg": 0.3211981834563121,
+    "kraft_mittel_n": 41.05691485415777,
+    "kraft_ueber_15n_anteil": 0.9708390022675738,
+    "stall_anteil": 2.0231140783450927e-05,
+    "absinken_mm": 0.07904342242649623,
+    "unruhe": 0.005724507851008324
+   },
+   "fehler": {
+    "startfehler": 0.01,
+    "gefallen": 0.255,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   },
+   "vergleich": {
+    "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+    "differenz_aufgabenerfolg": 0.23755229999999997,
+    "differenz_ki95": [
+     -0.10101000000000009,
+     0.58022
+    ],
+    "leitplanken_verletzt": [],
+    "gegen": "EXP-013"
+   }
+  },
+  "quader_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "quader_seitlich",
+   "objekt": "quader_7x7x20",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.523,
+     "haltequote": 0.526,
+     "fehler": {
+      "startfehler": 0.059,
+      "gefallen": 0.416,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.002
+     },
+     "leitplanken": {
+      "kipp_median_deg": 11.12747867218079,
+      "unterarm_median_deg": 0.34267848806576756,
+      "kraft_mittel_n": 39.34627150038806,
+      "kraft_ueber_15n_anteil": 0.8432192648922686,
+      "stall_anteil": 0.00033216956196022466,
+      "absinken_mm": 0.42452768001266306,
+      "unruhe": 0.005871406691613435
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.92217997466515,
+       0.9509188846716863,
+       0.9708174906189451,
+       0.9695342205776462,
+       0.9414290241585485
+      ],
+      "kraft_n": [
+       18.425693043064992,
+       5.630520787075898,
+       5.111609662496998,
+       5.004570866633958,
+       4.675154530956718
+      ],
+      "finger_mit_kontakt": 4.7548795946919755
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.523,
+    "iqm": 0.523,
+    "je_seed": [
+     0.523
+    ],
+    "iqm_ki95": [
+     0.493,
+     0.554
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.491,
+     0.554
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.526,
+    "iqm": 0.526,
+    "je_seed": [
+     0.526
+    ],
+    "iqm_ki95": [
+     0.495975,
+     0.5560249999999999
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.493,
+     0.556
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.92217997466515,
+      0.9509188846716863,
+      0.9708174906189451,
+      0.9695342205776462,
+      0.9414290241585485
+     ]
+    ],
+    "finger_mit_kontakt": 4.7548795946919755
+   },
+   "leitplanken": {
+    "kipp_median_deg": 11.12747867218079,
+    "unterarm_median_deg": 0.34267848806576756,
+    "kraft_mittel_n": 39.34627150038806,
+    "kraft_ueber_15n_anteil": 0.8432192648922686,
+    "stall_anteil": 0.00033216956196022466,
+    "absinken_mm": 0.42452768001266306,
+    "unruhe": 0.005871406691613435
+   },
+   "fehler": {
+    "startfehler": 0.059,
+    "gefallen": 0.416,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.003
+   },
+   "vergleich": {
+    "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+    "differenz_aufgabenerfolg": 0.18437610000000001,
+    "differenz_ki95": [
+     -0.053025000000000044,
+     0.42160000000000003
+    ],
+    "leitplanken_verletzt": [],
+    "gegen": "EXP-013"
+   }
+  },
+  "flasche_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "flasche_seitlich",
+   "objekt": "flasche_d7x25",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.72,
+     "haltequote": 0.723,
+     "fehler": {
+      "startfehler": 0.004,
+      "gefallen": 0.273,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.003
+     },
+     "leitplanken": {
+      "kipp_median_deg": 12.447775583085411,
+      "unterarm_median_deg": 0.31028119328510456,
+      "kraft_mittel_n": 43.00722697615462,
+      "kraft_ueber_15n_anteil": 0.9054518211157215,
+      "stall_anteil": 2.570865919058857e-05,
+      "absinken_mm": 0.691788325171253,
+      "unruhe": 0.005789512962968206
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9910442600152964,
+       0.994651913328578,
+       0.9999769479242433,
+       0.9621484556169678,
+       0.8893153527970549
+      ],
+      "kraft_n": [
+       20.911667982696002,
+       6.189173319295852,
+       5.4714890116642785,
+       5.00776573930858,
+       4.528558350615151
+      ],
+      "finger_mit_kontakt": 4.83713692968214
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.72,
+    "iqm": 0.72,
+    "je_seed": [
+     0.72
+    ],
+    "iqm_ki95": [
+     0.694,
+     0.747
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.691,
+     0.749
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.723,
+    "iqm": 0.723,
+    "je_seed": [
+     0.723
+    ],
+    "iqm_ki95": [
+     0.695,
+     0.751
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.696,
+     0.7500249999999998
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9910442600152964,
+      0.994651913328578,
+      0.9999769479242433,
+      0.9621484556169678,
+      0.8893153527970549
+     ]
+    ],
+    "finger_mit_kontakt": 4.83713692968214
+   },
+   "leitplanken": {
+    "kipp_median_deg": 12.447775583085411,
+    "unterarm_median_deg": 0.31028119328510456,
+    "kraft_mittel_n": 43.00722697615462,
+    "kraft_ueber_15n_anteil": 0.9054518211157215,
+    "stall_anteil": 2.570865919058857e-05,
+    "absinken_mm": 0.691788325171253,
+    "unruhe": 0.005789512962968206
+   },
+   "fehler": {
+    "startfehler": 0.004,
+    "gefallen": 0.273,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.003
+   },
+   "vergleich": {
+    "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+    "differenz_aufgabenerfolg": 0.22493969999999996,
+    "differenz_ki95": [
+     -0.1150150000000001,
+     0.5636199999999999
+    ],
+    "leitplanken_verletzt": [],
+    "gegen": "EXP-013"
+   }
+  },
+  "saftpackung_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "saftpackung_seitlich",
+   "objekt": "saftpackung_9x6x19",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.62,
+     "haltequote": 0.622,
+     "fehler": {
+      "startfehler": 0.054,
+      "gefallen": 0.325,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.001
+     },
+     "leitplanken": {
+      "kipp_median_deg": 13.661612042944336,
+      "unterarm_median_deg": 0.3719092697946156,
+      "kraft_mittel_n": 38.28336365138601,
+      "kraft_ueber_15n_anteil": 0.8200696677384781,
+      "stall_anteil": 0.00021515915801049497,
+      "absinken_mm": 0.4223674248269133,
+      "unruhe": 0.005796812352182547
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9346596998345239,
+       0.9951500536161221,
+       0.9999598071122859,
+       0.9870980707778808,
+       0.9614147909967846
+      ],
+      "kraft_n": [
+       17.76437503803174,
+       5.9267485620891165,
+       4.91522306912965,
+       4.668227870364665,
+       4.581007664609952
+      ],
+      "finger_mit_kontakt": 4.878282422337597
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.62,
+    "iqm": 0.62,
+    "je_seed": [
+     0.62
+    ],
+    "iqm_ki95": [
+     0.59,
+     0.649
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.588,
+     0.651
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.622,
+    "iqm": 0.622,
+    "je_seed": [
+     0.622
+    ],
+    "iqm_ki95": [
+     0.592,
+     0.652
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.593,
+     0.652
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9346596998345239,
+      0.9951500536161221,
+      0.9999598071122859,
+      0.9870980707778808,
+      0.9614147909967846
+     ]
+    ],
+    "finger_mit_kontakt": 4.878282422337597
+   },
+   "leitplanken": {
+    "kipp_median_deg": 13.661612042944336,
+    "unterarm_median_deg": 0.3719092697946156,
+    "kraft_mittel_n": 38.28336365138601,
+    "kraft_ueber_15n_anteil": 0.8200696677384781,
+    "stall_anteil": 0.00021515915801049497,
+    "absinken_mm": 0.4223674248269133,
+    "unruhe": 0.005796812352182547
+   },
+   "fehler": {
+    "startfehler": 0.054,
+    "gefallen": 0.325,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.002
+   },
+   "vergleich": {
+    "urteil": "kein messbarer Unterschied (vorläufig: < 3 Seeds)",
+    "differenz_aufgabenerfolg": 0.2212867,
+    "differenz_ki95": [
+     -0.04863000000000008,
+     0.4998
+    ],
+    "leitplanken_verletzt": [],
+    "gegen": "EXP-013"
+   }
+  }
+ },
+ "rezept": {
+  "auswertung": "auswertung-v2",
+  "bedingungen": [
+   "zylinder_seitlich",
+   "zylinder_d8_seitlich",
+   "quader_seitlich"
+  ],
+  "kurz": [
+   "Ø 6 cm",
+   "Ø 8 cm",
+   "Quader"
+  ],
+  "seed_ids": [
+   null
+  ],
+  "je_seed": [
+   [
+    0.775
+   ],
+   [
+    0.735
+   ],
+   [
+    0.523
+   ]
+  ],
+  "erfolgreich": [
+   true
+  ],
+  "k": 1,
+  "n": 1,
+  "zuverlaessigkeit_ki95": [
+   0.025,
+   1.0
+  ],
+  "leistung": {
+   "iqm": 0.7063333333333334,
+   "iqm_ki95": [
+    0.6868291666666666,
+    0.7253375000000001
+   ]
+  },
+  "leistung_je_objekt": [
+   0.775,
+   0.735,
+   0.523
+  ],
+  "gesamt": {
+   "iqm": 0.7063333333333334,
+   "iqm_ki95": [
+    0.6868291666666666,
+    0.7256708333333334
+   ]
+  },
+  "vergleich": {
+   "eltern": "EXP-013",
+   "leistung_p": 0.1111111111111111,
+   "leistung_ki95": [
+    0.0,
+    0.3333333333333333
+   ],
+   "fisher_p": 1.0,
+   "zuverlaessigkeit_schlechter": false,
+   "zuverlaessigkeit_besser": false
+  },
+  "testobjekte": {
+   "flasche_seitlich": 0.72,
+   "saftpackung_seitlich": 0.62
+  },
+  "urteil": "schlechter"
+ },
+ "benchmark": {
+  "zylinder_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "zylinder_seitlich",
+   "objekt": "zylinder_d6",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.775,
+     "haltequote": 0.775,
+     "fehler": {
+      "startfehler": 0.005,
+      "gefallen": 0.22,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 14.783838590560464,
+      "unterarm_median_deg": 0.30848277246012845,
+      "kraft_mittel_n": 46.19908795362896,
+      "kraft_ueber_15n_anteil": 0.9200752688172045,
+      "stall_anteil": 1.4390214654035255e-05,
+      "absinken_mm": 0.04284947149215206,
+      "unruhe": 0.005725856530950838
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9706021506002834,
+       0.9951182795916834,
+       0.9998924731439159,
+       0.9699032259371972,
+       0.9274623655648001
+      ],
+      "kraft_n": [
+       22.16703421616266,
+       6.817943582919336,
+       5.856568270960162,
+       5.572543420830081,
+       5.11119210550862
+      ],
+      "finger_mit_kontakt": 4.86297849483788
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.775,
+    "iqm": 0.775,
+    "je_seed": [
+     0.775
+    ],
+    "iqm_ki95": [
+     0.75,
+     0.801
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.75,
+     0.8
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.775,
+    "iqm": 0.775,
+    "je_seed": [
+     0.775
+    ],
+    "iqm_ki95": [
+     0.75,
+     0.801
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.749975,
+     0.8
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9706021506002834,
+      0.9951182795916834,
+      0.9998924731439159,
+      0.9699032259371972,
+      0.9274623655648001
+     ]
+    ],
+    "finger_mit_kontakt": 4.86297849483788
+   },
+   "leitplanken": {
+    "kipp_median_deg": 14.783838590560464,
+    "unterarm_median_deg": 0.30848277246012845,
+    "kraft_mittel_n": 46.19908795362896,
+    "kraft_ueber_15n_anteil": 0.9200752688172045,
+    "stall_anteil": 1.4390214654035255e-05,
+    "absinken_mm": 0.04284947149215206,
+    "unruhe": 0.005725856530950838
+   },
+   "fehler": {
+    "startfehler": 0.005,
+    "gefallen": 0.22,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   }
+  },
+  "zylinder_d8_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "zylinder_d8_seitlich",
+   "objekt": "zylinder_d8",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.735,
+     "haltequote": 0.735,
+     "fehler": {
+      "startfehler": 0.01,
+      "gefallen": 0.255,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 9.294388233864536,
+      "unterarm_median_deg": 0.3211981834563121,
+      "kraft_mittel_n": 41.05691485415777,
+      "kraft_ueber_15n_anteil": 0.9708390022675738,
+      "stall_anteil": 2.0231140783450927e-05,
+      "absinken_mm": 0.07904342242649623,
+      "unruhe": 0.005724507851008324
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       1.0,
+       0.9999659864269957,
+       1.0,
+       0.9945464852715836,
+       0.9664172335090686
+      ],
+      "kraft_n": [
+       20.328549466814312,
+       5.752550743388481,
+       5.153966799885238,
+       4.998892529481123,
+       4.604619841683073
+      ],
+      "finger_mit_kontakt": 4.960929705207648
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.735,
+    "iqm": 0.735,
+    "je_seed": [
+     0.735
+    ],
+    "iqm_ki95": [
+     0.707,
+     0.761
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.707,
+     0.762
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.735,
+    "iqm": 0.735,
+    "je_seed": [
+     0.735
+    ],
+    "iqm_ki95": [
+     0.709,
+     0.764
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.708,
+     0.761
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      1.0,
+      0.9999659864269957,
+      1.0,
+      0.9945464852715836,
+      0.9664172335090686
+     ]
+    ],
+    "finger_mit_kontakt": 4.960929705207648
+   },
+   "leitplanken": {
+    "kipp_median_deg": 9.294388233864536,
+    "unterarm_median_deg": 0.3211981834563121,
+    "kraft_mittel_n": 41.05691485415777,
+    "kraft_ueber_15n_anteil": 0.9708390022675738,
+    "stall_anteil": 2.0231140783450927e-05,
+    "absinken_mm": 0.07904342242649623,
+    "unruhe": 0.005724507851008324
+   },
+   "fehler": {
+    "startfehler": 0.01,
+    "gefallen": 0.255,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.0
+   }
+  },
+  "quader_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 1,
+   "laeufe": [
+    "logs/regel/EXP-014"
+   ],
+   "bedingung": "quader_seitlich",
+   "objekt": "quader_7x7x20",
+   "seed_ids": [
+    null
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.523,
+     "haltequote": 0.526,
+     "fehler": {
+      "startfehler": 0.059,
+      "gefallen": 0.416,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.002
+     },
+     "leitplanken": {
+      "kipp_median_deg": 11.12747867218079,
+      "unterarm_median_deg": 0.34267848806576756,
+      "kraft_mittel_n": 39.34627150038806,
+      "kraft_ueber_15n_anteil": 0.8432192648922686,
+      "stall_anteil": 0.00033216956196022466,
+      "absinken_mm": 0.42452768001266306,
+      "unruhe": 0.005871406691613435
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.92217997466515,
+       0.9509188846716863,
+       0.9708174906189451,
+       0.9695342205776462,
+       0.9414290241585485
+      ],
+      "kraft_n": [
+       18.425693043064992,
+       5.630520787075898,
+       5.111609662496998,
+       5.004570866633958,
+       4.675154530956718
+      ],
+      "finger_mit_kontakt": 4.7548795946919755
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.523,
+    "iqm": 0.523,
+    "je_seed": [
+     0.523
+    ],
+    "iqm_ki95": [
+     0.493,
+     0.554
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.491,
+     0.554
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.526,
+    "iqm": 0.526,
+    "je_seed": [
+     0.526
+    ],
+    "iqm_ki95": [
+     0.495975,
+     0.5560249999999999
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.493,
+     0.556
+    ]
+   },
+   "netz": {
+    "actor": null,
+    "critic": null,
+    "aktivierung": null,
+    "verlauf": null,
+    "eingaenge": 105,
+    "actor_parameter": 0,
+    "lernrate": null,
+    "entropie": null,
+    "epochen": null,
+    "mini_batches": null,
+    "schritte_je_umgebung": null,
+    "iterationen": null,
+    "umgebungen": null
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.92217997466515,
+      0.9509188846716863,
+      0.9708174906189451,
+      0.9695342205776462,
+      0.9414290241585485
+     ]
+    ],
+    "finger_mit_kontakt": 4.7548795946919755
+   },
+   "leitplanken": {
+    "kipp_median_deg": 11.12747867218079,
+    "unterarm_median_deg": 0.34267848806576756,
+    "kraft_mittel_n": 39.34627150038806,
+    "kraft_ueber_15n_anteil": 0.8432192648922686,
+    "stall_anteil": 0.00033216956196022466,
+    "absinken_mm": 0.42452768001266306,
+    "unruhe": 0.005871406691613435
+   },
+   "fehler": {
+    "startfehler": 0.059,
+    "gefallen": 0.416,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.003
+   }
+  }
+ }
+}

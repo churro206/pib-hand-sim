@@ -4,8 +4,7 @@ titel: Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg
   1500 Iterationen
 datum: '2026-10-08'
 eltern: EXP-013
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Ein Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen wachsen
   mit dem Erfolg) erleichtert das Entdecken des Griffs und erlaubt längeres sinnvolles
@@ -66,7 +65,7 @@ training:
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: null
+commit: 047cedf+lokal
 laeufe: []
 
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---

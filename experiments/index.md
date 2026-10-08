@@ -32,21 +32,21 @@ Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote in %, [95
 | ↳ EXP-013 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 33.6 [10.2–57.6] | 37.0 | 60.0 | 36.4 [11.6–61.3] | 23 | 32 | 100.0 | 2.8 | kein messbarer Unterschied (ggü. EXP-006) |  |
 | ↳ EXP-013 | | | flasche_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 49.1 [16.4–83.1] | 55.4 | 40.0 | 51.7 [16.8–86.7] | 24 | 30 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-006) |  |
 | ↳ EXP-013 | | | saftpackung_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 39.6 [12.7–66.7] | 45.4 | 40.0 | 41.7 [13.4–69.9] | 23 | 34 | 100.0 | 2.8 | kein messbarer Unterschied (ggü. EXP-006) |  |
-| [EXP-014](EXP-014_regel_alle_schliessen/experiment.yaml) | Regel-Baseline: alle Finger schließen (kein RL) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-014 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-014 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-014 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-014 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| [EXP-015](EXP-015_regel_bis_kontakt/experiment.yaml) | Regel-Baseline: schließen bis Kontakt, taktiler Reflex (kein RL) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-015 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-015 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-015 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-015 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| [EXP-016](EXP-016_randomisierung_dexsuite/experiment.yaml) | Randomisierung der Hand wie Dexsuite (Servo-Gains 0,5–2, Gelenkreibung) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-016 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-016 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-016 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-016 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-014](EXP-014_regel_alle_schliessen/experiment.yaml) | Regel-Baseline: alle Finger schließen (kein RL) | EXP-013 | zylinder_seitlich ≤45° | 1 | None None, VNone | – | None × None | 77.5 [75.0–80.0] | 77.5 | 0.0 | 77.5 [75.0–80.0] | 15 | 0 | 0.0 | 4.9 | schlechter (auswertung-v2) | – |
+| ↳ EXP-014 | | | zylinder_d8_seitlich ≤45° | 1 | None None, VNone | – | None × None | 73.5 [70.7–76.2] | 73.5 | 0.0 | 73.5 [70.8–76.1] | 9 | 0 | 0.0 | 5.0 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-014 | | | quader_seitlich ≤45° | 1 | None None, VNone | – | None × None | 52.3 [49.1–55.4] | 52.3 | 0.0 | 52.6 [49.3–55.6] | 11 | 0 | 0.0 | 4.8 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-014 | | | flasche_seitlich ≤45° | 1 | None None, VNone | – | None × None | 72.0 [69.1–74.9] | 72.0 | 0.0 | 72.3 [69.6–75.0] | 12 | 0 | 0.0 | 4.8 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-014 | | | saftpackung_seitlich ≤45° | 1 | None None, VNone | – | None × None | 62.0 [58.8–65.1] | 62.0 | 0.0 | 62.2 [59.3–65.2] | 14 | 0 | 0.0 | 4.9 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| [EXP-015](EXP-015_regel_bis_kontakt/experiment.yaml) | Regel-Baseline: schließen bis Kontakt, taktiler Reflex (kein RL) | EXP-013 | zylinder_seitlich ≤45° | 1 | None None, VNone | – | None × None | 76.4 [73.7–79.0] | 76.4 | 0.0 | 76.4 [73.8–79.0] | 17 | 0 | 2.3 | 4.8 | schlechter (auswertung-v2) | – |
+| ↳ EXP-015 | | | zylinder_d8_seitlich ≤45° | 1 | None None, VNone | – | None × None | 70.4 [67.5–73.4] | 70.4 | 0.0 | 70.4 [67.7–73.2] | 11 | 0 | 0.0 | 4.9 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-015 | | | quader_seitlich ≤45° | 1 | None None, VNone | – | None × None | 51.0 [47.9–54.0] | 51.0 | 0.0 | 51.2 [48.1–54.2] | 13 | 0 | 1.0 | 4.8 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-015 | | | flasche_seitlich ≤45° | 1 | None None, VNone | – | None × None | 71.9 [69.1–74.7] | 71.9 | 0.0 | 72.0 [69.3–74.8] | 14 | 0 | 0.7 | 4.8 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| ↳ EXP-015 | | | saftpackung_seitlich ≤45° | 1 | None None, VNone | – | None × None | 61.9 [58.9–64.8] | 61.9 | 0.0 | 62.1 [59.1–65.2] | 16 | 0 | 0.7 | 4.9 | kein messbarer Unterschied (vorläufig: < 3 Seeds) (ggü. EXP-013) |  |
+| [EXP-016](EXP-016_randomisierung_dexsuite/experiment.yaml) | Randomisierung der Hand wie Dexsuite (Servo-Gains 0,5–2, Gelenkreibung) | EXP-013 | zylinder_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 62.7 [31.3–85.9] | 73.4 | 20.0 | 69.3 [33.4–91.0] | 22 | 28 | 100.0 | 2.9 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-016 | | | zylinder_d8_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 55.3 [27.8–78.9] | 62.3 | 20.0 | 60.5 [28.3–83.1] | 16 | 26 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-016 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 45.7 [22.8–59.8] | 55.6 | 20.0 | 46.8 [23.0–60.6] | 15 | 22 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-016 | | | flasche_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 55.7 [27.7–80.2] | 62.4 | 20.0 | 63.6 [30.6–84.7] | 16 | 26 | 100.0 | 2.9 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-016 | | | saftpackung_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 52.2 [26.3–70.0] | 62.3 | 20.0 | 53.6 [25.8–71.0] | 16 | 23 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
 | [EXP-017](EXP-017_curriculum_dexsuite/experiment.yaml) | Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg), 1500 Iterationen | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
 | ↳ EXP-017 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
 | ↳ EXP-017 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |

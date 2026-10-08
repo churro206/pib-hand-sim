@@ -3,8 +3,7 @@ id: EXP-014
 titel: 'Regel-Baseline: alle Finger schließen (kein RL)'
 datum: '2026-10-08'
 eltern: EXP-013
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: bewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Eine feste Heuristik ohne Lernen (Daumen in Opposition, dann alle Finger
   voll schließen) hält am Ø-6-cm-Zylinder ähnlich gut wie RL (Machbarkeitstest 2026-10-04:
@@ -55,9 +54,9 @@ entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel
 training: null
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 047cedf
+laeufe:
+- logs/regel/EXP-014
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
@@ -68,3 +67,8 @@ regel:
   - schliessen=0.2
   - schliessen=0.4
   - schliessen=0.8
+  param: schliessen=0.2
+raster_ergebnis:
+  schliessen=0.2: 0.678
+  schliessen=0.4: 0.646
+  schliessen=0.8: 0.344

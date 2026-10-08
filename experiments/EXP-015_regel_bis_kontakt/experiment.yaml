@@ -3,8 +3,7 @@ id: EXP-015
 titel: 'Regel-Baseline: schließen bis Kontakt, taktiler Reflex (kein RL)'
 datum: '2026-10-08'
 eltern: EXP-013
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: bewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Ein taktiler Reflexgriff (schließen bis FSR-Kontakt, dann gezielt nachdrücken)
   ist die stärkere Regel: besser als EXP-014 bei Kippen und am Quader; RL (EXP-013)
@@ -53,9 +52,9 @@ entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel
 training: null
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 047cedf
+laeufe:
+- logs/regel/EXP-015
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
@@ -66,3 +65,8 @@ regel:
   - schliessen=0.4,nachdruck_deg=2
   - schliessen=0.4,nachdruck_deg=4
   - schliessen=0.4,nachdruck_deg=5.7
+  param: schliessen=0.4,nachdruck_deg=2
+raster_ergebnis:
+  schliessen=0.4,nachdruck_deg=2: 0.669
+  schliessen=0.4,nachdruck_deg=4: 0.388
+  schliessen=0.4,nachdruck_deg=5.7: 0.186
