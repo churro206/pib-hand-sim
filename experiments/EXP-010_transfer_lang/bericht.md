@@ -17,7 +17,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 78.0 % | 49.6 % – 94.9 % | 90.7 % | 20.0 % | – |
-| haltequote | 92.1 % | 88.5 % – 95.4 % | 92.8 % | 0.0 % | – |
+| haltequote | 92.1 % | 88.4 % – 95.3 % | 92.8 % | 0.0 % | – |
 | Kippwinkel Median [°] | 22.1 | | | | – |
 | Unterarm Median [°] | 21.2 | | | | – |
 | Griffkraft Mittel [N] | 55 | | | | – |
@@ -41,7 +41,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 61.6 % | 42.8 % – 79.3 % | 65.0 % | 20.0 % | 78.0 % / 90.7 % |
-| haltequote | 66.8 % | 53.1 % – 80.4 % | 65.8 % | 0.0 % | 92.1 % / 92.8 % |
+| haltequote | 66.8 % | 53.9 % – 80.2 % | 65.8 % | 0.0 % | 92.1 % / 92.8 % |
 | Kippwinkel Median [°] | 21 | | | | 22.1 |
 | Unterarm Median [°] | 18.4 | | | | 21.2 |
 | Griffkraft Mittel [N] | 44.1 | | | | 55 |
@@ -67,7 +67,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 40.0 % | 22.6 % – 57.5 % | 42.4 % | 60.0 % | 78.0 % / 90.7 % |
-| haltequote | 42.0 % | 25.7 % – 58.5 % | 44.2 % | 60.0 % | 92.1 % / 92.8 % |
+| haltequote | 42.0 % | 26.1 % – 58.1 % | 44.2 % | 60.0 % | 92.1 % / 92.8 % |
 | Kippwinkel Median [°] | 22.7 | | | | 22.1 |
 | Unterarm Median [°] | 18 | | | | 21.2 |
 | Griffkraft Mittel [N] | 40.8 | | | | 55 |
@@ -85,6 +85,16 @@ Unterschied Aufgabenerfolg -38.1 Prozentpunkte (95-%-KI -55.9 … -21.7)
 Je Seed: 48.8 %, 14.3 %, 60.4 %, 16.9 %, 59.5 %
 
 Fingernutzung (Haltephase): im Mittel 1.82 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 92/99/0/0/8 · 96/66/2/3/92 · 99/0/97/0/0 · 0/0/0/0/100 · 96/32/0/26/0
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode. Quelle: EXP-007.
+
+| Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
+|---|---|---|---|---|---|
+| `quader_7x7x20` | [▶](../EXP-007_lang_1500/videos/quader_7x7x20_s42.mp4) | [▶](../EXP-007_lang_1500/videos/quader_7x7x20_s43.mp4) | [▶](../EXP-007_lang_1500/videos/quader_7x7x20_s44.mp4) | [▶](../EXP-007_lang_1500/videos/quader_7x7x20_s45.mp4) | [▶](../EXP-007_lang_1500/videos/quader_7x7x20_s46.mp4) |
+| `zylinder_d6` | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s42.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s43.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s44.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s45.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s46.mp4) |
+| `zylinder_d8` | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s42.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s43.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s44.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s45.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s46.mp4) |
 
 ## Trainingsverlauf
 

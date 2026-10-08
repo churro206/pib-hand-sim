@@ -5,7 +5,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Proto
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 0.0 % | 0.0 % – 0.0 % | 0.0 % | 100.0 % | – |
-| haltequote | 86.1 % | 84.1 % – 88.2 % | 86.1 % | 0.0 % | – |
+| haltequote | 86.1 % | 83.9 % – 88.2 % | 86.1 % | 0.0 % | – |
 | Kippwinkel Median [°] | 104 | | | | – |
 | Unterarm Median [°] | 90 | | | | – |
 | Griffkraft Mittel [N] | 23.9 | | | | – |
@@ -44,6 +44,22 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 ![Abbrüche](diagramme/abbrueche.svg)
 
 ![PPO-Diagnose](diagramme/ppo.svg)
+
+## Verlauf über die Episode
+
+Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+
+| Objekt | Seed 0 |
+|---|---|
+| `quader_7x7x20` | [▶](videos/quader_7x7x20_s0.mp4) |
+| `zylinder_d6` | [▶](videos/zylinder_d6_s0.mp4) |
+| `zylinder_d8` | [▶](videos/zylinder_d8_s0.mp4) |
 
 ## Netz und Training
 

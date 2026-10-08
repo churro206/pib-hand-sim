@@ -8,6 +8,11 @@
  ],
  "bedingung": "zylinder_seitlich",
  "objekt": "zylinder_d6",
+ "seed_ids": [
+  42,
+  43,
+  44
+ ],
  "je_seed": [
   {
    "aufgabenerfolg": 0.0,
@@ -76,6 +81,10 @@
    0.0,
    0.0
   ],
+  "iqm_ki95": [
+   0.0,
+   0.0
+  ],
   "fehlschlag_seeds": 1.0,
   "ki95": [
    0.0,
@@ -87,6 +96,10 @@
   "iqm": 0.0,
   "je_seed": [
    0.0,
+   0.0,
+   0.0
+  ],
+  "iqm_ki95": [
    0.0,
    0.0
   ],

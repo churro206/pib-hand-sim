@@ -47,6 +47,22 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 ![PPO-Diagnose](diagramme/ppo.svg)
 
+## Verlauf über die Episode
+
+Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+
+| Objekt | Seed 42 | Seed 43 | Seed 44 |
+|---|---|---|---|
+| `quader_7x7x20` | [▶](videos/quader_7x7x20_s42.mp4) | [▶](videos/quader_7x7x20_s43.mp4) | [▶](videos/quader_7x7x20_s44.mp4) |
+| `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) |
+| `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) |
+
 ## Netz und Training
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 300 Iterationen

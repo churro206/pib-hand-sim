@@ -566,6 +566,12 @@ def report(exp_id: str):
     tr = training_plots(d, exp, training=own_training, conditions=len(results) > 1)
 
     lines = [f"# {exp_id}: {exp.get('titel', '')}", ""]
+    if own_training:
+        best, bv = best_videos(d, exp)
+        if bv:
+            lines += [f"**Beste Videos** (Seed {best}, bester mittlerer Aufgabenerfolg über alle Objekte): "
+                      + " · ".join(f"[{c['kurz']}](beste_videos/{c['objekt_id']}_s{best}.mp4)" for c in BENCHMARK
+                                   if (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists()), ""]
     if not own_training:
         src = exp.get("laeufe_von") or exp.get("eltern")
         lines += [f"Ohne eigenes Training — bewertet die Läufe von {src}.", ""]
@@ -857,6 +863,37 @@ def prob_improvement(x: list[list[float]], y: list[list[float]], rng) -> dict:
     return {"p": p(x, y), "ki95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]}
 
 
+def best_seed(res: dict):
+    """Bester Seed nach mittlerem Aufgabenerfolg über alle Benchmark-Objekte (Einsatz-Kandidat) oder None."""
+    if not all(res.get(c["name"]) for c in BENCHMARK):
+        return None, {}
+    per = {c["name"]: dict(zip(res[c["name"]]["seed_ids"], res[c["name"]]["aufgabenerfolg"]["je_seed"])) for c in BENCHMARK}
+    ids = res[BENCHMARK[0]["name"]]["seed_ids"]
+    best = max(ids, key=lambda s: np.mean([per[c["name"]].get(s, 0) for c in BENCHMARK]))
+    if max(per[c["name"]].get(best, 0) for c in BENCHMARK) == 0:
+        return None, per          # Policy greift nie — kein Kandidat
+    return best, per
+
+
+def best_videos(d: Path, exp: dict) -> tuple[object, list[Path]]:
+    """Videos des besten Seeds je Benchmark-Objekt nach <experiment>/beste_videos/ kopieren (im Git)."""
+    res = {c["name"]: aggregate(exp, c) for c in BENCHMARK}
+    best, _ = best_seed(res)
+    out = d / "beste_videos"
+    for old in out.glob("*.mp4"):
+        old.unlink()
+    if best is None:
+        return None, []
+    files = []
+    for c in BENCHMARK:
+        src = d / "videos" / f"{c['objekt_id']}_s{best}.mp4"
+        if src.exists():
+            out.mkdir(exist_ok=True)
+            shutil.copy2(src, out / src.name)
+            files.append(out / src.name)
+    return best, files
+
+
 def cmd_leaderboard(a):
     if a.bewerten:
         check_env()
@@ -990,17 +1027,15 @@ def write_leaderboard():
           "| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
           "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
     for d, exp, res in rows:
-        if not all(res[c["name"]] for c in BENCHMARK):
+        best, per = best_seed(res)
+        if best is None:
             continue
-        ids = res[key]["seed_ids"]
-        per = {c["name"]: dict(zip(res[c["name"]]["seed_ids"], res[c["name"]]["aufgabenerfolg"]["je_seed"])) for c in BENCHMARK}
-        best = max(ids, key=lambda s: np.mean([per[c["name"]].get(s, 0) for c in BENCHMARK]))
         run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), exp["laeufe"][0])
         n = res[key].get("netz") or {}
-        if max(per[c["name"]].get(best, 0) for c in BENCHMARK) == 0:
-            continue          # Policy greift nie — kein Kandidat
-        L.append(f"| {exp['id']} | {best if best is not None else '–'} | "
-                 + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
+        vid = lambda c: (f" [▶]({d.name}/beste_videos/{c['objekt_id']}_s{best}.mp4)"  # noqa: E731
+                         if (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists() else "")
+        L.append(f"| {exp['id']} | {best} | "
+                 + " | ".join(pct(per[c["name"]].get(best)) + vid(c) for c in BENCHMARK)
                  + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
     (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     log(f"leaderboard.md aktualisiert ({len(rows)} Policies)")

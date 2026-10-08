@@ -1,11 +1,13 @@
 # EXP-004: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 
+**Beste Videos** (Seed 42, bester mittlerer Aufgabenerfolg über alle Objekte): [Ø 6 cm](beste_videos/zylinder_d6_s42.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s42.mp4) · [Quader](beste_videos/quader_7x7x20_s42.mp4)
+
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-000 unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-000 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 47.6 % | 13.9 % – 81.5 % | 50.5 % | 40.0 % | 2.0 % / 2.0 % |
-| haltequote | 73.1 % | 36.5 % – 93.1 % | 90.2 % | 20.0 % | 86.1 % / 86.1 % |
+| haltequote | 73.1 % | 36.4 % – 93.0 % | 90.2 % | 20.0 % | 86.1 % / 86.1 % |
 | Kippwinkel Median [°] | 34 | | | | 104 |
 | Unterarm Median [°] | 35.7 | | | | 90 |
 | Griffkraft Mittel [N] | 59.6 | | | | 23.9 |
@@ -51,6 +53,22 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 ![Abbrüche](diagramme/abbrueche.svg)
 
 ![PPO-Diagnose](diagramme/ppo.svg)
+
+## Verlauf über die Episode
+
+Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+
+| Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
+|---|---|---|---|---|---|
+| `quader_7x7x20` | [▶](videos/quader_7x7x20_s42.mp4) | [▶](videos/quader_7x7x20_s43.mp4) | [▶](videos/quader_7x7x20_s44.mp4) | [▶](videos/quader_7x7x20_s45.mp4) | [▶](videos/quader_7x7x20_s46.mp4) |
+| `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) | [▶](videos/zylinder_d6_s45.mp4) | [▶](videos/zylinder_d6_s46.mp4) |
+| `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) | [▶](videos/zylinder_d8_s45.mp4) | [▶](videos/zylinder_d8_s46.mp4) |
 
 ## Netz und Training
 

@@ -81,6 +81,60 @@
     "Train/mean_episode_length": 252.16000213623047,
     "Train/mean_reward": 31.00122776031494
    }
+  },
+  {
+   "seed": 45,
+   "lauf": "2026-10-08_12-53-14_EXP-005_s45",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.1043507181107998,
+    "Episode_Reward/action_rate_l2": -0.06379539668560028,
+    "Episode_Reward/early_termination": -2.3148149921325967e-06,
+    "Episode_Reward/finger_count": 0.3760755151510239,
+    "Episode_Reward/fingertips_to_object": 0.42654071748256683,
+    "Episode_Reward/good_contact": 0.4111026018857956,
+    "Episode_Reward/held": 0.8465039372444153,
+    "Episode_Reward/success": 2.4483744621276857,
+    "Episode_Reward/upright": 1.5451534390449524,
+    "Episode_Termination/abnormal_robot": 0.000128173828125,
+    "Episode_Termination/object_dropped": 0.1613861083984375,
+    "Episode_Termination/time_out": 0.8384857177734375,
+    "Loss/entropy": 8.93036994934082,
+    "Loss/learning_rate": 0.00040785888377286027,
+    "Loss/surrogate": -0.003851470311929006,
+    "Loss/value_function": 0.14874453619122505,
+    "Policy/mean_noise_std": 0.7720502376556396,
+    "Train/mean_episode_length": 241.4550018310547,
+    "Train/mean_reward": 26.782726097106934
+   }
+  },
+  {
+   "seed": 46,
+   "lauf": "2026-10-08_13-06-33_EXP-005_s46",
+   "iterationen": 300,
+   "simulationsschritte_mio": 9.8,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.10691358298063278,
+    "Episode_Reward/action_rate_l2": -0.05618200488388538,
+    "Episode_Reward/early_termination": -1.9290126147097906e-06,
+    "Episode_Reward/finger_count": 0.550147557258606,
+    "Episode_Reward/fingertips_to_object": 0.45254325270652773,
+    "Episode_Reward/good_contact": 0.400387042760849,
+    "Episode_Reward/held": 0.8599533438682556,
+    "Episode_Reward/success": 3.2620397090911863,
+    "Episode_Reward/upright": 1.6170440077781678,
+    "Episode_Termination/abnormal_robot": 0.0003509521484375,
+    "Episode_Termination/object_dropped": 0.1238677978515625,
+    "Episode_Termination/time_out": 0.8759368896484375,
+    "Loss/entropy": 8.710140228271484,
+    "Loss/learning_rate": 0.000419436030642828,
+    "Loss/surrogate": -0.002559744997415692,
+    "Loss/value_function": 0.15260345935821534,
+    "Policy/mean_noise_std": 0.7414354503154754,
+    "Train/mean_episode_length": 244.9029998779297,
+    "Train/mean_reward": 30.98227252960205
+   }
   }
  ]
 }

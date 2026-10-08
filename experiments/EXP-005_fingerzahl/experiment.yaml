@@ -3,7 +3,7 @@ id: EXP-005
 titel: Kontaktbelohnung nach Fingerzahl
 datum: '2026-10-07'
 eltern: EXP-004
-status: ausgewertet
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-004 hält mit genau 2 Fingern (Daumen + einer), weil der Gegengriff-Term
   nur das verlangt. Eine zusätzliche Belohnung, die mit der Zahl der Finger an der
@@ -41,6 +41,8 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-19-15_EXP-005_s42
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-32-21_EXP-005_s43
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-44-39_EXP-005_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_12-53-14_EXP-005_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_13-06-33_EXP-005_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: 'Aufgabenerfolg 65,1 % [14,6–92,9], IQM 76,4 %, Fehlschlag-Seeds 33 % (Seeds
   93/14/88 %); Haltequote 90,1 %. Finger an der Dose 2,6 (EXP-004: 2,0); Seed 42 Daumen
@@ -53,3 +55,4 @@ schluss: Mehr Finger, aber kein höherer Aufgabenerfolg und mehr Kippen — die 
   lohnt sich nicht als Baseline. Streuung dominiert von Seed 43 (14 %, Griff mit Ring
   + kleinem Finger). Fingernutzung eher über Objekte angehen (Stufe 4), nicht über
   weitere Belohnungsterme.
+commit_nachtrag: 8ad1e8d

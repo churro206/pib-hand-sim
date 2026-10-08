@@ -1,11 +1,13 @@
 # EXP-006: Objektmasse wie Dexsuite (0,04–0,4 kg)
 
+**Beste Videos** (Seed 44, bester mittlerer Aufgabenerfolg über alle Objekte): [Ø 6 cm](beste_videos/zylinder_d6_s44.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s44.mp4) · [Quader](beste_videos/quader_7x7x20_s44.mp4)
+
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-004 unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-004 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 77.5 % | 52.0 % – 93.4 % | 89.0 % | 20.0 % | 47.6 % / 50.5 % |
-| haltequote | 92.3 % | 87.8 % – 95.0 % | 94.3 % | 0.0 % | 73.1 % / 90.2 % |
+| haltequote | 92.3 % | 87.8 % – 95.1 % | 94.3 % | 0.0 % | 73.1 % / 90.2 % |
 | Kippwinkel Median [°] | 30 | | | | 34 |
 | Unterarm Median [°] | 40 | | | | 35.7 |
 | Griffkraft Mittel [N] | 85.7 | | | | 59.6 |
@@ -49,6 +51,22 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 ![Abbrüche](diagramme/abbrueche.svg)
 
 ![PPO-Diagnose](diagramme/ppo.svg)
+
+## Verlauf über die Episode
+
+Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+
+| Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
+|---|---|---|---|---|---|
+| `quader_7x7x20` | [▶](videos/quader_7x7x20_s42.mp4) | [▶](videos/quader_7x7x20_s43.mp4) | [▶](videos/quader_7x7x20_s44.mp4) | [▶](videos/quader_7x7x20_s45.mp4) | [▶](videos/quader_7x7x20_s46.mp4) |
+| `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) | [▶](videos/zylinder_d6_s45.mp4) | [▶](videos/zylinder_d6_s46.mp4) |
+| `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) | [▶](videos/zylinder_d8_s45.mp4) | [▶](videos/zylinder_d8_s46.mp4) |
 
 ## Netz und Training
 

@@ -1,11 +1,13 @@
 # EXP-007: EXP-004 mit 1500 Iterationen
 
+**Beste Videos** (Seed 46, bester mittlerer Aufgabenerfolg über alle Objekte): [Ø 6 cm](beste_videos/zylinder_d6_s46.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s46.mp4) · [Quader](beste_videos/quader_7x7x20_s46.mp4)
+
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-004 unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-004 (Mittel / IQM) |
 |---|---|---|---|---|---|
 | aufgabenerfolg | 78.0 % | 49.6 % – 94.9 % | 90.7 % | 20.0 % | 47.6 % / 50.5 % |
-| haltequote | 92.1 % | 88.5 % – 95.4 % | 92.8 % | 0.0 % | 73.1 % / 90.2 % |
+| haltequote | 92.1 % | 88.4 % – 95.3 % | 92.8 % | 0.0 % | 73.1 % / 90.2 % |
 | Kippwinkel Median [°] | 22.1 | | | | 34 |
 | Unterarm Median [°] | 21.2 | | | | 35.7 |
 | Griffkraft Mittel [N] | 55 | | | | 59.6 |
@@ -49,6 +51,22 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 ![Abbrüche](diagramme/abbrueche.svg)
 
 ![PPO-Diagnose](diagramme/ppo.svg)
+
+## Verlauf über die Episode
+
+Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+## Videos
+
+Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+
+| Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
+|---|---|---|---|---|---|
+| `quader_7x7x20` | [▶](videos/quader_7x7x20_s42.mp4) | [▶](videos/quader_7x7x20_s43.mp4) | [▶](videos/quader_7x7x20_s44.mp4) | [▶](videos/quader_7x7x20_s45.mp4) | [▶](videos/quader_7x7x20_s46.mp4) |
+| `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) | [▶](videos/zylinder_d6_s45.mp4) | [▶](videos/zylinder_d6_s46.mp4) |
+| `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) | [▶](videos/zylinder_d8_s45.mp4) | [▶](videos/zylinder_d8_s46.mp4) |
 
 ## Netz und Training
 
