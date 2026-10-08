@@ -45,7 +45,8 @@ LOGS = REPO / "logs" / "experiments"
 ISAACLAB = Path.home() / "IsaacLab" / "isaaclab.sh"
 BENCH = EXP_DIR / "_bench.json"
 SMOKE = {"iterationen": 3, "umgebungen": 256, "seed": 0}
-EVAL = {"umgebungen": 256, "episoden": 1000, "video_umgebungen": 16, "video_schritte": 300}
+EVAL = {"umgebungen": 256, "episoden": 1000, "video_umgebungen": 16, "video_schritte": 300,
+        "beste_video_schritte": 3 * 270}     # beste Videos: 3 Episoden (je 4,5 s × 60 Hz), ~14 s
 BOOT = 2000
 # Leitplanken: (Schlüssel, Bezeichnung, Toleranz, Art) — Art "abs" = Einheit der Größe, "rel" = Anteil
 GUARDRAILS = [
@@ -569,9 +570,8 @@ def report(exp_id: str):
     if own_training:
         best, bv = best_videos(d, exp)
         if bv:
-            lines += [f"**Beste Videos** (Seed {best}, bester mittlerer Aufgabenerfolg über alle Objekte): "
-                      + " · ".join(f"[{c['kurz']}](beste_videos/{c['objekt_id']}_s{best}.mp4)" for c in BENCHMARK
-                                   if (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists()), ""]
+            lines += [f"**Beste Videos** (Seed {best}, bester mittlerer Aufgabenerfolg über alle Objekte, "
+                      "3 Episoden): " + " · ".join(bv), ""]
     if not own_training:
         src = exp.get("laeufe_von") or exp.get("eltern")
         lines += [f"Ohne eigenes Training — bewertet die Läufe von {src}.", ""]
@@ -875,23 +875,20 @@ def best_seed(res: dict):
     return best, per
 
 
-def best_videos(d: Path, exp: dict) -> tuple[object, list[Path]]:
-    """Videos des besten Seeds je Benchmark-Objekt nach <experiment>/beste_videos/ kopieren (im Git)."""
-    res = {c["name"]: aggregate(exp, c) for c in BENCHMARK}
-    best, _ = best_seed(res)
-    out = d / "beste_videos"
-    for old in out.glob("*.mp4"):
-        old.unlink()
+def best_videos(d: Path, exp: dict) -> tuple[object, list[str]]:
+    """Links zu den Videos des besten Seeds je Benchmark-Objekt: lang (3 Episoden, beste_videos/, im Git,
+    von `medien` aufgenommen), sonst die kurze Aufnahme aus videos/."""
+    best, _ = best_seed({c["name"]: aggregate(exp, c) for c in BENCHMARK})
     if best is None:
         return None, []
-    files = []
+    links = []
     for c in BENCHMARK:
-        src = d / "videos" / f"{c['objekt_id']}_s{best}.mp4"
-        if src.exists():
-            out.mkdir(exist_ok=True)
-            shutil.copy2(src, out / src.name)
-            files.append(out / src.name)
-    return best, files
+        name = f"{c['objekt_id']}_s{best}.mp4"
+        for sub in ("beste_videos", "videos"):
+            if (d / sub / name).exists():
+                links.append(f"[{c['kurz']}]({sub}/{name})")
+                break
+    return best, links
 
 
 def cmd_leaderboard(a):
@@ -918,6 +915,10 @@ def cmd_medien(a):
     exps = [(d, e) for d, e in trained_experiments() if not a.ids or e["id"] in a.ids]
     tmp = LOGS / "_medien_tmp"
     for d, exp in exps:
+        if a.beste:                 # nur die langen Videos des besten Seeds (neu)
+            record_best_videos(d, exp, tmp, neu=True)
+            report(exp["id"])
+            continue
         vdir = d / "videos"
         vdir.mkdir(exist_ok=True)
         for r in dict.fromkeys(exp["laeufe"]):
@@ -952,9 +953,47 @@ def cmd_medien(a):
                             log(f"  WARNUNG: kein Video ({log_file})")
                   except subprocess.TimeoutExpired:
                     log(f"  WARNUNG: Zeitüberschreitung {exp['id']} s{seed} {c['kurz']} ({log_file})")
+        if a.videos:
+            record_best_videos(d, exp, tmp, neu=a.neu)
         report(exp["id"])
     shutil.rmtree(tmp, ignore_errors=True)
     cmd_done(a)
+
+
+def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
+    """Lange Videos (3 Episoden) des besten Seeds je Benchmark-Objekt → <experiment>/beste_videos/ (im Git);
+    Videos anderer Seeds dort werden entfernt."""
+    best, _ = best_seed({c["name"]: aggregate(exp, c) for c in BENCHMARK})
+    out = d / "beste_videos"
+    keep = {f"{c['objekt_id']}_s{best}.mp4" for c in BENCHMARK} if best is not None else set()
+    for old in out.glob("*.mp4") if out.exists() else []:
+        if old.name not in keep:
+            old.unlink()
+    if best is None:
+        return
+    run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), None)
+    if run is None:
+        return
+    out.mkdir(exist_ok=True)
+    for c in BENCHMARK:
+        target = out / f"{c['objekt_id']}_s{best}.mp4"
+        if target.exists() and not neu:
+            continue
+        log(f"  Bestes Video {exp['id']} s{best} {c['kurz']} (3 Episoden)")
+        shutil.rmtree(tmp, ignore_errors=True)
+        cmd = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", "--policy",
+               str(REPO / run / "exported" / "policy.pt"), "--objekt", c["objekt_id"], "--bedingung", c["name"],
+               "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"]), "--num_envs", str(EVAL["video_umgebungen"]),
+               "--episodes", str(EVAL["video_umgebungen"]), "--video", str(EVAL["beste_video_schritte"]), "--out", str(tmp)]
+        try:
+            with open(LOGS / f"medien_beste_{exp['id']}.log", "a", encoding="utf-8") as f:
+                subprocess.run(cmd, cwd=REPO, stdout=f, stderr=subprocess.STDOUT, timeout=1800)
+        except subprocess.TimeoutExpired:
+            log(f"  WARNUNG: Zeitüberschreitung bestes Video {exp['id']} {c['kurz']}")
+        found = sorted(tmp.rglob("*.mp4"))
+        if found:
+            shutil.move(str(found[0]), target)
+    shutil.rmtree(tmp, ignore_errors=True)
 
 
 def write_leaderboard():
@@ -1077,6 +1116,7 @@ def main():
     md.add_argument("--videos", action="store_true")
     md.add_argument("--verlauf", action="store_true")
     md.add_argument("--neu", action="store_true")
+    md.add_argument("--beste", action="store_true", help="nur die langen Videos des besten Seeds (neu aufnehmen)")
     lb = sub.add_parser("leaderboard")
     lb.add_argument("--bewerten", action="store_true", help="fehlende Benchmark-Bewertungen nachholen")
     d = sub.add_parser("done")
