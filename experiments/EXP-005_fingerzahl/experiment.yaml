@@ -27,10 +27,12 @@ training:
   task: Pib-Grasp-Hand-Left-FingerCount-v0
   iterationen: 300
   umgebungen: 1024
-  seeds:
+  seeds:          # 45, 46 nachgetragen 2026-10-08 (Regel 5 Seeds)
   - 42
   - 43
   - 44
+  - 45
+  - 46
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---
