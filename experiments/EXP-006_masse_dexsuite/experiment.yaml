@@ -3,7 +3,7 @@ id: EXP-006
 titel: Objektmasse wie Dexsuite (0,04–0,4 kg)
 datum: '2026-10-07'
 eltern: EXP-004
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Mit schwereren Objekten im Training (wie Dexsuite) reicht der Pinzettengriff
   nicht mehr; die Policy lernt, mehr Finger einzusetzen (Fingerzahl > 2) und hält
@@ -44,14 +44,12 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-41-08_EXP-006_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-52-56_EXP-006_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: 'Aufgabenerfolg 71,5 % [27,2–94,5], IQM 82,4 %, Fehlschlag-Seeds 33 % (Seeds
-  93/27/94 %); Haltequote 94,7 % (höchste bisher). Finger an der Dose 3,0 (Seed 42:
-  Daumen + Zeige + Mittel + Ring, 98 % in der Inferenz). Leitplanken verletzt: Kippwinkel
-  34° (27), Unterarm 43° (26), Griffkraft 85 N (58).'
-urteil: kein messbarer Unterschied, Leitplanken Kippen/Unterarm/Kraft schlechter (Entwurf,
-  von Leon zu bestätigen)
-schluss: Vielversprechendster Ansatz für die Fingernutzung (schwerere Objekte erzwingen
-  mehr Finger, Dexsuite-Weg), Haltequote am höchsten; aber mehr Kippen und Kraft.
-  Für die Objekt-Stufe als Randomisierung im Blick behalten (realistische Massen,
-  Machbarkeit vorher). Seed 43 wieder Ausreißer (27 %, Daumen + Mittel + klein).
+ergebnis: '5 Seeds: Aufgabenerfolg 77,5 % [52,0–93,4], IQM 89,0 %, Seeds 93/27/94/82/91
+  %; Haltequote 92 %, Kippwinkel 30°, Finger 2,9 (Kraftgriff), Unruhe 0,31 (ruhigste
+  Policy), Griffkraft 86 N. Leaderboard Platz 1: IQM über alle Objekte 67,8 % (Ø 6
+  cm 89, Ø 8 cm 74, Quader 53 %). Hebt das Objekt vor dem Absenken ~5 cm an (Verlauf).'
+urteil: kein gesicherter Unterschied zu EXP-004 nach eval-v1, aber robuster (1/5 Fehlschlag-Seeds)
+  und beste Übertragung — neue Baseline — bestätigt (Leon, 2026-10-08)
+schluss: Breitere Masse (wie Dexsuite) ergibt Kraftgriff mit ~3 Fingern und den besten
+  Transfer auf andere Objekte. Baseline für die nächsten Experimente (EXP-012 ff.).
 commit_nachtrag: 73b412a

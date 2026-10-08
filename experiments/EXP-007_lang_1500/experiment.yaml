@@ -3,7 +3,7 @@ id: EXP-007
 titel: EXP-004 mit 1500 Iterationen
 datum: '2026-10-07'
 eltern: EXP-004
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: EXP-004 ist nach 300 Iterationen nicht auskonvergiert; 1500 Iterationen
   (Lift-Rezept) erhöhen den Aufgabenerfolg und verringern die Seed-Streuung (56–88
@@ -41,13 +41,12 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: Aufgabenerfolg 69,4 % [21,9–94,4], IQM 80,7 %, Fehlschlag-Seeds 33 % (Seeds
-  92/22/95 %); Haltequote 92,8 %; Kippwinkel 26°, Unterarm 26° wie EXP-004. Finger
-  an der Dose 2,3 (Seed 42 weiter Pinzettengriff Daumen + Zeige). Leitplanke Unruhe
-  verletzt (1,86 vs. 1,21). Training ~53 min je Seed.
-urteil: kein messbarer Unterschied (Entwurf, von Leon zu bestätigen)
-schluss: EXP-004 war nach 300 Iterationen im Wesentlichen auskonvergiert; 5× Training
-  ändert weder Erfolg noch Griff und hebt Seed 43 nicht aus seinem lokalen Optimum
-  (22 %). Budget erst wieder erhöhen, wenn Aufgabe/Objekte erweitert sind; 300 Iterationen
-  bleiben Standard.
+ergebnis: '5 Seeds: Aufgabenerfolg 78,0 % [49,6–94,9], IQM 90,7 %, Seeds 92/22/94/85/97
+  %; Haltequote 92 %, Kippwinkel 22° (niedrigster), Finger 2,0 (Pinzettengriff), Unruhe
+  1,58 (höchste). Leaderboard Platz 3 (IQM alle Objekte 63,7 %).'
+urteil: kein messbarer Unterschied zu EXP-004 am Zylinder; robuster als EXP-004, aber
+  unruhiger — bestätigt (Leon, 2026-10-08)
+schluss: Längeres Training stabilisiert die Seeds, ändert den Griff nicht (Pinzettengriff)
+  und macht die Bewegung unruhiger (Zappeln, Leon). Budget erst wieder erhöhen, wenn
+  die Aufgabe erweitert ist.
 commit_nachtrag: 73b412a

@@ -83,7 +83,8 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
   Mimic Joints (ADR-011), Servo-Modell (ADR-012), Kontaktsensoren (ADR-013),
   Handgelenk-Pleuel [−60°, 0°] (ADR-014)
 - **RL-Greifen, Proof of Concept** ← aktuell (ADR-015, Plan in `docs/current-sprint.md`):
-  - M1 Policy greift in der Sim — EXP-004: 77 % aufrecht gehalten (≤ 45°), offen: Fingernutzung, Kraft
+  - M1 Policy greift in der Sim — Baseline EXP-006 (Leaderboard `experiments/leaderboard.md`): IQM 68 % über
+    Zylinder Ø 6/8 cm und Quader (≤ 45°), Kraftgriff mit ~3 Fingern; offen: Anheben, Objektvielfalt, Kraft
   - M2 Policy int8-quantisiert auf dem STM32N657 (`stedgeai validate`)
   - M3 echte Hand (optional, Sim-to-Real-Kalibrierung nötig)
 - Policy sieht nur reale Sensoren (8 Servo-Winkel, 5 FSR); Aktionsraum = 8 Servos
@@ -116,6 +117,7 @@ isaac_lab/check_hand_asset.py            Prüfung Hand-USD in Isaac Lab (Mimic, 
 isaac_lab/scripted_grasp_test.py         Machbarkeitstest ohne Policy (Fenster, Echtzeit)
 isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eval/done (ADR-016)
 isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
+experiments/leaderboard.md               Rangliste aller Policies (Benchmark-Objekte, rliable)
 isaac_lab/plot_training.py               Trainingsdiagramme (TensorBoard → SVG) für die Experiment-Berichte
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
 experiments/                             Experimente (experiment.yaml, Berichte), index.md, README
@@ -132,5 +134,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–017) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–019) | Sprint: @docs/current-sprint.md
 → RL-Ursprungs-Prompt/Bewertung: `docs/rl-grasping-notes.md`

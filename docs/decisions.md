@@ -680,6 +680,58 @@ Kraftstrafe, kein Kippabbruch. Anforderung der Bedingung: Kippwinkel ≤ 45° (v
 
 ---
 
+## ADR-018: Greif-Architektur — Planer oben, ein Spezialist je Greifart unten
+
+**Problem**: Der Actor ist blind (8 Gelenkwinkel, 5 FSR) und läuft auf dem STM32N657. Er kennt weder das
+Objekt noch die Handausrichtung — ein einziges Netz kann nicht wissen, ob es seitlich an einer Milchpackung
+oder von oben an einem Apfel greifen soll. Offen war: regelbasiert Spezialisten wählen oder ein Netz für alles?
+
+**Entscheidung** (Leon, 2026-10-07): zweistufig. Oben wählt ein Planer (zuerst Regeltabelle, später gelernt,
+z. B. VLM/GraspGen) Objektkategorie → Startpose + Greifart, der Arm (IK-Team) fährt die Vorgreifpose an, unten
+schließt die Hand-Policy reflexartig. **Ein Spezialist je Greifart**, der alle Objekte seiner Kategorie über
+Tasten abdeckt: Kraftgriff seitlich (Milch, Becher, Flasche), Griff von oben (Obst); Hakengriff (Tasche)
+zurückgestellt. Später ggf. Destillation in ein Netz mit Greifart als One-Hot.
+
+**Begründung**: Stand der Technik ist zweistufig — GR00T N1.6 (System 2 plant, System 1 führt aus),
+DexGraspVLA (VLM-Planer + gelernter Regler), GRIT (Greifart als Kommando an eine Policy). Ein Netz für alles
+(DextrAH-RGB) sieht das Objekt. Erst Spezialisten, dann destillieren (UniDexGrasp++, UniGraspTransformer) —
+die Spezialisten sind dann die Lehrer. Mehrere Spezialisten passen auf die NPU (je ~70 kB int8).
+
+**Konsequenzen**:
+- Schnittstelle zum IK-/Greifpunkt-Team: Vorgreifpose je Greifart (Sim: Handfläche 3,5 cm vor der
+  Objektoberfläche) und ein Signal „Griff steht“ für das Anheben (Sim: Tisch senkt sich fest nach 2 s) — offen.
+- Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitzen 2,5–16,5 cm über dem Tisch); flache Objekte
+  gehören zu „von oben“.
+- `docs/architecture.md` → „Ziel-Architektur Greifen“.
+
+---
+
+## ADR-019: Benchmark-Bedingungen und Leaderboard nach rliable
+
+**Problem**: Mit mehreren Objekten und Experimenten ohne eigenes Training (Transfer) war nicht mehr auf einen
+Blick zu sehen, welche Policy am besten ist; die Trainings-Belohnung ist nicht vergleichbar (ADR-016), und mit
+3 Seeds täuschten einzelne Seeds (EXP-004: 77 % mit 3, 48 % mit 5 Seeds).
+
+**Entscheidung**: Jede Policy (Experiment mit eigenem Training) wird unter festen **Benchmark-Bedingungen**
+bewertet (`experiments.py` → `BENCHMARK`: Zylinder Ø 6 cm, Ø 8 cm, Quader 7 × 7 × 20 cm, je Kippwinkel ≤ 45°).
+`experiments/leaderboard.md` (von `done` erzeugt) sortiert nach dem **IQM des Aufgabenerfolgs über alle
+Objekte** (Seeds × Objekte gepoolt, stratifizierter Bootstrap) und zeigt die **probability of improvement**
+P(Platz 1 > X) — gesichert, wenn die untere KI-Grenze über 0,5 liegt. Dazu IQM je Objekt, Verhalten und der
+beste Seed als Einsatz-Kandidat. Je Policy/Seed/Objekt Verlauf über die Episode und Video (`medien`).
+
+**Begründung**: Agarwal et al. 2021 (rliable, *Deep RL at the Edge of the Statistical Precipice*): IQM über
+Aufgaben × Läufe mit stratifiziertem Bootstrap und P(X > Y) statt Mittelwert und Rangfolge allein; Ergebnis je
+Objekt bleibt sichtbar (YCB-Protokolle). Einzige Stelle, an der über Bedingungen zusammengefasst wird
+(Leon, 2026-10-08).
+
+**Konsequenzen**:
+- EXP-006 ist Platz 1 und neue Baseline; EXP-005/007/011 statistisch gleichauf, EXP-004 gesichert schlechter.
+- Neue Objekte im Benchmark erfordern die Nachbewertung aller Policies (`leaderboard --bewerten`, ~1 min je
+  Lauf und Objekt); Testobjekte (nie trainiert) als eigene Bedingung kennzeichnen.
+- Videos aller Seeds nicht im Git (Hugging Face), die besten je Policy schon (`beste_videos/`).
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

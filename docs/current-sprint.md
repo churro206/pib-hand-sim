@@ -289,25 +289,40 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 - [ ] Auswertung „FSR-Kraft über Masse“ (passt die Policy die Kraft an?)
 - [ ] erst wenn das nicht reicht: längerer Verlauf (10–15 Schritte), später LSTM
 
-**Stufe 4 — andere Objekte** ← **als Nächstes** (Leon, 2026-10-07: Fokus von der Belohnung auf
-die Objekte; Fingernutzung/Seed-Streuung hängen vermutlich am 6-cm-Zylinder — Ring/kleiner Finger
-erreichen ihn kaum)
+**Stufe 4 — andere Objekte** ← **aktuell** (Leon, 2026-10-07: Fokus von der Belohnung auf die Objekte)
 Plan (Leon, 2026-10-07): Objektkatalog in `env_cfg.py` (Standard `zylinder_d6` = bisherige Szene),
 Abstand Handfläche ↔ **Objektoberfläche** konstant 3,5 cm, Quader mit einer Fläche zur Hand
 (Drehung ±15° statt beliebig), Masse wie Training; Kugel gehört zu Stufe 4b (seitlich liegt sie
-unter dem Daumen).
-- [ ] Objektkatalog + `apply_object()` (`env_cfg.py`); `eval_policy.py --objekt --bedingung` →
-      `eval-v1_<bedingung>.json` (Standardbedingung bleibt `eval-v1.json`)
-- [ ] `experiments.py`: mehrere Bedingungen je Experiment (`objekt_id` in `bedingungen`),
-      Bericht/Index je Bedingung, Experimente ohne Training (`training: null`, bewertet fremde Läufe)
-- [ ] Fenstertest je Objekt (Spawn, Reset-Überlappung) — Leon schaut zu
-- [ ] **EXP-008** Transfer ohne Nachtraining: EXP-004-Läufe an Zylinder Ø 6 cm (Referenz), Ø 8 cm
-      (Becher), Quader 7 × 7 × 20 cm (Milchpackung)
-- [ ] **EXP-009** dasselbe für EXP-006 (Masse 0,04–0,4 kg, greift mit 3 Fingern)
-- [ ] Machbarkeit je Objekt mit realistischer Masse (1-l-Milch ≈ 1 kg)
-- [ ] Training mit Objektvielfalt (Dexsuite `MultiAssetSpawnerCfg`), 5 Seeds
+unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitzen 2,5–16,5 cm über dem Tisch).
+- [x] Objektkatalog + `apply_object()`; `eval_policy.py --objekt --bedingung`; mehrere Bedingungen je
+      Experiment, Experimente ohne Training; Fenstertests Quader/Ø 8 cm (2026-10-07)
+- [x] EXP-004/005/006/007 auf **5 Seeds** (Nachtlauf 2026-10-07/08) — EXP-004 fällt auf 48 % (Seeds 45/46
+      scheitern), EXP-005/006/007 robust (nur Seed 43 schwach)
+- [x] **EXP-008–010** Transfer ohne Nachtraining, **EXP-011** EXP-006 mit 1500 It. — bester Transfer EXP-006
+      (Ø 8 cm 71 %, Quader 44 %); längeres Training hilft nicht und macht unruhiger; Fingerzahl ist eine
+      Eigenschaft des Seeds, nicht des Objekts
+- [x] **Leaderboard** (`experiments/leaderboard.md`, rliable: IQM über alle Objekte, P(1 > X)): Platz 1
+      **EXP-006 = neue Baseline** (IQM 68 %), EXP-005/007/011 gleichauf
+- [x] Verlauf über die Episode + Videos je Policy/Seed/Objekt (`experiments.py medien`), beste Videos im Git
+- [x] **Diagnose Anheben** (`isaac_lab/_diag_anheben.py`, 2026-10-08): Die Policies heben das Objekt vor dem
+      Absenken 3–6 cm an. Nicht der Annäherungsterm (weiteste Fingerspitze ist der kleine Finger unten,
+      Optimum läge tiefer, Effekt ±2 %), sondern der **tragende Griff**: angehobene Episoden werden zu
+      ~100 % gehalten, nicht angehobene zu 0–78 %; der kleine Finger liegt unter dem Dosenboden (Schaufel).
+      Die Höhe selbst ist frei, weil der Halte-Term nur Absinken bestraft (Abweichung von Dexsuite).
 
-**Stufe 4b — Startpose „von oben“** (Leon, 2026-10-07): runde/kleine Objekte (Obst) von oben
+**Experimentplan ab 2026-10-08** (Eltern EXP-006, je genau eine Änderung, 5 Seeds, Benchmark-Objekte)
+- [ ] Bewertung: Anheben als beschreibende Metrik (Höhe vor dem Absenken, Höhe in der Haltephase)
+- [ ] **EXP-012 Halte-Term wie Dexsuite**: symmetrischer Abstand zur Zielhöhe, Ziel = Starthöhe
+      (abgesetzt, ~0,1 s) statt einseitig gegen die Höhe beim Absenken. Frage: Lässt sich das Anheben
+      abstellen, ohne den tragenden Griff zu verlieren? Fenstertest (Belohnung geändert)
+- [ ] **EXP-013 Objektvielfalt** im Training (Ø 6/8 cm, Quader gemischt, Dexsuite `MultiAssetSpawnerCfg`,
+      Startlage je Objekt), Eltern = Sieger aus EXP-006/012; Fenstertest (Szene geändert)
+- [ ] danach ein **Testobjekt**, das nie trainiert wird (z. B. Flasche), als Benchmark-Bedingung
+- [ ] Machbarkeit mit realistischer Masse (1-l-Milch ≈ 1 kg)
+- [ ] M2-Kette mit EXP-006 (bester Seed): int8 QDQ mit Sim-Kalibrierdaten, int8 vs. float in der Sim
+- nur bei Bedarf: Zappeln über Strafen-Curriculum (Lift), Griffkraft (86 N) — Kraftstrafe vorerst nicht (Leon)
+
+**Stufe 4b — Startpose „von oben“** — danach (Leon, 2026-10-07): runde/kleine Objekte (Obst) von oben
 greifen statt seitlich — Anfahrrichtung je Objektkategorie (wie Greifplaner, z. B. GraspGen).
 Objekt hängt zwischen den Fingern (keine Handflächenstütze), Anforderung ohne Kippwinkel.
 Der blinde Actor sieht die Handausrichtung nicht → **eigener Spezialist je Startpose** (beide

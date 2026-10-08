@@ -3,7 +3,7 @@ id: EXP-011
 titel: EXP-006 mit 1500 Iterationen (längeres Training)
 datum: '2026-10-07'
 eltern: EXP-006
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Bei 300 Iterationen steigt die Trainings-Belohnung von EXP-006 noch (Seeds 43/44). Mit 1500 Iterationen steigt der Aufgabenerfolg (≤ 45°) an Ø 8 cm und Quader gegenüber EXP-006 (EXP-009), am Referenzzylinder Ø 6 cm bleibt er gleich (wie EXP-007 ggü. EXP-004).'
 aenderung: 'Nur Trainingsdauer: 1500 statt 300 Iterationen (Lift-Rezept), sonst wie EXP-006 (Task Heavy-v0). Bewertung direkt unter allen drei Objekten.'
@@ -52,6 +52,11 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_04-16-01_EXP-011_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_05-11-23_EXP-011_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
-urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+ergebnis: '5 Seeds: Ø 6 cm 78,7 % (IQM 90,9), Ø 8 cm 60,3 %, Quader 33,2 % — an den
+  neuen Objekten eher schlechter als EXP-006 (71 / 44 %), statistisch kein messbarer
+  Unterschied; Unruhe 1,20 (EXP-006: 0,31). Sichten (Leon): erst Pinzettengriff und
+  Hochheben, mehr Finger und Aufrichten erst nach dem Absenken (Seed 42).'
+urteil: Hypothese widerlegt (längeres Training hebt den Transfer nicht) — bestätigt
+  (Leon, 2026-10-08)
+schluss: 'Wie EXP-007: längeres Training passt stärker an den Trainingszylinder an
+  und wird unruhiger. Bei 300 Iterationen bleiben.'

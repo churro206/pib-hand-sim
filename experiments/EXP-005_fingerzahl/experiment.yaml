@@ -3,7 +3,7 @@ id: EXP-005
 titel: Kontaktbelohnung nach Fingerzahl
 datum: '2026-10-07'
 eltern: EXP-004
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-004 hält mit genau 2 Fingern (Daumen + einer), weil der Gegengriff-Term
   nur das verlangt. Eine zusätzliche Belohnung, die mit der Zahl der Finger an der
@@ -44,15 +44,11 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_12-53-14_EXP-005_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_13-06-33_EXP-005_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: 'Aufgabenerfolg 65,1 % [14,6–92,9], IQM 76,4 %, Fehlschlag-Seeds 33 % (Seeds
-  93/14/88 %); Haltequote 90,1 %. Finger an der Dose 2,6 (EXP-004: 2,0); Seed 42 Daumen
-  + Zeige + Mittel. Leitplanken verletzt: Kippwinkel 38° (27), Unterarm 46° (26),
-  Griffkraft 81 N (58). Seed 42 beugt das Handgelenk an den Anschlag (−60°, Pleuel-Totlage),
-  Dose ~7 cm näher am Arm (Leon im Video, gemessen).'
-urteil: kein messbarer Unterschied, Leitplanken Kippen/Unterarm/Kraft schlechter (Entwurf,
-  von Leon zu bestätigen)
-schluss: Mehr Finger, aber kein höherer Aufgabenerfolg und mehr Kippen — die Fingerzahl-Belohnung
-  lohnt sich nicht als Baseline. Streuung dominiert von Seed 43 (14 %, Griff mit Ring
-  + kleinem Finger). Fingernutzung eher über Objekte angehen (Stufe 4), nicht über
-  weitere Belohnungsterme.
+ergebnis: '5 Seeds: Aufgabenerfolg 71,4 % [41,7–91,3], IQM 83,7 %, Seeds 93/14/88/71/91
+  %; Haltequote 90 %, Kippwinkel 34°, Finger 2,9, Griffkraft 93 N. Leaderboard Platz
+  2 (IQM alle Objekte 64,4 %; Ø 8 cm 69 %, Quader 53 %), gleichauf mit Platz 1.'
+urteil: kein messbarer Unterschied zu EXP-004 (mehr Finger, mehr Kraft) — bestätigt
+  (Leon, 2026-10-08)
+schluss: Fingerzahl-Belohnung bringt mehr Finger, aber keinen gesicherten Vorteil;
+  nicht als Baseline, bleibt im Leaderboard als gleichwertige Alternative.
 commit_nachtrag: 8ad1e8d

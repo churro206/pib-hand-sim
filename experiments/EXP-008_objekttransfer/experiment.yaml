@@ -3,7 +3,7 @@ id: EXP-008
 titel: Objekttransfer ohne Nachtraining (EXP-004-Policy an Becher und Milchpackung)
 datum: '2026-10-07'
 eltern: EXP-004
-status: bewertet
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Der Zylinder-Spezialist (EXP-004, Pinzettengriff Daumen + 1 Finger) überträgt ohne
   Nachtraining nur teilweise auf andere Objekte seiner Kategorie: Aufgabenerfolg (≤ 45°) an
@@ -50,7 +50,10 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-10-29_EXP-004_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-24-38_EXP-004_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
-urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+ergebnis: 'Aufgabenerfolg (≤ 45°) Ø 6 cm 47,6 % → Ø 8 cm 34,4 % (−13 PP) → Quader
+  21,7 % (−26 PP); Finger ~2. Sichten (Leon): Objekt wird bei allen drei Objekten
+  so hoch wie möglich gehalten, vereinzelt Zappeln.'
+urteil: Hypothese bestätigt (teilweiser Transfer) — bestätigt (Leon, 2026-10-08)
+schluss: Der Zylinder-Spezialist überträgt nur teilweise; Quader > 10 PP unter der
+  Referenz → Training mit Objektvielfalt.
 laeufe_von: EXP-004

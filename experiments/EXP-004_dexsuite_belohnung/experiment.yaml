@@ -3,7 +3,7 @@ id: EXP-004
 titel: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 datum: '2026-10-07'
 eltern: EXP-000
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-001–003 scheiterten an der Belohnung, nicht am Kippabbruch: Annäherung
   praktisch 0 (std 0,1), unbegrenzte Kraftstrafe > Annäherung → Policy spreizt die
@@ -50,16 +50,13 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-10-29_EXP-004_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-24-38_EXP-004_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: 'Aufgabenerfolg 77,3 % [56,4–88,9] (Seeds 88/56/88 %), Haltequote 90,1 %,
-  Kippwinkel Median 27° (EXP-000: 104°), Unterarm 26° (90°). Leitplanken verletzt:
-  Griffkraft 58 N (24), Kraft > 15 N 99 % (9 %), Unruhe 1,01 (0,24); Stall 99,7 %
-  wie zuvor. Fingernutzung (Haltephase): Zweifinger-Pinzettengriff — Seed 42 Daumen
-  + Zeige (je ~21 N), Seed 43 Daumen + kleiner Finger (38/25 N), übrige Finger ohne
-  Kontakt; Daumen-Rotator ~90°, Daumen-MCP gestreckt. Inferenz (Leon): Bewegung ruhig
-  genug.'
-urteil: besser, Leitplanken Kraft/Unruhe verletzt (Entwurf, von Leon zu bestätigen)
-schluss: 'Durchbruch: es lag an der Belohnung, nicht an Hand oder blindem Actor. Neue
-  Baseline. Offene Punkte: (1) Fingernutzung — nur Daumen + ein Finger, weil der Gegengriff-Term
-  nur das verlangt (wie Dexsuite); (2) Kraft/Stall — Kraftstrafe vorerst bewusst nicht
-  (Leon); (3) Seed-Streuung. Nächstes: Fingernutzung (EXP-005 ff.).'
+ergebnis: '5 Seeds (45/46 nachgetragen 2026-10-07): Aufgabenerfolg 47,6 % [13,9–81,5],
+  IQM 50,5 %, Seeds 88/56/88/0/6 % — Seed 45 lernt nicht zu greifen (Exploration bricht
+  ein), Seed 46 hält zu 95 %, kippt die Dose aber mit dem Unterarm (56°, wie EXP-000).
+  Haltequote 73 %, Kippwinkel 34°, Finger 2,0. Leaderboard: IQM über alle Objekte
+  27,6 %, gesichert schlechter als Platz 1 (P = 0,83).'
+urteil: besser als EXP-000, aber instabil (2/5 Seeds scheitern) — bestätigt (Leon,
+  2026-10-08)
+schluss: 'Die Dexsuite-Belohnung war der Durchbruch (ADR-017), aber als Baseline zu
+  instabil: mit 3 Seeds sah EXP-004 robust aus. Neue Baseline ist EXP-006.'
 commit_nachtrag: 73b412a
