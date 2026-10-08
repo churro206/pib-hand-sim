@@ -312,9 +312,13 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 
 **Experimentplan ab 2026-10-08** (Eltern EXP-006, je genau eine Änderung, 5 Seeds, Benchmark-Objekte)
 - [ ] Bewertung: Anheben als beschreibende Metrik (Höhe vor dem Absenken, Höhe in der Haltephase)
-- [ ] **EXP-012 Halte-Term wie Dexsuite**: symmetrischer Abstand zur Zielhöhe, Ziel = Starthöhe
-      (abgesetzt, ~0,1 s) statt einseitig gegen die Höhe beim Absenken. Frage: Lässt sich das Anheben
-      abstellen, ohne den tragenden Griff zu verlieren? Fenstertest (Belohnung geändert)
+- [x] Eigenbau-Prüfung der Belohnung gegen Dexsuite (2026-10-08): nötig bleiben Gegengriff mit kleinem
+      Finger, Kippwinkel statt Gierziel, Aktivierung ab dem Absenken; nicht nötig: Annäherung nur über
+      Spitzen, Positions-/Erfolgsterm (z, einseitig, std 0,02). **Fehler gefunden**: unsere Annäherung maß
+      alle Handkörper inkl. Unterarm (Standardargument-SceneEntityCfg nicht aufgelöst) → fast konstant (ADR-017)
+- [ ] **EXP-012 Belohnung wie Dexsuite** (`RewardsDexsuiteCfg`, Task `HeavyDexsuite-v0`, angelegt): Annäherung
+      Handfläche + Spitzen, Position 3D zur Startposition (std 0,2 / Erfolg 0,1). Frage: hört das Anheben auf,
+      ohne den tragenden Griff zu verlieren? Größenordnung geprüft; offen: Fenstertest, Lauf
 - [ ] **EXP-013 Objektvielfalt** im Training (Ø 6/8 cm, Quader gemischt, Dexsuite `MultiAssetSpawnerCfg`,
       Startlage je Objekt), Eltern = Sieger aus EXP-006/012; Fenstertest (Szene geändert)
 - [ ] danach ein **Testobjekt**, das nie trainiert wird (z. B. Flasche), als Benchmark-Bedingung

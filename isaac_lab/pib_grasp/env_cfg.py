@@ -372,6 +372,32 @@ def apply_object(cfg: PibGraspEnvCfg, key: str) -> PibGraspEnvCfg:
     return cfg
 
 
+START_REF_S = 0.1     # Startposition = Objektlage bei 0,1 s (abgesetzt, Größe eingeschwungen)
+
+
+@configclass
+class RewardsDexsuiteCfg(RewardsCfg):
+    """EXP-012: Eigenbau, der nicht durch die Aufgabe nötig ist, zurück auf Dexsuite
+    (dexsuite_env_cfg.RewardsCfg, Kuka-Allegro-Konfiguration):
+    - Annäherung: Dexsuite object_ee_distance über Handfläche + Fingerspitzen (statt nur Spitzen)
+    - Positionsverfolgung (held): 3D-Abstand zur Zielposition, std 0,2 (statt Absinken in z, einseitig, 0,02)
+    - Erfolg: 3D-Abstand pos_std 0,1 × Kippwinkel rot_std 0,5 (statt Absinken 0,02 × Kipp 0,5)
+    Ziel = Startposition des Objekts (Dexsuite: kommandierte Pose). Bleibt bewusst eigen: Gegengriff mit
+    kleinem Finger, Orientierung als Kippwinkel, Halten/Aufrecht/Erfolg erst ab dem Absenken (ADR-017)."""
+    fingertips_to_object = RewTerm(func=dexsuite_rewards.object_ee_distance, weight=1.0, params={
+        "std": 0.4, "asset_cfg": SceneEntityCfg("robot", body_names=["urdf_palm_left", *mdp.FINGERTIP_LINKS])})
+    held = RewTerm(func=mdp.position_tracking_start, weight=2.0, params={
+        "drop_start_s": GRASP_TIME_S, "std": 0.2, "threshold": CONTACT_N, "ref_s": START_REF_S})
+    success = RewTerm(func=mdp.success_start, weight=10.0, params={
+        "drop_start_s": GRASP_TIME_S, "pos_std": 0.1, "rot_std": UPRIGHT_ROT_STD, "ref_s": START_REF_S})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyDexsuite(PibGraspEnvCfg_Heavy):
+    """EXP-012: wie EXP-006 (Masse 0,04–0,4 kg), Belohnung so nah an Dexsuite wie die Aufgabe erlaubt."""
+    rewards: RewardsDexsuiteCfg = RewardsDexsuiteCfg()
+
+
 @configclass
 class PibGraspEnvCfg_PLAY(PibGraspEnvCfg):
     def __post_init__(self):

@@ -199,6 +199,38 @@ def object_upright(env: ManagerBasedRLEnv, drop_start_s: float, std: float) -> t
     return active * (1.0 - torch.tanh(object_tilt(env) / std))
 
 
+# ── Positionsterme wie Dexsuite (EXP-012): Ziel = Startposition des Objekts ────────────────
+
+def object_start_distance(env: ManagerBasedRLEnv, ref_s: float,
+                          object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """3D-Abstand [m] des Objekts zu seiner Startposition (bis ref_s mitgeführt, dann eingefroren: Objekt
+    abgesetzt, Größe eingeschwungen). Gegenstück zu Dexsuites Zielposition (Kommando relativ zur
+    Roboterbasis): die Hand ist fest, das Objekt soll bleiben, wo der Arm es gegriffen hat."""
+    obj: RigidObject = env.scene[object_cfg.name]
+    pos = obj.data.root_pos_w
+    if getattr(env, "_pib_start_pos", None) is None or env._pib_start_pos.shape != pos.shape:
+        env._pib_start_pos = pos.clone()
+    before = episode_time(env) < ref_s
+    env._pib_start_pos[before] = pos[before]
+    return torch.norm(pos - env._pib_start_pos, dim=-1)
+
+
+def position_tracking_start(env: ManagerBasedRLEnv, drop_start_s: float, std: float, threshold: float,
+                            ref_s: float) -> torch.Tensor:
+    """Dexsuite position_command_error_tanh: (1 − tanh(‖p − p_Ziel‖/std)) × Gegengriff, ab dem Absenken."""
+    active = (episode_time(env) >= drop_start_s).float()
+    return active * (1.0 - torch.tanh(object_start_distance(env, ref_s) / std)) * thumb_opposition_contact(env, threshold)
+
+
+def success_start(env: ManagerBasedRLEnv, drop_start_s: float, pos_std: float, rot_std: float,
+                  ref_s: float) -> torch.Tensor:
+    """Dexsuite success_reward: (1 − tanh(‖p − p_Ziel‖/pos_std)) · (1 − tanh(Kippwinkel/rot_std)), ab dem
+    Absenken. Orientierung als Kippwinkel (Anforderung aufrecht, kein Gierziel)."""
+    active = (episode_time(env) >= drop_start_s).float()
+    return (active * (1.0 - torch.tanh(object_start_distance(env, ref_s) / pos_std))
+            * (1.0 - torch.tanh(object_tilt(env) / rot_std)))
+
+
 def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float) -> torch.Tensor:
     """Summe der Kraft über `limit` [N] an allen Fingerspitzen (gegen Zerquetschen und
     unrealistisch hohe Kräfte, ADR-011: lineare Kopplung überschätzt die Spitzenkraft)."""

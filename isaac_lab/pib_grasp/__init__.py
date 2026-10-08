@@ -17,7 +17,8 @@ gym.register(
 )
 
 # Trainingsvarianten für Experimente (Bewertung immer in Pib-Grasp-Hand-Left-v0, eval-v1)
-for _name, _cfg in (("FingerCount", "PibGraspEnvCfg_FingerCount"), ("Heavy", "PibGraspEnvCfg_Heavy")):
+for _name, _cfg in (("FingerCount", "PibGraspEnvCfg_FingerCount"), ("Heavy", "PibGraspEnvCfg_Heavy"),
+                   ("HeavyDexsuite", "PibGraspEnvCfg_HeavyDexsuite")):
     gym.register(
         id=f"Pib-Grasp-Hand-Left-{_name}-v0",
         entry_point="isaaclab.envs:ManagerBasedRLEnv",

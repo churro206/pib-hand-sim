@@ -677,6 +677,13 @@ Kraftstrafe, kein Kippabbruch. Anforderung der Bedingung: Kippwinkel ≤ 45° (v
   (±10 % Größe → bis 7,5 mm Versatz).
 - Arbeitsregel: zuerst das NVIDIA-Rezept vollständig, eigene Terme nur einzeln und begründet;
   Belohnungsanteile (`Episode_Reward/*`) vor dem Lauf auf Größenordnung prüfen (`_reward_diag.txt`).
+- **Korrektur 2026-10-08:** Die Annäherung (`mdp.fingertips_to_object`, eigene Kopie von Dexsuites
+  `object_ee_distance`) hatte die Fingerspitzen als Standardargument `SceneEntityCfg(..., body_names=…)` in der
+  Funktionssignatur. Isaac Lab löst SceneEntityCfg nur in den `params` eines Terms auf — `body_ids` blieb
+  `slice(None)`, der Term maß den größten Abstand **aller** Handkörper (inkl. Unterarmansatz) und war praktisch
+  konstant (≈ 0,34/s). Die Annäherung hat in EXP-004–011 also kaum geformt; die Schlüsse oben zur Annäherung
+  (std 0,1 → 0,4) sind entsprechend schwächer. Behoben in `RewardsDexsuiteCfg` (EXP-012): Dexsuite-Funktion,
+  Körper in den `params`. Regel: SceneEntityCfg mit Namen nie als Standardargument, immer über `params`.
 
 ---
 
