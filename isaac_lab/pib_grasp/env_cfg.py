@@ -137,10 +137,12 @@ class SceneCfg(InteractiveSceneCfg):
     fsr_pinky = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip_4",
                                  filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
 
-    # Kuppellicht beleuchtet wie bisher, ist selbst aber unsichtbar → schwarzer Hintergrund, weiße Hand
-    # gut erkennbar (nur Optik, Leon 2026-10-08)
+    # Nur Optik (Leon, 2026-10-08): Kuppel schwach als Aufhelllicht und unsichtbar (schwarzer Hintergrund),
+    # gerichtetes Hauptlicht schräg von oben auf der Kameraseite → Schatten und Kontrast an Fingern/Objekt
     light = AssetBaseCfg(prim_path="/World/light",
-                         spawn=sim_utils.DomeLightCfg(intensity=2000.0, visible_in_primary_ray=False))
+                         spawn=sim_utils.DomeLightCfg(intensity=350.0, visible_in_primary_ray=False))
+    sun = AssetBaseCfg(prim_path="/World/sun", spawn=sim_utils.DistantLightCfg(intensity=1600.0, angle=1.0),
+                       init_state=AssetBaseCfg.InitialStateCfg(rot=(0.9666, 0.1573, 0.2022, 0.0)))
 
 
 @configclass

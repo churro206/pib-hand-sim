@@ -78,7 +78,7 @@ _ParamsLoader.add_multi_constructor("tag:yaml.org,2002:python/", _python_tag_as_
 # Schlüssel, die sich je Lauf ändern, ohne eine Änderung des Experiments zu sein
 _DIFF_IGNORE = ("seed", "run_name", "log_dir", "load_run", "load_checkpoint", "resume")
 # reine Optik (Kamera, Farben) — keine Änderung des Experiments
-_DIFF_IGNORE_PARTS = ("viewer", "visual_material", "visual_material_path", "visible_in_primary_ray")
+_DIFF_IGNORE_PARTS = ("viewer", "visual_material", "visual_material_path", "light", "sun")
 
 
 def load_params(run_dir: Path) -> dict:
