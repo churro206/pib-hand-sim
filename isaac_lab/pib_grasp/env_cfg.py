@@ -84,6 +84,10 @@ OBJECTS = {
     "zylinder_d8": {"form": "zylinder", "masse": (0.04, 0.15), "gier": (-math.pi, math.pi)},      # dicke Dose/Becher
     # Milchpackung: eine Fläche zur Hand ±15° (so würde ein Greifplaner anfahren)
     "quader_7x7x20": {"form": "quader", "masse": (0.07, 0.07, 0.20), "gier": (-math.radians(15), math.radians(15))},
+    # Testobjekte (nie im Training, EXP-013 ff.): Flasche — Ø wie im Training, aber 25 cm hoch; Saftpackung —
+    # schmale Seite (6 cm) zur Hand, im Training liegt immer die breite oder eine quadratische Seite vorn
+    "flasche_d7x25": {"form": "zylinder", "masse": (0.035, 0.25), "gier": (-math.pi, math.pi)},
+    "saftpackung_9x6x19": {"form": "quader", "masse": (0.09, 0.06, 0.19), "gier": (-math.radians(15), math.radians(15))},
 }
 DEFAULT_OBJECT = "zylinder_d6"
 
@@ -372,6 +376,42 @@ def apply_object(cfg: PibGraspEnvCfg, key: str) -> PibGraspEnvCfg:
     return cfg
 
 
+# ── Objektvielfalt (EXP-013): prozedurale Formen wie Dexsuite (16 Grundformen, MultiAssetSpawnerCfg), aber nur
+# innerhalb der Kategorie „seitlich greifen“ (aufrecht, ≥ 15 cm hoch). Maße [m]: Zylinder (Radius, Höhe),
+# Quader (Tiefe zur Hand, Breite, Höhe). Startlage je Umgebung aus der Bounding Box (mdp.place_objects_by_size).
+TRAIN_CYLINDERS = [(r, h) for r in (0.025, 0.03, 0.035, 0.04, 0.045) for h in (0.15, 0.20)]
+TRAIN_CUBOIDS = [(x, y, z) for x, y in ((0.06, 0.06), (0.07, 0.07), (0.08, 0.08), (0.06, 0.09)) for z in (0.16, 0.20)]
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMulti(PibGraspEnvCfg_Heavy):
+    """EXP-013: wie EXP-006 (Masse 0,04–0,4 kg), aber je Umgebung eine von 18 Formen der Kategorie (10 Zylinder
+    Ø 5–9 cm × 15/20 cm, 8 Quader 6–8 cm × 16/20 cm) statt immer des Ø-6-cm-Zylinders; Drehung beim Reset
+    ±15° für alle (bei Zylindern ohne Wirkung). Bewertung unverändert je Objekt (eval_policy, Basisaufgabe)."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        old = self.scene.object.spawn
+        common = {k: getattr(old, k) for k in ("rigid_props", "collision_props", "mass_props")}
+        mat = {k: getattr(old, k) for k in ("physics_material", "visual_material")}    # je Form, wie Dexsuite
+        shapes = [sim_utils.CylinderCfg(radius=r, height=h, **mat) for r, h in TRAIN_CYLINDERS] + \
+                 [sim_utils.CuboidCfg(size=s, **mat) for s in TRAIN_CUBOIDS]
+        self.scene.object.spawn = sim_utils.MultiAssetSpawnerCfg(assets_cfg=shapes, random_choice=False, **common)
+        self.events.place_objects = EventTerm(
+            func=mdp.place_objects_by_size, mode="startup",
+            params={"hand_x": HAND_POS[0], "palm_gap": PALM_GAP, "table_top_z": TABLE_TOP_Z})
+        self.events.reset_object.params["pose_range"]["yaw"] = (-math.radians(15), math.radians(15))
+        # Startstellung ohne Überlappung (_check_multi.py, 2026-10-08): Fingerbeugung 0–15° und Handgelenk −10–0°
+        # ragten bei breiten/hohen Formen ins Objekt (~1/3 der Starts verschoben das Objekt > 5 mm); Daumen
+        # unkritisch, behält 0–90° Rotator / 0–15° Beugung. Hand kommt wie in der Vorgreifpose fast offen an.
+        r = self.events.reset_hand.params["ranges_deg"]
+        for j in ("index_left_proximal", "middle_left_proximal", "ring_left_proximal", "pinky_left_proximal"):
+            r[j] = (0.0, FINGER_START_MAX_DEG)
+        r["wrist_left"] = (-WRIST_START_MAX_DEG, 0.0)
+
+
+FINGER_START_MAX_DEG = 4.0
+WRIST_START_MAX_DEG = 3.0
 START_REF_S = 0.1     # Startposition = Objektlage bei 0,1 s (abgesetzt, Größe eingeschwungen)
 
 

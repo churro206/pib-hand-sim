@@ -578,6 +578,11 @@ def head_lines(d: Path, exp: dict, pexp: dict | None, rec: dict, prec: dict | No
         lo, hi = cmp["leistung_ki95"]
         word = "gesichert besser" if lo > 0.5 else ("gesichert schlechter" if hi < 0.5 else "kein Unterschied")
         l1 += f" — ggü. {exp['eltern']}: P(besser) = {cmp['leistung_p']:.2f} [{lo:.2f}–{hi:.2f}] → {word}"
+    tests = test_performance(exp, rec)
+    rez["testobjekte"] = dict(zip([c["name"] for c in TESTOBJEKTE], tests))
+    if any(v is not None for v in tests):
+        l1 += ("\n\n**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): "
+               + " · ".join(f"{c['kurz'].replace(' (Test)', '')} {pct(v)}" for c, v in zip(TESTOBJEKTE, tests)))
     l2 = f"**Zuverlässigkeit** {rec['k']}/{rec['n']} Seeds erfolgreich {ci(rec['zuverlaessigkeit_ki95'])}"
     if cmp:
         word = ("gesichert schlechter" if cmp["zuverlaessigkeit_schlechter"] else
@@ -884,6 +889,28 @@ BENCHMARK = [   # Reihenfolge = Spalten; die erste ist die Sortierbedingung
 ]
 
 
+# Testobjekte: nie im Training (Generalisierung) — nicht in Gesamt/Leistung, eigene Spalten/Zeile
+TESTOBJEKTE = [
+    {"name": "flasche_seitlich", "objekt_id": "flasche_d7x25", "kurz": "Flasche (Test)", "anforderung": {"max_kipp_deg": 45}},
+    {"name": "saftpackung_seitlich", "objekt_id": "saftpackung_9x6x19", "kurz": "Saftpackung (Test)",
+     "anforderung": {"max_kipp_deg": 45}},
+]
+
+
+def test_performance(exp: dict, rec: dict | None) -> list:
+    """Median des Aufgabenerfolgs der erfolgreichen Seeds (aus dem Benchmark) je Testobjekt, None wenn nicht bewertet."""
+    out = []
+    for c in TESTOBJEKTE:
+        r = aggregate(exp, c)
+        if not r or not rec or not rec["k"]:
+            out.append(None)
+            continue
+        ok = dict(zip(rec["seed_ids"], rec["erfolgreich"]))
+        vals = [v for s, v in zip(r["seed_ids"], r["aufgabenerfolg"]["je_seed"]) if ok.get(s)]
+        out.append(float(np.median(vals)) if vals else None)
+    return out
+
+
 def trained_experiments() -> list[tuple[Path, dict]]:
     out = []
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
@@ -1042,7 +1069,9 @@ def cmd_leaderboard(a):
         check_env()
         for d, exp in trained_experiments():
             for r in dict.fromkeys(exp["laeufe"]):
-                missing = [c for c in BENCHMARK if not (REPO / r / f"{stem(exp, c)}.json").exists()]
+                rec = recipe(exp)
+                todo = BENCHMARK + (TESTOBJEKTE if rec and rec["k"] else [])
+                missing = [c for c in todo if not (REPO / r / f"{stem(exp, c)}.json").exists()]
                 if missing:
                     log(f"  Benchmark {exp['id']} {Path(r).name}: {[c['name'] for c in missing]}")
                     with open(LOGS / f"benchmark_{Path(r).name}.log", "a", encoding="utf-8") as out:
@@ -1165,17 +1194,18 @@ def write_leaderboard():
          f"Automatisch erzeugt ({AUSWERTUNG}). Benchmark: Protokoll eval-v1, Kippwinkel ≤ 45°, "
          + ", ".join(c["kurz"] for c in BENCHMARK) + ". **Gesamt** = IQM des Aufgabenerfolgs über alle Seeds × Objekte "
          "(rliable, sortiert danach). **Leistung** = dasselbe nur über die erfolgreichen Seeds (Mittel über die Objekte "
-         "≥ 50 %), je Objekt als Median. **Zuverlässigkeit** = erfolgreiche Seeds. **P(1 > X)**: Wahrscheinlichkeit, "
+         "≥ 50 %), je Objekt als Median; Testobjekte (nie trainiert) ebenso, nicht in Gesamt/Leistung. **Zuverlässigkeit** = erfolgreiche Seeds. **P(1 > X)**: Wahrscheinlichkeit, "
          "dass ein Lauf von Platz 1 besser ist (gesichert, wenn die untere KI-Grenze > 0,5). Werte in %, KI 95 %. "
          "Vorschlag = Urteilsregel v2 gegenüber den Eltern (✓: Leon hat das Experiment bewertet, Urteil im Bericht). "
          "Quellen: Agarwal et al. 2021 (rliable), Chan et al. 2020 (Zuverlässigkeit).", "",
          "| Rang | Experiment | Titel | Gesamt [KI] | Leistung [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
+         + " | " + " | ".join(c["kurz"] for c in TESTOBJEKTE)
          + " | erfolgreiche Seeds | Unruhe | P(1 > X) | Vorschlag (v2) | beste Videos |",
-         "|---|---|---|---|---|" + "---|" * len(BENCHMARK) + "---|---|---|---|---|"]
+         "|---|---|---|---|---|" + "---|" * (len(BENCHMARK) + len(TESTOBJEKTE)) + "---|---|---|---|---|"]
     for i, (d, exp, rec) in enumerate(rows, 1):
         if not rec:
             L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | nicht vollständig bewertet |"
-                     + " |" * (len(BENCHMARK) + 7))
+                     + " |" * (len(BENCHMARK) + len(TESTOBJEKTE) + 7))
             continue
         tie = "–"
         if i > 1 and lead:
@@ -1190,7 +1220,8 @@ def write_leaderboard():
         L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
                  f"**{pct(rec['gesamt']['iqm'])}** {ci(rec['gesamt'])} | "
                  + (f"{pct(rec['leistung']['iqm'])} {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
-                 + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + f" | {rec['k']}/{rec['n']}{warn} | "
+                 + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + " | "
+                 + " | ".join(pct(v) for v in test_performance(exp, rec)) + f" | {rec['k']}/{rec['n']}{warn} | "
                  f"{'–' if unruhe is None else f'{unruhe:.2f}'} | {tie} | {vorschlag(d, exp, rec)} | {vids} |")
     eins = ["| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
             "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]

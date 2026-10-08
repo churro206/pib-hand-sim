@@ -125,6 +125,23 @@ def reset_hand_joints(env: ManagerBasedRLEnv, env_ids: torch.Tensor, ranges_deg:
     robot.set_joint_position_target(q, env_ids=env_ids)
 
 
+def place_objects_by_size(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, hand_x: float, palm_gap: float,
+                          table_top_z: float, object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> None:
+    """Startup (Objektvielfalt, EXP-013): Startlage je Umgebung aus der Bounding Box des gespawnten Objekts
+    (USD, inkl. zufälliger Größe) — Oberfläche palm_gap vor der Handfläche, Boden auf der Tischplatte."""
+    import re
+    import isaaclab.sim as sim_utils
+    from pxr import Usd, UsdGeom
+    obj: RigidObject = env.scene[object_cfg.name]
+    cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
+    stage = env.scene.stage
+    for path in sim_utils.find_matching_prim_paths(obj.cfg.prim_path):
+        idx = int(re.search(r"env_(\d+)", path).group(1))
+        size = cache.ComputeWorldBound(stage.GetPrimAtPath(path)).ComputeAlignedRange().GetSize()
+        obj.data.default_root_state[idx, 0] = hand_x - palm_gap - size[0] / 2
+        obj.data.default_root_state[idx, 2] = table_top_z + size[2] / 2
+
+
 # ── Belohnungen ───────────────────────────────────────────────────────────────
 
 def fingertips_to_object(env: ManagerBasedRLEnv, std: float,
