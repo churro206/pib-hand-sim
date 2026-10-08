@@ -1,6 +1,6 @@
 # EXP-007: EXP-004 mit 1500 Iterationen
 
-**Beste Videos** (Seed 46, bester mittlerer Aufgabenerfolg über alle Objekte): [Ø 6 cm](beste_videos/zylinder_d6_s46.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s46.mp4) · [Quader](beste_videos/quader_7x7x20_s46.mp4)
+**Beste Videos** (Seed 46, bester mittlerer Aufgabenerfolg über alle Objekte, 3 Episoden): [Ø 6 cm](beste_videos/zylinder_d6_s46.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s46.mp4) · [Quader](beste_videos/quader_7x7x20_s46.mp4)
 
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-004 unter derselben Anforderung
 
