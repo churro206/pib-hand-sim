@@ -16,6 +16,7 @@ experiments/
   README.md                 dieses Dokument (Ablauf, Metriken, Entscheidungsregel)
   _vorlage.yaml             Vorlage für experiment.yaml
   index.md                  automatisch: Vergleichstabelle aller Experimente
+  leaderboard.md            automatisch: Rangliste aller Policies unter festen Benchmark-Bedingungen
   EXP-NNN_<kurzname>/
     experiment.yaml         Plan (vor dem Start) + Schluss (nach der Auswertung), von Hand
     results.json            automatisch: Metriken je Seed + Zusammenfassung + Urteilsvorschlag
@@ -65,6 +66,7 @@ Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 /usr/bin/python3 isaac_lab/experiments.py eval EXP-002 [--neu]           # fehlende Bewertungen (--neu: alle)
 /usr/bin/python3 isaac_lab/experiments.py done                           # 7: index.md + Sicherung
 /usr/bin/python3 isaac_lab/experiments.py bericht EXP-002                # Bericht + Diagramme neu, ohne Neubewertung
+/usr/bin/python3 isaac_lab/experiments.py leaderboard [--bewerten]       # Rangliste (--bewerten: fehlende Benchmark-Bewertungen)
 ```
 
 Regeln:
@@ -107,6 +109,13 @@ Regeln:
       startpose: "seitlich, Daumen oben"
       anforderung: {max_kipp_deg: 45}
   ```
+- **Leaderboard** (`leaderboard.md`, von `done` neu erzeugt): jede Policy (Experiment mit eigenem
+  Training) unter denselben **Benchmark-Bedingungen** (`experiments.py` → `BENCHMARK`: Zylinder Ø 6 cm,
+  Ø 8 cm, Quader 7 × 7 × 20 cm, je Kippwinkel ≤ 45°), sortiert nach dem **IQM des Aufgabenerfolgs über
+  alle Objekte** (rliable: Seeds × Objekte gepoolt, KI per stratifiziertem Bootstrap; „≈ 1“ = KI überlappt
+  mit Platz 1) — einzige Stelle mit einem Wert über Bedingungen, die Spalten je Objekt stehen daneben. Dazu Verhalten
+  (Leitplanken) und der beste Seed je Policy als Einsatz-Kandidat (optimistisch, nur zur Auswahl fürs
+  Board). Fehlende Benchmark-Bewertungen holt `leaderboard --bewerten` nach.
 - **Vergleich** je Bedingung gegen die Eltern unter derselben Bedingung (wenn deren Läufe dafür
   bewertet sind), sonst gegen die erste Bedingung des Experiments (Referenz).
 - **Experimente ohne Training** (`new --ohne-training`, `training: null`, `laeufe_von: EXP-…`)

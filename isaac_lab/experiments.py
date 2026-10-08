@@ -330,6 +330,17 @@ def boot_means(per_seed: list[np.ndarray], rng) -> np.ndarray:
     return out
 
 
+def boot_iqm(per_seed: list[np.ndarray], rng) -> np.ndarray:
+    """Zweistufiger Bootstrap des IQM über Seeds (wie rliable): Seeds ziehen, darin Episoden ziehen,
+    IQM der Seed-Mittel → BOOT Werte."""
+    k = len(per_seed)
+    out = np.empty(BOOT)
+    for b in range(BOOT):
+        seeds = rng.integers(0, k, k)
+        out[b] = iqm([rng.choice(per_seed[s], len(per_seed[s])).mean() for s in seeds])
+    return out
+
+
 def requirement(cond: dict):
     return cond["anforderung"].get("max_kipp_deg")
 
@@ -362,11 +373,14 @@ def aggregate(exp: dict, cond: dict, req="eigene") -> dict:
         return (held & ((np.array(e["kipp_je_episode"]) <= req) if req is not None else True)).astype(float)
 
     res["anforderung_max_kipp_deg"] = req
-    for key, per_seed in (("aufgabenerfolg", [success(e) for e in evals]),
+    res["_erfolg_je_seed"] = [success(e) for e in evals]
+    for key, per_seed in (("aufgabenerfolg", res["_erfolg_je_seed"]),
                           ("haltequote", [np.array(e["gehalten_je_episode"], float) for e in evals])):
         bm = boot_means(per_seed, rng)
         seed_rates = [float(s.mean()) for s in per_seed]
+        bi = boot_iqm(per_seed, rng)
         res[key] = {"mittel": float(np.mean(seed_rates)), "iqm": iqm(seed_rates), "je_seed": seed_rates,
+                    "iqm_ki95": [float(np.percentile(bi, 2.5)), float(np.percentile(bi, 97.5))],
                     "fehlschlag_seeds": float(np.mean([r < FAIL_BELOW for r in seed_rates])),
                     "ki95": [float(np.percentile(bm, 2.5)), float(np.percentile(bm, 97.5))], "_boot": bm}
     first = REPO / exp["laeufe"][0]
@@ -465,7 +479,7 @@ def training_section(tr: dict) -> list[str]:
 
 def _clean(res: dict) -> dict:
     return {k: ({kk: vv for kk, vv in v.items() if kk != "_boot"} if isinstance(v, dict) else v)
-            for k, v in res.items() if k != "_params"}
+            for k, v in res.items() if not k.startswith("_")}
 
 
 def _pct(x):
@@ -728,6 +742,7 @@ def cmd_done(a):
             rows.append(_index_row(d, exp, cond, r, first=k == 0))
     (EXP_DIR / "index.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
     log(f"index.md aktualisiert ({n_exp} Experimente)")
+    write_leaderboard()
     if not a.kein_backup:
         backup()
 
@@ -770,6 +785,156 @@ def backup():
         log(f"WARNUNG: Sicherung fehlgeschlagen ({log_file}) — wird beim nächsten done nachgeholt")
 
 
+# ── Leaderboard: alle Policies (Experimente mit eigenem Training) unter festen Benchmark-Bedingungen ──
+
+BENCHMARK = [   # Reihenfolge = Spalten; die erste ist die Sortierbedingung
+    {"name": "zylinder_seitlich", "objekt_id": "zylinder_d6", "kurz": "Ø 6 cm", "anforderung": {"max_kipp_deg": 45}},
+    {"name": "zylinder_d8_seitlich", "objekt_id": "zylinder_d8", "kurz": "Ø 8 cm", "anforderung": {"max_kipp_deg": 45}},
+    {"name": "quader_seitlich", "objekt_id": "quader_7x7x20", "kurz": "Quader", "anforderung": {"max_kipp_deg": 45}},
+]
+
+
+def trained_experiments() -> list[tuple[Path, dict]]:
+    out = []
+    for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
+        exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
+        if exp.get("training") is not None and exp.get("laeufe"):
+            out.append((d, exp))
+    return out
+
+
+def pooled_iqm(results: list[dict], rng) -> dict | None:
+    """IQM über alle Objekte (rliable, Agarwal et al. 2021): Erfolgsquoten aller Seeds × Objekte poolen,
+    IQM davon; 95-%-KI per stratifiziertem Bootstrap (je Objekt Seeds und Episoden ziehen)."""
+    if not results or not all(results) or len({tuple(r["seed_ids"]) for r in results}) != 1:
+        return None      # nur vollständig bewertete Policies (gleiche Seeds an allen Objekten)
+    per_obj = [r["_erfolg_je_seed"] for r in results]
+    point = iqm([s.mean() for obj in per_obj for s in obj])
+    boot = np.empty(BOOT)
+    for b in range(BOOT):
+        pooled = []
+        for obj in per_obj:
+            for s in rng.integers(0, len(obj), len(obj)):
+                pooled.append(rng.choice(obj[s], len(obj[s])).mean())
+        boot[b] = iqm(pooled)
+    return {"iqm": point, "iqm_ki95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]}
+
+
+def prob_improvement(x: list[list[float]], y: list[list[float]], rng) -> dict:
+    """P(X > Y) nach rliable (Agarwal et al. 2021): je Objekt Anteil der Lauf-Paare mit x > y (Gleichstand
+    zählt ½), gemittelt über die Objekte; 95-%-KI per stratifiziertem Bootstrap der Läufe je Objekt.
+    Gesichert besser, wenn die untere KI-Grenze > 0,5."""
+    def p(xs, ys):
+        return float(np.mean([np.mean([(a > b) + 0.5 * (a == b) for a in xo for b in yo]) for xo, yo in zip(xs, ys)]))
+    boot = np.empty(BOOT)
+    for b in range(BOOT):
+        boot[b] = p([np.asarray(xo)[rng.integers(0, len(xo), len(xo))] for xo in x],
+                    [np.asarray(yo)[rng.integers(0, len(yo), len(yo))] for yo in y])
+    return {"p": p(x, y), "ki95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]}
+
+
+def cmd_leaderboard(a):
+    if a.bewerten:
+        check_env()
+        for d, exp in trained_experiments():
+            for r in dict.fromkeys(exp["laeufe"]):
+                missing = [c for c in BENCHMARK if not (REPO / r / f"{stem(exp, c)}.json").exists()]
+                if missing:
+                    log(f"  Benchmark {exp['id']} {Path(r).name}: {[c['name'] for c in missing]}")
+                    with open(LOGS / f"benchmark_{Path(r).name}.log", "a", encoding="utf-8") as out:
+                        for c in missing:
+                            evaluate_condition(REPO / r, exp, c, False, out)
+    write_leaderboard()
+    if not a.kein_backup:
+        backup()
+
+
+def write_leaderboard():
+    pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
+    rows, rng = [], np.random.default_rng(0)
+    for d, exp in trained_experiments():
+        res = {c["name"]: aggregate(exp, c) for c in BENCHMARK}
+        res["_gesamt"] = pooled_iqm([res[c["name"]] for c in BENCHMARK], rng)
+        rows.append((d, exp, res))
+    key = BENCHMARK[0]["name"]
+    rows.sort(key=lambda r: -(r[2]["_gesamt"]["iqm"] if r[2]["_gesamt"] else -1))
+    lead = rows[0][2]["_gesamt"] if rows and rows[0][2]["_gesamt"] else None
+
+    def ci(m, k="iqm_ki95"):
+        return f"{pct(m[k][0])}–{pct(m[k][1])}" if m.get(k) else "–"
+
+    L = ["# Leaderboard — Greif-Policies", "",
+         "Automatisch erzeugt (`experiments.py done` / `leaderboard`). Alle Policies (Experimente mit eigenem Training) "
+         "unter denselben Benchmark-Bedingungen: Protokoll eval-v1, Kippwinkel ≤ 45°, Objekte "
+         + ", ".join(f"{c['kurz']} (`{c['objekt_id']}`)" for c in BENCHMARK) + ". Sortiert nach dem **IQM des "
+         "Aufgabenerfolgs über alle Objekte** (rliable: Erfolgsquoten aller Seeds × Objekte gepoolt, Mittel der "
+         "mittleren 50 % — robust gegen einzelne gescheiterte Seeds); 95-%-KI per stratifiziertem Bootstrap. "
+         "Je Objekt dasselbe über die Seeds. **P(1 > X)**: Wahrscheinlichkeit, dass ein Lauf von Platz 1 besser "
+         "ist als einer dieser Policy (rliable „probability of improvement“, gemittelt über die Objekte); "
+         "**gesichert**, wenn die untere KI-Grenze über 0,5 liegt — sonst kein belastbarer Abstand zu Platz 1. "
+         "Quelle: Agarwal et al. 2021, *Deep RL at the Edge of the Statistical Precipice*. Werte in %.", "",
+         "## Rangliste", "",
+         "| Rang | Experiment | Titel | Seeds | It. × Umg. | IQM alle Objekte [KI] | "
+         + " | ".join(f"IQM {c['kurz']} [KI]" for c in BENCHMARK) + " | Fehlschlag-Seeds | P(1 > X) [KI] | Urteil |",
+         "|---|---|---|---|---|---|" + "---|" * len(BENCHMARK) + "---|---|---|"]
+    for i, (d, exp, res) in enumerate(rows, 1):
+        m = res[key].get("aufgabenerfolg") if res[key] else None
+        tot = res["_gesamt"]
+        tie = "–"
+        if tot and lead and i > 1:
+            pi = prob_improvement([rows[0][2][c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK],
+                                  [res[c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK], rng)
+            tie = (f"{pi['p']:.2f} [{pi['ki95'][0]:.2f}–{pi['ki95'][1]:.2f}]"
+                   + (" gesichert" if pi["ki95"][0] > 0.5 else ""))
+        seeds = res[key]["seeds"] if res[key] else 0
+        cells = []
+        for c in BENCHMARK:
+            r = res[c["name"]]
+            cells.append(f"{pct(r['aufgabenerfolg']['iqm'])} [{ci(r['aufgabenerfolg'])}]" if r else "–")
+        n = (res[key] or {}).get("netz") or {}
+        # Fehlschlag: Seed unter 50 % Aufgabenerfolg im Mittel über die Objekte
+        seed_means = np.mean([res[c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK], axis=0) if tot else []
+        fails = f"{sum(v < FAIL_BELOW for v in seed_means)}/{seeds}" if tot else "–"
+        L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
+                 f"{seeds}{'' if seeds >= 5 else ' ⚠'} | {_budget_cell(n) if n else '–'} | "
+                 + (f"**{pct(tot['iqm'])}** [{ci(tot)}] | " if tot else "– | ") + " | ".join(cells) + " | "
+                 f"{fails} | {tie} | "
+                 f"{exp.get('urteil') or '–'} |")
+    L += ["", "⚠ weniger als 5 Seeds (vorläufig).", "",
+          f"## Verhalten ({BENCHMARK[0]['kurz']}, gehaltene Episoden, Mittel über Seeds)", "",
+          "| Experiment | Haltequote | Kipp° | Unterarm° | Finger am Objekt | Griffkraft [N] | Kraft > 15 N | Stall | Unruhe |",
+          "|---|---|---|---|---|---|---|---|---|"]
+    g = lambda x, f="{:.0f}": "–" if x is None else f.format(x)  # noqa: E731
+    for d, exp, res in rows:
+        r = res[key]
+        if not r:
+            continue
+        lp, fn = r["leitplanken"], (r.get("fingernutzung") or {}).get("finger_mit_kontakt")
+        L.append(f"| {exp['id']} | {pct(r['haltequote']['mittel'])} | {g(lp.get('kipp_median_deg'))} | "
+                 f"{g(lp.get('unterarm_median_deg'))} | {g(fn, '{:.1f}')} | {g(lp.get('kraft_mittel_n'))} | "
+                 f"{pct(lp.get('kraft_ueber_15n_anteil'))} | {pct(lp.get('stall_anteil'))} | {g(lp.get('unruhe'), '{:.2f}')} |")
+    L += ["", "## Einsatz-Kandidat je Policy", "",
+          "Bester Seed nach mittlerem Aufgabenerfolg über alle Benchmark-Objekte — Auswahl nach der Bewertung, "
+          "daher optimistisch; für Vergleiche zählt die Rangliste.", "",
+          "| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
+          "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
+    for d, exp, res in rows:
+        if not all(res[c["name"]] for c in BENCHMARK):
+            continue
+        ids = res[key]["seed_ids"]
+        per = {c["name"]: dict(zip(res[c["name"]]["seed_ids"], res[c["name"]]["aufgabenerfolg"]["je_seed"])) for c in BENCHMARK}
+        best = max(ids, key=lambda s: np.mean([per[c["name"]].get(s, 0) for c in BENCHMARK]))
+        run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), exp["laeufe"][0])
+        n = res[key].get("netz") or {}
+        if max(per[c["name"]].get(best, 0) for c in BENCHMARK) == 0:
+            continue          # Policy greift nie — kein Kandidat
+        L.append(f"| {exp['id']} | {best if best is not None else '–'} | "
+                 + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
+                 + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
+    (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    log(f"leaderboard.md aktualisiert ({len(rows)} Policies)")
+
+
 def _net_cell(n):
     return f"{n['actor']} {n['aktivierung']}, V{n['verlauf']}" if n else "–"
 
@@ -801,11 +966,13 @@ def main():
     e.add_argument("--neu", action="store_true", help="vorhandene Bewertungen neu rechnen (sonst nur fehlende)")
     bt = sub.add_parser("bericht")
     bt.add_argument("ids", nargs="+")
+    lb = sub.add_parser("leaderboard")
+    lb.add_argument("--bewerten", action="store_true", help="fehlende Benchmark-Bewertungen nachholen")
     d = sub.add_parser("done")
-    for s in (r, e, bt, d):
+    for s in (r, e, bt, lb, d):
         s.add_argument("--kein-backup", action="store_true", help="nicht nach Hugging Face sichern")
     a = p.parse_args()
-    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "done": cmd_done}[a.cmd](a)
+    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "leaderboard": cmd_leaderboard, "done": cmd_done}[a.cmd](a)
 
 
 if __name__ == "__main__":
