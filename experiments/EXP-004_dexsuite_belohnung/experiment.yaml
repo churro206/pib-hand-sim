@@ -3,7 +3,7 @@ id: EXP-004
 titel: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 datum: '2026-10-07'
 eltern: EXP-000
-status: ausgewertet
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-001–003 scheiterten an der Belohnung, nicht am Kippabbruch: Annäherung
   praktisch 0 (std 0,1), unbegrenzte Kraftstrafe > Annäherung → Policy spreizt die
@@ -47,6 +47,8 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-06-59_EXP-004_s42
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-19-29_EXP-004_s43
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-31-37_EXP-004_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-10-29_EXP-004_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-24-38_EXP-004_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: 'Aufgabenerfolg 77,3 % [56,4–88,9] (Seeds 88/56/88 %), Haltequote 90,1 %,
   Kippwinkel Median 27° (EXP-000: 104°), Unterarm 26° (90°). Leitplanken verletzt:
@@ -60,3 +62,4 @@ schluss: 'Durchbruch: es lag an der Belohnung, nicht an Hand oder blindem Actor.
   Baseline. Offene Punkte: (1) Fingernutzung — nur Daumen + ein Finger, weil der Gegengriff-Term
   nur das verlangt (wie Dexsuite); (2) Kraft/Stall — Kraftstrafe vorerst bewusst nicht
   (Leon); (3) Seed-Streuung. Nächstes: Fingernutzung (EXP-005 ff.).'
+commit_nachtrag: 73b412a

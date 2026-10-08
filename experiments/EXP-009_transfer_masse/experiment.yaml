@@ -3,8 +3,7 @@ id: EXP-009
 titel: Objekttransfer ohne Nachtraining (EXP-006-Policy, Masse 0,04–0,4 kg)
 datum: '2026-10-07'
 eltern: EXP-006
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: bewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Die EXP-006-Policy (Masse 0,04–0,4 kg, greift mit im Mittel 3,0 Fingern statt 2,0) überträgt ohne Nachtraining besser auf andere Objekte als EXP-004: Abstand des Aufgabenerfolgs (≤ 45°) zur Referenz Ø 6 cm an Ø 8 cm und Quader kleiner als in EXP-008.'
 aenderung: 'Kein Training — Bewertung der EXP-006-Läufe (5 Seeds) unter Zylinder Ø 8 cm und Quader 7 × 7 × 20 cm wie EXP-008; Referenz ist die bisherige Bedingung.'
@@ -34,9 +33,13 @@ entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel
 training: null
 fenstertest: true
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 73b412a
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-56-52_EXP-006_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-09-35_EXP-006_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-21-47_EXP-006_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-41-08_EXP-006_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-52-56_EXP-006_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

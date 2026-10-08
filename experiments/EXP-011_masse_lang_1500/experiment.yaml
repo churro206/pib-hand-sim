@@ -3,8 +3,7 @@ id: EXP-011
 titel: EXP-006 mit 1500 Iterationen (längeres Training)
 datum: '2026-10-07'
 eltern: EXP-006
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Bei 300 Iterationen steigt die Trainings-Belohnung von EXP-006 noch (Seeds 43/44). Mit 1500 Iterationen steigt der Aufgabenerfolg (≤ 45°) an Ø 8 cm und Quader gegenüber EXP-006 (EXP-009), am Referenzzylinder Ø 6 cm bleibt er gleich (wie EXP-007 ggü. EXP-004).'
 aenderung: 'Nur Trainingsdauer: 1500 statt 300 Iterationen (Lift-Rezept), sonst wie EXP-006 (Task Heavy-v0). Bewertung direkt unter allen drei Objekten.'
@@ -45,9 +44,13 @@ training:
 fenstertest: false
 
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 73b412a
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_01-20-00_EXP-011_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_02-19-35_EXP-011_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_03-17-20_EXP-011_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_04-16-01_EXP-011_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_05-11-23_EXP-011_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

@@ -78,6 +78,58 @@
     "Train/mean_episode_length": 261.81199951171874,
     "Train/mean_reward": 39.11546669006348
    }
+  },
+  {
+   "seed": 45,
+   "lauf": "2026-10-07_23-25-24_EXP-007_s45",
+   "iterationen": 1500,
+   "simulationsschritte_mio": 49.2,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.023792942613363267,
+    "Episode_Reward/action_rate_l2": -0.020560376718640326,
+    "Episode_Reward/early_termination": 0.0,
+    "Episode_Reward/fingertips_to_object": 0.4409526973962784,
+    "Episode_Reward/good_contact": 0.001151168078649789,
+    "Episode_Reward/held": 9.259259968530387e-06,
+    "Episode_Reward/success": 3.896155500411987,
+    "Episode_Reward/upright": 1.5171941777225584e-05,
+    "Episode_Termination/abnormal_robot": 0.0,
+    "Episode_Termination/object_dropped": 0.1862823486328125,
+    "Episode_Termination/time_out": 0.8137176513671875,
+    "Loss/entropy": 2.988115382194519,
+    "Loss/learning_rate": 0.00011273242216702783,
+    "Loss/surrogate": -0.006418395135551691,
+    "Loss/value_function": 0.08866127580404282,
+    "Policy/mean_noise_std": 0.3980201452970505,
+    "Train/mean_episode_length": 239.73499603271483,
+    "Train/mean_reward": 19.225869178771973
+   }
+  },
+  {
+   "seed": 46,
+   "lauf": "2026-10-08_00-14-07_EXP-007_s46",
+   "iterationen": 1500,
+   "simulationsschritte_mio": 49.2,
+   "endwerte": {
+    "Episode_Reward/action_l2": -0.19178332388401031,
+    "Episode_Reward/action_rate_l2": -0.08661086708307267,
+    "Episode_Reward/early_termination": 0.0,
+    "Episode_Reward/fingertips_to_object": 0.436193522810936,
+    "Episode_Reward/good_contact": 0.43755740225315093,
+    "Episode_Reward/held": 1.0414071679115295,
+    "Episode_Reward/success": 4.293206453323364,
+    "Episode_Reward/upright": 1.9756111264228822,
+    "Episode_Termination/abnormal_robot": 0.000518798828125,
+    "Episode_Termination/object_dropped": 0.0428314208984375,
+    "Episode_Termination/time_out": 0.9566497802734375,
+    "Loss/entropy": 9.345856380462646,
+    "Loss/learning_rate": 0.0003327519527374534,
+    "Loss/surrogate": -0.004134202771820128,
+    "Loss/value_function": 0.06594890356063843,
+    "Policy/mean_noise_std": 0.8745535314083099,
+    "Train/mean_episode_length": 262.3879959106445,
+    "Train/mean_reward": 35.65697021484375
+   }
   }
  ]
 }

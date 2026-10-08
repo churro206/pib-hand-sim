@@ -340,17 +340,19 @@ def aggregate(exp: dict, cond: dict, req="eigene") -> dict:
     """Ergebnisse aller Seeds unter einer Bedingung; Anforderung (max. Kippwinkel) wird hier angewandt —
     für den Vergleich mit den Eltern deren Rohdaten unter der Anforderung des Kindes (req=...)."""
     req = requirement(cond) if req == "eigene" else req
-    evals = []
+    evals, seed_ids = [], []
     for r in dict.fromkeys(exp.get("laeufe") or []):      # doppelte Einträge nur einmal zählen
         p = REPO / r / f"{stem(exp, cond)}.json"
         if p.exists():
             evals.append(json.loads(p.read_text()))
+            m = re.search(r"_s(\d+)$", r)
+            seed_ids.append(int(m.group(1)) if m else None)
     if not evals:
         return {}
     rng = np.random.default_rng(0)
     res = {"protokoll": evals[0]["protokoll"], "seeds": len(evals), "laeufe": exp.get("laeufe"),
            "bedingung": cond["name"], "objekt": cond.get("objekt_id") or DEFAULT_OBJECT,
-           "je_seed": [e["zusammenfassung"] for e in evals]}
+           "seed_ids": seed_ids, "je_seed": [e["zusammenfassung"] for e in evals]}
     def success(e):
         held = np.array(e["gehalten_je_episode"], bool)
         if "kipp_je_episode" not in e:          # ältere Bewertung: Anforderung schon angewandt
@@ -409,24 +411,29 @@ def verdict(child: dict, parent: dict) -> dict:
             "leitplanken_verletzt": violated}
 
 
-def training_plots(d: Path, exp: dict) -> dict | None:
-    """Trainingsdiagramme (plot_training.py über isaaclab.sh) → <experiment>/diagramme/; Fehler nur als Warnung."""
+def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict | None:
+    """Diagramme (plot_training.py über isaaclab.sh) → <experiment>/diagramme/: Trainingsverlauf der eigenen
+    Läufe und/oder Ergebnis je Bedingung (aus results.json); Fehler nur als Warnung."""
     runs = list(dict.fromkeys(exp.get("laeufe") or []))
     out = d / "diagramme" / "training.json"
-    if not runs:
+    if not runs or not (training or conditions):
         return None
     if os.environ.get("CONDA_DEFAULT_ENV") != "env_isaaclab":
-        log("  WARNUNG: Trainingsdiagramme übersprungen — conda-Umgebung env_isaaclab nicht aktiv")
+        log("  WARNUNG: Diagramme übersprungen — conda-Umgebung env_isaaclab nicht aktiv")
     else:
-        cmd = [str(ISAACLAB), "-p", "isaac_lab/plot_training.py", "--exp-dir", str(d.relative_to(REPO)), "--runs", *runs]
-        if exp.get("eltern"):
+        cmd = [str(ISAACLAB), "-p", "isaac_lab/plot_training.py", "--exp-dir", str(d.relative_to(REPO))]
+        if conditions:
+            cmd += ["--bedingungen", str((d / "results.json").relative_to(REPO))]
+        if training:
+            cmd += ["--runs", *runs]
+        if training and exp.get("eltern"):
             _, pexp = load(exp["eltern"])
             cmd += ["--eltern-runs", *dict.fromkeys(pexp.get("laeufe") or []), "--eltern-name", exp["eltern"]]
         log_file = LOGS / f"{exp['id']}_diagramme.log"
         with open(log_file, "w", encoding="utf-8") as f:
             if subprocess.run(cmd, cwd=REPO, stdout=f, stderr=subprocess.STDOUT).returncode != 0:
-                log(f"  WARNUNG: Trainingsdiagramme fehlgeschlagen ({log_file})")
-    return json.loads(out.read_text()) if out.exists() else None
+                log(f"  WARNUNG: Diagramme fehlgeschlagen ({log_file})")
+    return json.loads(out.read_text()) if training and out.exists() else None
 
 
 def training_section(tr: dict) -> list[str]:
@@ -529,17 +536,18 @@ def report(exp_id: str):
         return
     res, ref, _ = results[0]
     own_training = exp.get("training") is not None
-    tr = training_plots(d, exp) if own_training else None
     parent_main = aggregate(pexp, pexp["bedingungen"][0]) if pexp and own_training else {}
     res["konfig_unterschiede"] = config_diff(res["_params"], parent_main["_params"]) if parent_main else []
     out = _clean(res)
     if len(results) > 1:
         out["weitere_bedingungen"] = {r["bedingung"]: _clean(r) for r, _, _ in results[1:]}
     (d / "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    tr = training_plots(d, exp, training=own_training, conditions=len(results) > 1)
 
     lines = [f"# {exp_id}: {exp.get('titel', '')}", ""]
     if not own_training:
-        lines += [f"Ohne eigenes Training — bewertet die Läufe von {exp.get('laeufe_von') or exp.get('eltern')}.", ""]
+        src = exp.get("laeufe_von") or exp.get("eltern")
+        lines += [f"Ohne eigenes Training — bewertet die Läufe von {src}.", ""]
     if len(results) > 1:
         g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
         lines += ["| Bedingung | Objekt | Kipp ≤ | Aufgabenerfolg [95-%-KI] | IQM | Haltequote | Kipp° | Finger | Urteilsvorschlag |",
@@ -552,12 +560,19 @@ def report(exp_id: str):
                          f"{_pct(r['haltequote']['mittel'])} | {g(r['leitplanken'].get('kipp_median_deg'))} | "
                          f"{'–' if fn is None else f'{fn:.1f}'} | {r['vergleich']['urteil']}"
                          f"{f' (ggü. {label})' if label else ''} |")
+        lines += ["", "![Ergebnis je Bedingung](diagramme/bedingungen.svg)"]
         for r, rf, label in results:
             lines += ["", f"## Bedingung `{r['bedingung']}`", ""] + condition_lines(r, rf, label)
     else:
         lines += condition_lines(*results[0])
     if tr:
         lines += training_section(tr)
+    elif not own_training:
+        sd = exp_path(src).name
+        lines += ["", "## Trainingsverlauf", "", f"Siehe Quelle [{src}](../{sd}/bericht.md#trainingsverlauf): "
+                  + " · ".join(f"[{t}](../{sd}/diagramme/{n}.svg)" for n, t in (
+                      ("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
+                      ("ppo", "PPO-Diagnose")))]
     n = res["netz"]
     lines += ["", "## Netz und Training", "",
               f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "

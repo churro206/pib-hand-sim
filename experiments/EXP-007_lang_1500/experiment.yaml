@@ -3,7 +3,7 @@ id: EXP-007
 titel: EXP-004 mit 1500 Iterationen
 datum: '2026-10-07'
 eltern: EXP-004
-status: ausgewertet
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: EXP-004 ist nach 300 Iterationen nicht auskonvergiert; 1500 Iterationen
   (Lift-Rezept) erhöhen den Aufgabenerfolg und verringern die Seed-Streuung (56–88
@@ -38,6 +38,8 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-34-42_EXP-007_s42
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_14-27-27_EXP-007_s43
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: Aufgabenerfolg 69,4 % [21,9–94,4], IQM 80,7 %, Fehlschlag-Seeds 33 % (Seeds
   92/22/95 %); Haltequote 92,8 %; Kippwinkel 26°, Unterarm 26° wie EXP-004. Finger
@@ -48,3 +50,4 @@ schluss: EXP-004 war nach 300 Iterationen im Wesentlichen auskonvergiert; 5× Tr
   ändert weder Erfolg noch Griff und hebt Seed 43 nicht aus seinem lokalen Optimum
   (22 %). Budget erst wieder erhöhen, wenn Aufgabe/Objekte erweitert sind; 300 Iterationen
   bleiben Standard.
+commit_nachtrag: 73b412a

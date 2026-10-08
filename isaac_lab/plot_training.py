@@ -7,6 +7,8 @@ Liest events.out.tfevents.* aller Seeds und schreibt nach <experiment>/diagramme
   abbrueche.svg    Episode_Termination/* (Anteil der Episoden je Abbruchgrund)
   ppo.svg          Value-/Surrogate-Loss, Entropie, Rausch-Std, Lernrate
   training.json    Endwerte je Seed (Mittel der letzten 10 Iterationen, ungeglättet)
+  bedingungen.svg  mit --bedingungen <results.json>: Ergebnis je Bedingung (Objekt) — Aufgabenerfolg,
+                   Finger am Objekt, Kippwinkel je Seed, dazu Mittel (und 95-%-KI beim Aufgabenerfolg)
 Seeds dünn (Farbe fest je Seed), Mittel über die Seeds kräftig; Eltern (Mittel, gestrichelt) nur
 bei Abbrüchen und PPO — die Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar
 (ADR-016). x-Achse: Simulationsschritte (Iteration × Umgebungen × Schritte je Umgebung).
@@ -162,10 +164,67 @@ def plot_figure(out: Path, title: str, tags: list[str], runs: list[dict], parent
     plt.close(fig)
 
 
+def plot_conditions(out: Path, results: dict, exp_name: str):
+    """Ergebnis je Bedingung: Seeds als Punkte (links im Feld), Mittel als Strich + 95-%-KI (rechts)."""
+    conds = [results] + list((results.get("weitere_bedingungen") or {}).values())
+    seeds = sorted({s for c in conds for s in c.get("seed_ids") or [] if s is not None})
+    panels = [("Aufgabenerfolg [%]", lambda c, i: 100 * c["aufgabenerfolg"]["je_seed"][i], (0, 100)),
+              ("Finger am Objekt (Haltephase)",
+               lambda c, i: ((c["je_seed"][i].get("fingernutzung") or {}).get("finger_mit_kontakt")), (0, 5)),
+              ("Kippwinkel Median [°] (gehalten)",
+               lambda c, i: c["je_seed"][i]["leitplanken"].get("kipp_median_deg"), (0, None))]
+    fig, axes = plt.subplots(1, 3, figsize=(4.0 * 3, 3.6))
+    fig.patch.set_facecolor(SURFACE)
+    handles = {}
+    offsets = np.linspace(-0.30, -0.06, max(len(seeds), 1))
+    for ax, (title, value, ylim) in zip(axes, panels):
+        style_axis(ax)
+        for x, c in enumerate(conds):
+            vals = []
+            for i, s in enumerate(c.get("seed_ids") or []):
+                v = value(c, i)
+                if v is None:
+                    continue
+                vals.append(v)
+                k = seeds.index(s) if s in seeds else 0
+                h = ax.scatter(x + offsets[k], v, s=42, color=seed_color(s, seeds), edgecolors=SURFACE,
+                               linewidths=1.5, zorder=3)
+                handles.setdefault(f"Seed {s}", h)
+            if not vals:
+                continue
+            m = c["aufgabenerfolg"]["mittel"] * 100 if title.startswith("Aufgabe") else float(np.mean(vals))
+            h, = ax.plot([x + 0.06, x + 0.30], [m, m], color=INK, linewidth=2.4, solid_capstyle="round", zorder=4)
+            handles.setdefault("Mittel", h)
+            if title.startswith("Aufgabe"):
+                lo, hi = (100 * v for v in c["aufgabenerfolg"]["ki95"])
+                h, = ax.plot([x + 0.18, x + 0.18], [lo, hi], color=INK2, linewidth=1.2, zorder=2)
+                handles.setdefault("95-%-KI (Bootstrap)", h)
+                ax.annotate(f"{m:.0f} %", (x + 0.33, m), fontsize=8, color=INK, va="center")
+        req = results.get("anforderung_max_kipp_deg")
+        if title.startswith("Kipp") and req is not None:
+            ax.axhline(req, color=MUTED, linewidth=1.0, linestyle=(0, (3, 2)), zorder=1)
+            ax.annotate(f"Anforderung ≤ {req}°", (len(conds) - 0.5, req), fontsize=7.5, color=INK2,
+                        ha="right", va="bottom")
+        ax.set_xticks(range(len(conds)))
+        ax.set_xticklabels([f"{c['bedingung']}\n{c.get('objekt', '')}" for c in conds], fontsize=7.5, color=INK2)
+        ax.set_xlim(-0.5, len(conds) - 0.5)
+        ax.set_ylim(ylim[0], ylim[1] if ylim[1] is not None else None)
+        ax.set_title(title, fontsize=9.5, color=INK, loc="left")
+        ax.grid(False, axis="x")
+    fig.suptitle(f"{exp_name}: Ergebnis je Bedingung (Punkte = Seeds)", x=0.01, ha="left", fontsize=11, color=INK)
+    fig.legend(handles.values(), handles.keys(), loc="upper left", ncol=len(handles), fontsize=8,
+               frameon=False, labelcolor=INK2, bbox_to_anchor=(0.0, 1 - 0.32 / fig.get_figheight()),
+               handlelength=1.8, columnspacing=1.2)
+    fig.tight_layout(rect=(0, 0, 1, 1 - 0.5 / fig.get_figheight()), pad=0.6)
+    fig.savefig(out, format="svg", facecolor=SURFACE, metadata={"Date": None})
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--exp-dir", required=True)
-    ap.add_argument("--runs", nargs="+", required=True)
+    ap.add_argument("--runs", nargs="*", default=[])
+    ap.add_argument("--bedingungen", default=None, help="results.json → bedingungen.svg")
     ap.add_argument("--eltern-runs", nargs="*", default=[])
     ap.add_argument("--eltern-name", default="")
     a = ap.parse_args()
@@ -174,6 +233,12 @@ def main():
 
     exp_dir = REPO / a.exp_dir
     exp_name = exp_dir.name.split("_")[0]
+    (exp_dir / "diagramme").mkdir(exist_ok=True)
+    if a.bedingungen:
+        plot_conditions(exp_dir / "diagramme" / "bedingungen.svg", json.loads((REPO / a.bedingungen).read_text()), exp_name)
+        print(f"Diagramm: {exp_dir / 'diagramme' / 'bedingungen.svg'}")
+    if not a.runs:
+        return
     runs = [r for r in (load_run(REPO / p) for p in a.runs) if r]
     parent = [r for r in (load_run(REPO / p) for p in a.eltern_runs) if r]
     if not runs:

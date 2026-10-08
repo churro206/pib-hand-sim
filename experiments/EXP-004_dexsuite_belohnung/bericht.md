@@ -1,48 +1,48 @@
 # EXP-004: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 
-Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-000 unter derselben Anforderung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-000 unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-000 (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 77.3 % | 56.4 % – 88.9 % | 82.5 % | 0.0 % | 2.0 % / 2.0 % |
-| haltequote | 90.1 % | 88.7 % – 91.5 % | 90.3 % | 0.0 % | 86.1 % / 86.1 % |
-| Kippwinkel Median [°] | 26.6 | | | | 104 |
-| Unterarm Median [°] | 25.8 | | | | 90 |
-| Griffkraft Mittel [N] | 58.4 | | | | 23.9 |
-| Kraft > 15 N [Anteil] | 99.2 % | | | | 9.3 % |
-| Stall-Anteil [Anteil] | 99.7 % | | | | 99.6 % |
-| Absinken [mm] | 0.0255 | | | | 0 |
-| Unruhe | 1.01 | | | | 0.244 |
+| aufgabenerfolg | 47.6 % | 13.9 % – 81.5 % | 50.5 % | 40.0 % | 2.0 % / 2.0 % |
+| haltequote | 73.1 % | 36.5 % – 93.1 % | 90.2 % | 20.0 % | 86.1 % / 86.1 % |
+| Kippwinkel Median [°] | 34 | | | | 104 |
+| Unterarm Median [°] | 35.7 | | | | 90 |
+| Griffkraft Mittel [N] | 59.6 | | | | 23.9 |
+| Kraft > 15 N [Anteil] | 99.3 % | | | | 9.3 % |
+| Stall-Anteil [Anteil] | 99.6 % | | | | 99.6 % |
+| Absinken [mm] | 0.0191 | | | | 0 |
+| Unruhe | 0.863 | | | | 0.244 |
 
-Fehlerarten: startfehler 0.5 %, gefallen 9.4 %, instabil 0.0 %, anforderung_verletzt 12.8 %
+Fehlerarten: startfehler 0.7 %, gefallen 26.3 %, instabil 0.0 %, anforderung_verletzt 25.5 %
 
 **Urteilsvorschlag: Leitplanke verletzt (vorläufig: < 3 Seeds)** (gegenüber EXP-000)
-Unterschied Aufgabenerfolg +75.0 Prozentpunkte (95-%-KI +54.5 … +87.1)
-- Leitplanke: Griffkraft Mittel [N]: 58.4 > 28.7
-- Leitplanke: Kraft > 15 N [Anteil]: 0.992 > 0.143
-- Leitplanke: Unruhe: 1.01 > 0.293
+Unterschied Aufgabenerfolg +45.8 Prozentpunkte (95-%-KI +11.8 … +79.6)
+- Leitplanke: Griffkraft Mittel [N]: 59.6 > 28.7
+- Leitplanke: Kraft > 15 N [Anteil]: 0.993 > 0.143
+- Leitplanke: Unruhe: 0.863 > 0.293
 
-Je Seed: 88.3 %, 56.0 %, 87.7 %
+Je Seed: 88.3 %, 56.0 %, 87.7 %, 0.0 %, 6.1 %
 
-Fingernutzung (Haltephase): im Mittel 2.00 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 98/100/0/1/2 · 99/5/1/6/91 · 100/0/99/0/0
+Fingernutzung (Haltephase): im Mittel 2.00 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 98/100/0/1/2 · 99/5/1/6/91 · 100/0/99/0/0 · –/–/–/–/– · 100/0/0/99/0
 
 ## Trainingsverlauf
 
 Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
 
-| Größe | Seed 42 | Seed 43 | Seed 44 | Mittel |
-|---|---|---|---|---|
-| mean_reward | 27.8 | 25.6 | 32.8 | 28.7 |
-| action_l2 | -0.0915 | -0.111 | -0.0598 | -0.0874 |
-| action_rate_l2 | -0.0788 | -0.0583 | -0.0571 | -0.0647 |
-| early_termination | 0 | 0 | 0 | 0 |
-| fingertips_to_object | 0.355 | 0.41 | 0.321 | 0.362 |
-| good_contact | 0.408 | 0.383 | 0.394 | 0.395 |
-| held | 0.872 | 0.822 | 0.947 | 0.881 |
-| success | 3.12 | 2.66 | 4 | 3.26 |
-| upright | 1.63 | 1.52 | 1.83 | 1.66 |
-| object_dropped | 13.1 % | 13.7 % | 9.6 % | 12.2 % |
-| mean_noise_std | 0.889 | 0.748 | 0.675 | 0.771 |
+| Größe | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 | Mittel |
+|---|---|---|---|---|---|---|
+| mean_reward | 27.8 | 25.6 | 32.8 | 1.58 | 23.8 | 22.3 |
+| action_l2 | -0.0915 | -0.111 | -0.0598 | -0.00786 | -0.169 | -0.0878 |
+| action_rate_l2 | -0.0788 | -0.0583 | -0.0571 | -0.00896 | -0.0726 | -0.0552 |
+| early_termination | 0 | 0 | 0 | 0 | 0 | 0 |
+| fingertips_to_object | 0.355 | 0.41 | 0.321 | 0.173 | 0.432 | 0.338 |
+| good_contact | 0.408 | 0.383 | 0.394 | 0.00031 | 0.433 | 0.324 |
+| held | 0.872 | 0.822 | 0.947 | 0 | 0.905 | 0.709 |
+| success | 3.12 | 2.66 | 4 | 0.197 | 2.12 | 2.42 |
+| upright | 1.63 | 1.52 | 1.83 | 0 | 1.61 | 1.32 |
+| object_dropped | 13.1 % | 13.7 % | 9.6 % | 100.0 % | 8.3 % | 28.9 % |
+| mean_noise_std | 0.889 | 0.748 | 0.675 | 0.454 | 0.884 | 0.73 |
 
 ![Lernkurve](diagramme/lernkurve.svg)
 
