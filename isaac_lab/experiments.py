@@ -77,6 +77,8 @@ def _python_tag_as_text(loader, suffix, node):
 _ParamsLoader.add_multi_constructor("tag:yaml.org,2002:python/", _python_tag_as_text)
 # Schlüssel, die sich je Lauf ändern, ohne eine Änderung des Experiments zu sein
 _DIFF_IGNORE = ("seed", "run_name", "log_dir", "load_run", "load_checkpoint", "resume")
+# reine Optik (Kamera, Farben) — keine Änderung des Experiments
+_DIFF_IGNORE_PARTS = ("viewer", "visual_material", "visual_material_path", "visible_in_primary_ray")
 
 
 def load_params(run_dir: Path) -> dict:
@@ -101,7 +103,7 @@ def config_diff(child: dict, parent: dict) -> list[str]:
     a, b = dict(_flat(child)), dict(_flat(parent))
     out = []
     for k in sorted(set(a) | set(b)):
-        if k.split(".")[-1] in _DIFF_IGNORE:
+        if k.split(".")[-1] in _DIFF_IGNORE or any(part in _DIFF_IGNORE_PARTS for part in k.split(".")):
             continue
         if a.get(k, "∅") != b.get(k, "∅"):
             out.append(f"{k}: {b.get(k, '∅')} → {a.get(k, '∅')}")

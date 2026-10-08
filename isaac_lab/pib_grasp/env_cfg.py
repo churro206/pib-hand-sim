@@ -118,7 +118,7 @@ class SceneCfg(InteractiveSceneCfg):
             size=TABLE_SIZE,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
             collision_props=sim_utils.CollisionPropertiesCfg(),
-            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.5, 0.5, 0.5)),
+            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.18, 0.18, 0.2)),   # dunkel: Hand hebt sich ab
         ),
         init_state=RigidObjectCfg.InitialStateCfg(pos=TABLE_POS),
     )
@@ -137,7 +137,10 @@ class SceneCfg(InteractiveSceneCfg):
     fsr_pinky = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/urdf_finger_tip_4",
                                  filter_prim_paths_expr=["{ENV_REGEX_NS}/Object"])
 
-    light = AssetBaseCfg(prim_path="/World/light", spawn=sim_utils.DomeLightCfg(intensity=2000.0))
+    # Kuppellicht beleuchtet wie bisher, ist selbst aber unsichtbar → schwarzer Hintergrund, weiße Hand
+    # gut erkennbar (nur Optik, Leon 2026-10-08)
+    light = AssetBaseCfg(prim_path="/World/light",
+                         spawn=sim_utils.DomeLightCfg(intensity=2000.0, visible_in_primary_ray=False))
 
 
 @configclass
@@ -319,8 +322,10 @@ class PibGraspEnvCfg(ManagerBasedRLEnvCfg):
         self.sim.dt = 1 / 120
         self.sim.render_interval = self.decimation
         self.sim.physx.bounce_threshold_velocity = 0.01
-        self.viewer.eye = (0.6, 0.0, 0.7)
-        self.viewer.lookat = (0.0, -0.3, 0.5)
+        # Schräg von Handrücken/Fingerspitzen, ~28° von oben, 2,8 m (Leon, 2026-10-08): alle 16 Hände
+        # und die Finger am Objekt sichtbar
+        self.viewer.eye = (1.9, -2.25, 1.76)
+        self.viewer.lookat = (0.15, -0.5, 0.45)
 
 
 # ── Varianten für Experimente (eigene Task-IDs, gleiche Bewertungsumgebung) ───────────────
