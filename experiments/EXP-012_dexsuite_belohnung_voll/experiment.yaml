@@ -3,8 +3,7 @@ id: EXP-012
 titel: Belohnung wie Dexsuite (Annäherung mit Handfläche, Position 3D zur Startposition)
 datum: '2026-10-08'
 eltern: EXP-006
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Mit der Belohnung so nah an Dexsuite wie die Aufgabe erlaubt hört das Anheben vor dem
   Absenken auf (EXP-006: 3–6 cm; im Verlaufsdiagramm bleibt die Objekthöhe nahe der Starthöhe), der
@@ -53,9 +52,13 @@ training:
 fenstertest: true               # Szene/Belohnung/Abbruch geändert → Leon schaut kurz zu
 
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 75cde79
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_16-17-35_EXP-012_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_16-33-37_EXP-012_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_16-44-37_EXP-012_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_16-58-33_EXP-012_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_17-09-22_EXP-012_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
