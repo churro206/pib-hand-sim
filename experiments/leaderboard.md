@@ -43,7 +43,4 @@ Bester Seed nach mittlerem Aufgabenerfolg über alle Benchmark-Objekte — Auswa
 | EXP-005 | 42 | 93.2 | 79.7 | 61.9 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-19-15_EXP-005_s42/exported/policy.onnx` |
 | EXP-011 | 42 | 87.9 | 83.2 | 44.8 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-08_01-20-00_EXP-011_s42/exported/policy.onnx` |
 | EXP-004 | 42 | 88.3 | 73.6 | 45.6 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-06-59_EXP-004_s42/exported/policy.onnx` |
-| EXP-000 | None | 2.0 | 5.2 | 0.6 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59/exported/policy.onnx` |
-| EXP-001 | 42 | 0.0 | 0.0 | 0.0 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-26-46_EXP-001_s42/exported/policy.onnx` |
-| EXP-002 | 42 | 0.0 | 0.0 | 0.0 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-06_22-57-01_EXP-002_s42/exported/policy.onnx` |
-| EXP-003 | 42 | 0.0 | 0.0 | 0.0 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-07_10-03-30_EXP-003_s42/exported/policy.onnx` |
+| EXP-000 | – | 2.0 | 5.2 | 0.6 | 68808 | `logs/rsl_rl/pib_grasp_hand_left/2026-10-04_16-23-59/exported/policy.onnx` |
