@@ -1,5 +1,22 @@
 # EXP-002: Langer Lauf (Lift-Rezept: 1500 Iterationen)
 
+**Leistung** – (kein erfolgreicher Seed)
+
+**Zuverlässigkeit** 0/3 Seeds erfolgreich [0–71 %] — EXP-001: 0/3, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
+
+**Leitplanken** eingehalten
+
+**Befund** ohne Erfolg: Seed 42 (lernt nicht zu greifen), Seed 43 (lernt nicht zu greifen), Seed 44 (lernt nicht zu greifen)
+
+**Urteilsvorschlag** (auswertung-v2): **kein Unterschied**
+
+![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+<details>
+<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
+
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Protokoll eval-v1, 3 Seed(s); Spalte EXP-001 unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-001 (Mittel / IQM) |
@@ -21,7 +38,11 @@ Unterschied Aufgabenerfolg +0.0 Prozentpunkte (95-%-KI +0.0 … +0.0)
 
 Je Seed: 0.0 %, 0.0 %, 0.0 %
 
-## Trainingsverlauf
+</details>
+
+<details>
+<summary>Trainingsverlauf</summary>
+
 
 Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
 
@@ -47,15 +68,12 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 ![PPO-Diagnose](diagramme/ppo.svg)
 
-## Verlauf über die Episode
+</details>
 
-Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+<details>
+<summary>Videos aller Seeds</summary>
 
-![Verlauf über die Episode](diagramme/verlauf.svg)
-
-## Videos
-
-Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face).
 
 | Objekt | Seed 42 | Seed 43 | Seed 44 |
 |---|---|---|---|
@@ -63,12 +81,17 @@ Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
 | `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) |
 | `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) |
 
-## Netz und Training
+</details>
+
+<details>
+<summary>Netz, Training und Konfiguration</summary>
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 1500 Iterationen
 
-## Konfiguration gegenüber EXP-001 (1 Unterschiede)
-
 Geplante Änderung: Trainingsdauer 1500 statt 300 Iterationen (Umgebungen unverändert 1024)
 
+Konfiguration gegenüber EXP-001 (1 Unterschiede):
+
 - `agent.max_iterations: 300 → 1500`
+
+</details>

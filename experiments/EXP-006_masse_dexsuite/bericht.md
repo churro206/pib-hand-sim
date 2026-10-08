@@ -1,6 +1,23 @@
 # EXP-006: Objektmasse wie Dexsuite (0,04–0,4 kg)
 
-**Beste Videos** (Seed 44, bester mittlerer Aufgabenerfolg über alle Objekte, 3 Episoden): [Ø 6 cm](beste_videos/zylinder_d6_s44.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s44.mp4) · [Quader](beste_videos/quader_7x7x20_s44.mp4)
+**Leistung** 75 % [69–82 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 92 % · Ø 8 cm 80 % · Quader 55 %) — ggü. EXP-004: P(besser) = 0.79 [0.58–1.00] → gesichert besser
+
+**Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — EXP-004: 2/5, exakter Fisher-Test p = 0.52 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
+
+**Leitplanken** Griffkraft Mittel [N]: 85.7 > 71.6 ✗
+
+**Befund** ohne Erfolg: Seed 43 (hält, aber gekippt); Engpass Quader (55 %); Finger am Objekt 2.9 (EXP-004: 2.0); Unruhe 0.31 (EXP-004: 0.86)
+
+**Urteilsvorschlag** (auswertung-v2): **kein Unterschied, Leitplanke verletzt**
+
+**Beste Videos** (Seed 44, 3 Episoden): [Ø 6 cm](beste_videos/zylinder_d6_s44.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s44.mp4) · [Quader](beste_videos/quader_7x7x20_s44.mp4)
+
+![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+<details>
+<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
 
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-004 unter derselben Anforderung
 
@@ -26,7 +43,11 @@ Je Seed: 93.3 %, 26.9 %, 94.3 %, 81.9 %, 91.2 %
 
 Fingernutzung (Haltephase): im Mittel 2.93 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/95/100/95/0 · 100/0/94/0/100 · 97/99/4/3/0 · 99/0/0/100/0 · 98/90/0/100/92
 
-## Trainingsverlauf
+</details>
+
+<details>
+<summary>Trainingsverlauf</summary>
+
 
 Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
 
@@ -52,15 +73,12 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 ![PPO-Diagnose](diagramme/ppo.svg)
 
-## Verlauf über die Episode
+</details>
 
-Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+<details>
+<summary>Videos aller Seeds</summary>
 
-![Verlauf über die Episode](diagramme/verlauf.svg)
-
-## Videos
-
-Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face).
 
 | Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
 |---|---|---|---|---|---|
@@ -68,12 +86,17 @@ Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
 | `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) | [▶](videos/zylinder_d6_s45.mp4) | [▶](videos/zylinder_d6_s46.mp4) |
 | `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) | [▶](videos/zylinder_d8_s45.mp4) | [▶](videos/zylinder_d8_s46.mp4) |
 
-## Netz und Training
+</details>
+
+<details>
+<summary>Netz, Training und Konfiguration</summary>
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 300 Iterationen
 
-## Konfiguration gegenüber EXP-004 (1 Unterschiede)
-
 Geplante Änderung: Trainingsmasse der Dose 0,04–0,4 kg statt 0,05–0,2 kg (Dexsuite: 0,2 kg × 0,2–2; Task Pib-Grasp-Hand-Left-Heavy-v0).
 
+Konfiguration gegenüber EXP-004 (1 Unterschiede):
+
 - `env.events.object_mass.params.mass_distribution_params: (0.05, 0.2) → (0.04, 0.4)`
+
+</details>

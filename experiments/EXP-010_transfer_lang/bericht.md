@@ -1,16 +1,15 @@
 # EXP-010: Objekttransfer ohne Nachtraining (EXP-007-Policy, 1500 Iterationen)
 
-Ohne eigenes Training — bewertet die Läufe von EXP-007.
+**Transfer** (Läufe von EXP-007, erfolgreiche Seeds, Median): Ø 6 cm 93 % · Ø 8 cm 72 % (-21 PP) · Quader 54 % (-39 PP)
+**Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — ohne Erfolg: Seed 43 (hält, aber gekippt)
 
-| Bedingung | Objekt | Kipp ≤ | Aufgabenerfolg [95-%-KI] | IQM | Haltequote | Kipp° | Finger | Urteilsvorschlag |
-|---|---|---|---|---|---|---|---|---|
-| `zylinder_seitlich` | `zylinder_d6` | 45° | 78.0 % [49.6 % – 94.9 %] | 90.7 % | 92.1 % | 22 | 2.0 | Referenzbedingung |
-| `zylinder_d8_seitlich` | `zylinder_d8` | 45° | 61.6 % [42.8 % – 79.3 %] | 65.0 % | 66.8 % | 21 | 1.7 | schlechter (ggü. Referenz zylinder_seitlich) |
-| `quader_seitlich` | `quader_7x7x20` | 45° | 40.0 % [22.6 % – 57.5 %] | 42.4 % | 42.0 % | 23 | 1.8 | schlechter (ggü. Referenz zylinder_seitlich) |
+![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)
 
-![Ergebnis je Bedingung](diagramme/bedingungen.svg)
+<details>
+<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
 
-## Bedingung `zylinder_seitlich`
+
+#### Bedingung `zylinder_seitlich`
 
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte Eltern unter derselben Anforderung
 
@@ -34,7 +33,7 @@ Je Seed: 92.0 %, 21.7 %, 94.5 %, 85.1 %, 96.9 %
 
 Fingernutzung (Haltephase): im Mittel 1.96 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 97/100/0/0/2 · 100/75/0/0/100 · 100/0/100/0/0 · 0/0/0/0/100 · 99/15/0/88/0
 
-## Bedingung `zylinder_d8_seitlich`
+#### Bedingung `zylinder_d8_seitlich`
 
 Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
@@ -60,7 +59,7 @@ Je Seed: 62.8 %, 26.6 %, 82.2 %, 50.8 %, 85.7 %
 
 Fingernutzung (Haltephase): im Mittel 1.66 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/100/1/0/0 · 100/43/1/2/85 · 100/0/49/0/0 · 0/0/0/0/100 · 100/23/0/27/0
 
-## Bedingung `quader_seitlich`
+#### Bedingung `quader_seitlich`
 
 Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
@@ -86,9 +85,14 @@ Je Seed: 48.8 %, 14.3 %, 60.4 %, 16.9 %, 59.5 %
 
 Fingernutzung (Haltephase): im Mittel 1.82 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 92/99/0/0/8 · 96/66/2/3/92 · 99/0/97/0/0 · 0/0/0/0/100 · 96/32/0/26/0
 
-## Videos
+</details>
 
-Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode. Quelle: EXP-007.
+Trainingsverlauf: siehe Quelle [EXP-007](../EXP-007_lang_1500/bericht.md) — [Lernkurve](../EXP-007_lang_1500/diagramme/lernkurve.svg) · [Belohnungsanteile](../EXP-007_lang_1500/diagramme/belohnung.svg) · [Abbrüche](../EXP-007_lang_1500/diagramme/abbrueche.svg) · [PPO-Diagnose](../EXP-007_lang_1500/diagramme/ppo.svg)
+
+<details>
+<summary>Videos aller Seeds</summary>
+
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face). Quelle: EXP-007.
 
 | Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
 |---|---|---|---|---|---|
@@ -96,10 +100,11 @@ Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode. Quelle: EXP-007
 | `zylinder_d6` | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s42.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s43.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s44.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s45.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d6_s46.mp4) |
 | `zylinder_d8` | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s42.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s43.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s44.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s45.mp4) | [▶](../EXP-007_lang_1500/videos/zylinder_d8_s46.mp4) |
 
-## Trainingsverlauf
+</details>
 
-Siehe Quelle [EXP-007](../EXP-007_lang_1500/bericht.md#trainingsverlauf): [Lernkurve](../EXP-007_lang_1500/diagramme/lernkurve.svg) · [Belohnungsanteile](../EXP-007_lang_1500/diagramme/belohnung.svg) · [Abbrüche](../EXP-007_lang_1500/diagramme/abbrueche.svg) · [PPO-Diagnose](../EXP-007_lang_1500/diagramme/ppo.svg)
-
-## Netz und Training
+<details>
+<summary>Netz, Training und Konfiguration</summary>
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 1500 Iterationen
+
+</details>

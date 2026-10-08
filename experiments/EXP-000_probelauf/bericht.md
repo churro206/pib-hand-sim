@@ -1,5 +1,22 @@
 # EXP-000: Probelauf Dexsuite-Muster (Ausgangswert)
 
+**Leistung** – (kein erfolgreicher Seed)
+
+**Zuverlässigkeit** 0/1 Seeds erfolgreich [0–98 %]
+
+**Leitplanken** – (keine Eltern)
+
+**Befund** ohne Erfolg: Seed None (hält, aber gekippt)
+
+**Urteilsvorschlag** (auswertung-v2): **Ausgangswert**
+
+![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+<details>
+<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
+
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Protokoll eval-v1, 1 Seed(s); Spalte Eltern unter derselben Anforderung
 
 | Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
@@ -20,7 +37,11 @@ Fehlerarten: startfehler 1.9 %, gefallen 12.1 %, instabil 0.0 %, anforderung_ver
 
 Je Seed: 0.0 %
 
-## Trainingsverlauf
+</details>
+
+<details>
+<summary>Trainingsverlauf</summary>
+
 
 Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
 
@@ -45,15 +66,12 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 ![PPO-Diagnose](diagramme/ppo.svg)
 
-## Verlauf über die Episode
+</details>
 
-Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+<details>
+<summary>Videos aller Seeds</summary>
 
-![Verlauf über die Episode](diagramme/verlauf.svg)
-
-## Videos
-
-Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face).
 
 | Objekt | Seed 0 |
 |---|---|
@@ -61,6 +79,11 @@ Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
 | `zylinder_d6` | [▶](videos/zylinder_d6_s0.mp4) |
 | `zylinder_d8` | [▶](videos/zylinder_d8_s0.mp4) |
 
-## Netz und Training
+</details>
+
+<details>
+<summary>Netz, Training und Konfiguration</summary>
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 300 Iterationen
+
+</details>

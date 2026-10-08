@@ -111,6 +111,20 @@ Regeln:
       startpose: "seitlich, Daumen oben"
       anforderung: {max_kipp_deg: 45}
   ```
+- **Auswertung v2** (`auswertung-v2`, seit 2026-10-08; die Bewertungsdaten eval-v1 bleiben): ein Experiment
+  bewertet ein **Rezept** — zwei getrennte Fragen (Chan et al. 2020), über die Benchmark-Objekte:
+  - **Leistung** = IQM des Aufgabenerfolgs der **erfolgreichen** Seeds über Seeds × Objekte (KI per
+    stratifiziertem Bootstrap), je Objekt als Median; Vergleich mit den Eltern über P(besser) (rliable).
+  - **Zuverlässigkeit** = erfolgreiche Seeds k/n (Seed erfolgreich: Mittel über die Objekte ≥ 50 %),
+    Clopper-Pearson-KI; Vergleich mit dem exakten Fisher-Test. Mit 5 Seeds kaum unterscheidbar —
+    soll die Zuverlässigkeit entscheiden, ≥ 10 Seeds je Experiment.
+  - **Urteilsregel**: *besser*, wenn P(besser) gesichert > 0,5 (untere KI-Grenze), die Zuverlässigkeit nicht
+    gesichert schlechter ist (Fisher p < 0,05) und keine Leitplanke verletzt ist; *schlechter*, wenn P gesichert
+    < 0,5 oder die Zuverlässigkeit gesichert schlechter; sonst *kein Unterschied* (+ „Leitplanke verletzt“).
+  - **Bericht**: Kopf mit Leistung, Zuverlässigkeit, Leitplanken, Befund (Ursache je gescheitertem Seed:
+    lernt nicht zu greifen / greift, verliert das Objekt / hält, aber gekippt; Engpass-Objekt; deutliche
+    Verhaltensänderung ggü. den Eltern) und Urteilsvorschlag; darunter Diagramm je Bedingung (jeder Seed ein
+    Punkt), Verlauf, beste Videos; alles Weitere ausklappbar.
 - **Leaderboard** (`leaderboard.md`, von `done` neu erzeugt): jede Policy (Experiment mit eigenem
   Training) unter denselben **Benchmark-Bedingungen** (`experiments.py` → `BENCHMARK`: Zylinder Ø 6 cm,
   Ø 8 cm, Quader 7 × 7 × 20 cm, je Kippwinkel ≤ 45°), sortiert nach dem **IQM des Aufgabenerfolgs über

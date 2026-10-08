@@ -105,6 +105,8 @@ def mean_curve(runs: list[dict], tag: str):
 
 
 def seed_color(seed, seeds: list) -> str:
+    if seed is None:                       # Lauf ohne Seed im Namen (EXP-000)
+        return SEED_COLORS[0]
     if seed in STANDARD_SEEDS:
         return SEED_COLORS[STANDARD_SEEDS.index(seed)]
     extra = [s for s in seeds if s not in STANDARD_SEEDS]
@@ -168,7 +170,8 @@ def plot_figure(out: Path, title: str, tags: list[str], runs: list[dict], parent
 
 def plot_conditions(out: Path, results: dict, exp_name: str):
     """Ergebnis je Bedingung: Seeds als Punkte (links im Feld), Mittel als Strich + 95-%-KI (rechts)."""
-    conds = [results] + list((results.get("weitere_bedingungen") or {}).values())
+    conds = (list(results["benchmark"].values()) if results.get("benchmark")
+             else [results] + list((results.get("weitere_bedingungen") or {}).values()))
     seeds = sorted({s for c in conds for s in c.get("seed_ids") or [] if s is not None})
     panels = [("Aufgabenerfolg [%]", lambda c, i: 100 * c["aufgabenerfolg"]["je_seed"][i], (0, 100)),
               ("Finger am Objekt (Haltephase)",
@@ -202,7 +205,7 @@ def plot_conditions(out: Path, results: dict, exp_name: str):
                 h, = ax.plot([x + 0.18, x + 0.18], [lo, hi], color=INK2, linewidth=1.2, zorder=2)
                 handles.setdefault("95-%-KI (Bootstrap)", h)
                 ax.annotate(f"{m:.0f} %", (x + 0.33, m), fontsize=8, color=INK, va="center")
-        req = results.get("anforderung_max_kipp_deg")
+        req = conds[0].get("anforderung_max_kipp_deg")
         if title.startswith("Kipp") and req is not None:
             ax.axhline(req, color=MUTED, linewidth=1.0, linestyle=(0, (3, 2)), zorder=1)
             ax.annotate(f"Anforderung ≤ {req}°", (len(conds) - 0.5, req), fontsize=7.5, color=INK2,

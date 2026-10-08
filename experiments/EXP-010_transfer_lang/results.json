@@ -1095,5 +1095,1150 @@
     "gegen": "Referenz zylinder_seitlich"
    }
   }
+ },
+ "rezept": {
+  "auswertung": "auswertung-v2",
+  "bedingungen": [
+   "zylinder_seitlich",
+   "zylinder_d8_seitlich",
+   "quader_seitlich"
+  ],
+  "kurz": [
+   "Ø 6 cm",
+   "Ø 8 cm",
+   "Quader"
+  ],
+  "seed_ids": [
+   42,
+   43,
+   44,
+   45,
+   46
+  ],
+  "je_seed": [
+   [
+    0.92,
+    0.217,
+    0.945,
+    0.851,
+    0.969
+   ],
+   [
+    0.628,
+    0.267,
+    0.822,
+    0.508,
+    0.857
+   ],
+   [
+    0.488,
+    0.143,
+    0.604,
+    0.169,
+    0.595
+   ]
+  ],
+  "erfolgreich": [
+   true,
+   false,
+   true,
+   true,
+   true
+  ],
+  "k": 4,
+  "n": 5,
+  "zuverlaessigkeit_ki95": [
+   0.2835820638819105,
+   0.9949492366205319
+  ],
+  "leistung": {
+   "iqm": 0.7261666666666667,
+   "iqm_ki95": [
+    0.6339708333333334,
+    0.8086749999999998
+   ]
+  },
+  "leistung_je_objekt": [
+   0.9325,
+   0.725,
+   0.5415
+  ],
+  "gesamt": {
+   "iqm": 0.6369333333333332,
+   "iqm_ki95": [
+    0.4270158333333333,
+    0.75708
+   ]
+  }
+ },
+ "benchmark": {
+  "zylinder_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 5,
+   "laeufe": [
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-34-42_EXP-007_s42",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_14-27-27_EXP-007_s43",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46"
+   ],
+   "bedingung": "zylinder_seitlich",
+   "objekt": "zylinder_d6",
+   "seed_ids": [
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.92,
+     "haltequote": 0.926,
+     "fehler": {
+      "startfehler": 0.003,
+      "gefallen": 0.071,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.006
+     },
+     "leitplanken": {
+      "kipp_median_deg": 16.292523217831437,
+      "unterarm_median_deg": 27.683156272128127,
+      "kraft_mittel_n": 45.29704055291793,
+      "kraft_ueber_15n_anteil": 0.977834773218143,
+      "stall_anteil": 0.9999839418051018,
+      "absinken_mm": 0.02044188281114879,
+      "unruhe": 1.243832099126358
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9746850251700914,
+       0.9999280057638305,
+       0.0,
+       0.0,
+       0.02488300938975895
+      ],
+      "kraft_n": [
+       21.91612083865551,
+       22.56656060723455,
+       0.0,
+       0.0,
+       0.766390074766593
+      ],
+      "finger_mit_kontakt": 1.9994960403236808
+     }
+    },
+    {
+     "aufgabenerfolg": 0.217,
+     "haltequote": 0.911,
+     "fehler": {
+      "startfehler": 0.001,
+      "gefallen": 0.088,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.694
+     },
+     "leitplanken": {
+      "kipp_median_deg": 48.38884059007593,
+      "unterarm_median_deg": 26.5256355757496,
+      "kraft_mittel_n": 83.8701387563817,
+      "kraft_ueber_15n_anteil": 0.9999542627149652,
+      "stall_anteil": 0.999804128801635,
+      "absinken_mm": 2.27670343725663,
+      "unruhe": 1.7047878766604792
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9978503478868863,
+       0.7538510793400878,
+       4.573728742014563e-05,
+       0.0008049762473491753,
+       0.9999817051034335
+      ],
+      "kraft_n": [
+       37.859916062569646,
+       18.134582317658136,
+       0.0008577476005130227,
+       0.0020321680843200366,
+       27.50600140233464
+      ],
+      "finger_mit_kontakt": 2.7525338458651767
+     }
+    },
+    {
+     "aufgabenerfolg": 0.945,
+     "haltequote": 0.946,
+     "fehler": {
+      "startfehler": 0.006,
+      "gefallen": 0.048,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.001
+     },
+     "leitplanken": {
+      "kipp_median_deg": 13.358705959858964,
+      "unterarm_median_deg": 22.63449900370814,
+      "kraft_mittel_n": 65.4998801190388,
+      "kraft_ueber_15n_anteil": 0.9973484848484853,
+      "stall_anteil": 0.9999135471600239,
+      "absinken_mm": 0.024415946410019856,
+      "unruhe": 2.618377444829127
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9996828754406902,
+       0.0,
+       0.9993305149592506,
+       0.0,
+       0.0
+      ],
+      "kraft_n": [
+       43.41538577150341,
+       0.0,
+       22.084494504061613,
+       0.0,
+       0.0
+      ],
+      "finger_mit_kontakt": 1.999013390399941
+     }
+    },
+    {
+     "aufgabenerfolg": 0.851,
+     "haltequote": 0.851,
+     "fehler": {
+      "startfehler": 0.012,
+      "gefallen": 0.137,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 13.391081910298471,
+      "unterarm_median_deg": 11.984150026187761,
+      "kraft_mittel_n": 14.941725588423854,
+      "kraft_ueber_15n_anteil": 0.49220524872698773,
+      "stall_anteil": 0.2964367308960807,
+      "absinken_mm": 0.02500054138667715,
+      "unruhe": 0.5324996428593238
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.999970622824726
+      ],
+      "kraft_n": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       14.941725582970015
+      ],
+      "finger_mit_kontakt": 0.999970622824726
+     }
+    },
+    {
+     "aufgabenerfolg": 0.969,
+     "haltequote": 0.969,
+     "fehler": {
+      "startfehler": 0.004,
+      "gefallen": 0.027,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 19.140213497917344,
+      "unterarm_median_deg": 17.01667182646724,
+      "kraft_mittel_n": 65.35355905087332,
+      "kraft_ueber_15n_anteil": 0.9980478156174759,
+      "stall_anteil": 0.9996815787555475,
+      "absinken_mm": 0.004406284129533482,
+      "unruhe": 1.784058675979257
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9923030617584401,
+       0.1510147917544771,
+       0.0,
+       0.8838751293590025,
+       0.0
+      ],
+      "kraft_n": [
+       41.172440104532534,
+       3.5309366620884837,
+       0.0,
+       20.650182835844234,
+       0.0
+      ],
+      "finger_mit_kontakt": 2.0271929828719197
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.7804,
+    "iqm": 0.9068000000000002,
+    "je_seed": [
+     0.92,
+     0.217,
+     0.945,
+     0.851,
+     0.969
+    ],
+    "iqm_ki95": [
+     0.41948500000000005,
+     0.9590025
+    ],
+    "fehlschlag_seeds": 0.2,
+    "ki95": [
+     0.49618000000000007,
+     0.9494049999999999
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.9206000000000001,
+    "iqm": 0.9275,
+    "je_seed": [
+     0.926,
+     0.911,
+     0.946,
+     0.851,
+     0.969
+    ],
+    "iqm_ki95": [
+     0.8741975000000001,
+     0.9584074999999999
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.883995,
+     0.9528049999999998
+    ]
+   },
+   "netz": {
+    "actor": [
+     256,
+     128,
+     64
+    ],
+    "critic": [
+     512,
+     256,
+     128
+    ],
+    "aktivierung": "elu",
+    "verlauf": 5,
+    "eingaenge": 105,
+    "actor_parameter": 68808,
+    "lernrate": 0.001,
+    "entropie": 0.005,
+    "epochen": 5,
+    "mini_batches": 4,
+    "schritte_je_umgebung": 32,
+    "iterationen": 1500,
+    "umgebungen": 1024
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9746850251700914,
+      0.9999280057638305,
+      0.0,
+      0.0,
+      0.02488300938975895
+     ],
+     [
+      0.9978503478868863,
+      0.7538510793400878,
+      4.573728742014563e-05,
+      0.0008049762473491753,
+      0.9999817051034335
+     ],
+     [
+      0.9996828754406902,
+      0.0,
+      0.9993305149592506,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.999970622824726
+     ],
+     [
+      0.9923030617584401,
+      0.1510147917544771,
+      0.0,
+      0.8838751293590025,
+      0.0
+     ]
+    ],
+    "finger_mit_kontakt": 1.955641376457089
+   },
+   "leitplanken": {
+    "kipp_median_deg": 22.114273035196426,
+    "unterarm_median_deg": 21.168822540848176,
+    "kraft_mittel_n": 54.992468813527125,
+    "kraft_ueber_15n_anteil": 0.8930781170252114,
+    "stall_anteil": 0.8591639854836778,
+    "absinken_mm": 0.4701936183988019,
+    "unruhe": 1.576711147890909
+   },
+   "fehler": {
+    "startfehler": 0.0052,
+    "gefallen": 0.0742,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.1402
+   }
+  },
+  "zylinder_d8_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 5,
+   "laeufe": [
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-34-42_EXP-007_s42",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_14-27-27_EXP-007_s43",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46"
+   ],
+   "bedingung": "zylinder_d8_seitlich",
+   "objekt": "zylinder_d8",
+   "seed_ids": [
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.628,
+     "haltequote": 0.631,
+     "fehler": {
+      "startfehler": 0.002,
+      "gefallen": 0.367,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.003
+     },
+     "leitplanken": {
+      "kipp_median_deg": 11.683663537615868,
+      "unterarm_median_deg": 20.774559945538215,
+      "kraft_mittel_n": 43.75412232992955,
+      "kraft_ueber_15n_anteil": 0.9766508188061281,
+      "stall_anteil": 1.0,
+      "absinken_mm": 0.0021546937395389033,
+      "unruhe": 1.521840409441069
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9982963551054288,
+       0.9998283150078944,
+       0.007303222582901336,
+       0.0,
+       0.0015979926050205238
+      ],
+      "kraft_n": [
+       21.976742546456364,
+       21.579108369709385,
+       0.14868033022019073,
+       0.0,
+       0.04959093291967777
+      ],
+      "finger_mit_kontakt": 2.0070258853012453
+     }
+    },
+    {
+     "aufgabenerfolg": 0.266,
+     "haltequote": 0.502,
+     "fehler": {
+      "startfehler": 0.004,
+      "gefallen": 0.494,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.236
+     },
+     "leitplanken": {
+      "kipp_median_deg": 44.579224033325865,
+      "unterarm_median_deg": 14.663861195147312,
+      "kraft_mittel_n": 65.996049161103,
+      "kraft_ueber_15n_anteil": 0.9903884462151397,
+      "stall_anteil": 0.9935647743598083,
+      "absinken_mm": 5.6889430578961315,
+      "unruhe": 7.8414962739853555
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9966467481210413,
+       0.43007968109012007,
+       0.012964807693805709,
+       0.015820053222392542,
+       0.8506806110480867
+      ],
+      "kraft_n": [
+       37.03286128405081,
+       8.887766551171417,
+       0.1477115711914301,
+       0.33044890245047964,
+       19.58541968749814
+      ],
+      "finger_mit_kontakt": 2.3061919011754464
+     }
+    },
+    {
+     "aufgabenerfolg": 0.822,
+     "haltequote": 0.84,
+     "fehler": {
+      "startfehler": 0.004,
+      "gefallen": 0.156,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.018
+     },
+     "leitplanken": {
+      "kipp_median_deg": 14.1160322123881,
+      "unterarm_median_deg": 26.856952684461287,
+      "kraft_mittel_n": 51.27263388013079,
+      "kraft_ueber_15n_anteil": 0.9975992063492076,
+      "stall_anteil": 0.9997919985838196,
+      "absinken_mm": 0.22888059417406717,
+      "unruhe": 12.152010249973378
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9989384927919933,
+       0.0,
+       0.4938789680699951,
+       0.0,
+       0.0
+      ],
+      "kraft_n": [
+       43.35552428563436,
+       0.0,
+       7.917109318068695,
+       0.0,
+       0.0
+      ],
+      "finger_mit_kontakt": 1.4928174608619884
+     }
+    },
+    {
+     "aufgabenerfolg": 0.508,
+     "haltequote": 0.512,
+     "fehler": {
+      "startfehler": 0.01,
+      "gefallen": 0.478,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.004
+     },
+     "leitplanken": {
+      "kipp_median_deg": 15.05780772345343,
+      "unterarm_median_deg": 10.220422720213927,
+      "kraft_mittel_n": 14.537623685598364,
+      "kraft_ueber_15n_anteil": 0.3903157552083333,
+      "stall_anteil": 0.3163699465613386,
+      "absinken_mm": 0.7960909279063344,
+      "unruhe": 1.7369492246205045
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.9997884115437046
+      ],
+      "kraft_n": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       14.53628626652062
+      ],
+      "finger_mit_kontakt": 0.9997884115437046
+     }
+    },
+    {
+     "aufgabenerfolg": 0.857,
+     "haltequote": 0.857,
+     "fehler": {
+      "startfehler": 0.009,
+      "gefallen": 0.134,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.0
+     },
+     "leitplanken": {
+      "kipp_median_deg": 19.704141236550278,
+      "unterarm_median_deg": 19.4720838519518,
+      "kraft_mittel_n": 44.836747102503665,
+      "kraft_ueber_15n_anteil": 0.9962854920264506,
+      "stall_anteil": 0.9996746669674177,
+      "absinken_mm": 0.030949103234111916,
+      "unruhe": 4.143092337878049
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9995818751556592,
+       0.22862699324028216,
+       0.0,
+       0.2670653443968265,
+       0.0
+      ],
+      "kraft_n": [
+       36.02614582822927,
+       4.87369286205838,
+       0.0,
+       3.9036269014964233,
+       0.0
+      ],
+      "finger_mit_kontakt": 1.4952742127927678
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.6164,
+    "iqm": 0.6501999999999999,
+    "je_seed": [
+     0.628,
+     0.267,
+     0.822,
+     0.508,
+     0.857
+    ],
+    "iqm_ki95": [
+     0.3535975,
+     0.8414049999999998
+    ],
+    "fehlschlag_seeds": 0.2,
+    "ki95": [
+     0.42799500000000007,
+     0.7930149999999998
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.6683999999999999,
+    "iqm": 0.658,
+    "je_seed": [
+     0.631,
+     0.502,
+     0.84,
+     0.512,
+     0.857
+    ],
+    "iqm_ki95": [
+     0.5072975000000001,
+     0.8482025
+    ],
+    "fehlschlag_seeds": 0.0,
+    "ki95": [
+     0.5391499999999999,
+     0.8016049999999999
+    ]
+   },
+   "netz": {
+    "actor": [
+     256,
+     128,
+     64
+    ],
+    "critic": [
+     512,
+     256,
+     128
+    ],
+    "aktivierung": "elu",
+    "verlauf": 5,
+    "eingaenge": 105,
+    "actor_parameter": 68808,
+    "lernrate": 0.001,
+    "entropie": 0.005,
+    "epochen": 5,
+    "mini_batches": 4,
+    "schritte_je_umgebung": 32,
+    "iterationen": 1500,
+    "umgebungen": 1024
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9982963551054288,
+      0.9998283150078944,
+      0.007303222582901336,
+      0.0,
+      0.0015979926050205238
+     ],
+     [
+      0.9966467481210413,
+      0.43007968109012007,
+      0.012964807693805709,
+      0.015820053222392542,
+      0.8506806110480867
+     ],
+     [
+      0.9989384927919933,
+      0.0,
+      0.4938789680699951,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.9997884115437046
+     ],
+     [
+      0.9995818751556592,
+      0.22862699324028216,
+      0.0,
+      0.2670653443968265,
+      0.0
+     ]
+    ],
+    "finger_mit_kontakt": 1.6602195743350303
+   },
+   "leitplanken": {
+    "kipp_median_deg": 21.02817374866671,
+    "unterarm_median_deg": 18.39757607946251,
+    "kraft_mittel_n": 44.079435231853076,
+    "kraft_ueber_15n_anteil": 0.8702479437210519,
+    "stall_anteil": 0.8618802772944768,
+    "absinken_mm": 1.3494036753900367,
+    "unruhe": 5.479077699179671
+   },
+   "fehler": {
+    "startfehler": 0.0058,
+    "gefallen": 0.3258,
+    "instabil": 0.0,
+    "anforderung_verletzt": 0.052000000000000005
+   }
+  },
+  "quader_seitlich": {
+   "protokoll": "eval-v1",
+   "seeds": 5,
+   "laeufe": [
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-34-42_EXP-007_s42",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_14-27-27_EXP-007_s43",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45",
+    "logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46"
+   ],
+   "bedingung": "quader_seitlich",
+   "objekt": "quader_7x7x20",
+   "seed_ids": [
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "je_seed": [
+    {
+     "aufgabenerfolg": 0.488,
+     "haltequote": 0.489,
+     "fehler": {
+      "startfehler": 0.057,
+      "gefallen": 0.454,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.001
+     },
+     "leitplanken": {
+      "kipp_median_deg": 13.225931351262147,
+      "unterarm_median_deg": 20.731215565065312,
+      "kraft_mittel_n": 46.40905380197012,
+      "kraft_ueber_15n_anteil": 0.9887695978186779,
+      "stall_anteil": 1.0,
+      "absinken_mm": 0.0,
+      "unruhe": 1.1174863944836404
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9182685753368679,
+       0.9896898432987111,
+       0.0024199046171698834,
+       0.0,
+       0.08423653714252152
+      ],
+      "kraft_n": [
+       21.79069155717463,
+       22.870624982506218,
+       0.051835560420783265,
+       0.0,
+       1.695173759794278
+      ],
+      "finger_mit_kontakt": 1.9946148603952705
+     }
+    },
+    {
+     "aufgabenerfolg": 0.143,
+     "haltequote": 0.219,
+     "fehler": {
+      "startfehler": 0.06,
+      "gefallen": 0.72,
+      "instabil": 0.001,
+      "anforderung_verletzt": 0.076
+     },
+     "leitplanken": {
+      "kipp_median_deg": 42.61425032609948,
+      "unterarm_median_deg": 15.488630443088448,
+      "kraft_mittel_n": 59.03704231993796,
+      "kraft_ueber_15n_anteil": 0.9719939117199385,
+      "stall_anteil": 0.9950094209909867,
+      "absinken_mm": 4.684659035782836,
+      "unruhe": 9.350094015286546
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9611111114558564,
+       0.6602359209975152,
+       0.021727549524544035,
+       0.03276255674932373,
+       0.9154490116796538
+      ],
+      "kraft_n": [
+       24.60233391692105,
+       13.621633195126915,
+       0.17900975896513352,
+       0.6034280889046689,
+       18.969312377716307
+      ],
+      "finger_mit_kontakt": 2.591286150406893
+     }
+    },
+    {
+     "aufgabenerfolg": 0.604,
+     "haltequote": 0.612,
+     "fehler": {
+      "startfehler": 0.05,
+      "gefallen": 0.338,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.008
+     },
+     "leitplanken": {
+      "kipp_median_deg": 14.120805660844292,
+      "unterarm_median_deg": 24.47017552239889,
+      "kraft_mittel_n": 46.57595712167247,
+      "kraft_ueber_15n_anteil": 0.9881127450980407,
+      "stall_anteil": 0.9997995480720164,
+      "absinken_mm": 4.14066196851481,
+      "unruhe": 17.28753792537783
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9881399799795711,
+       0.0,
+       0.9669389994510638,
+       0.0,
+       0.0
+      ],
+      "kraft_n": [
+       25.071467418296663,
+       0.0,
+       21.504489576894475,
+       0.0,
+       0.0
+      ],
+      "finger_mit_kontakt": 1.955078979430635
+     }
+    },
+    {
+     "aufgabenerfolg": 0.169,
+     "haltequote": 0.177,
+     "fehler": {
+      "startfehler": 0.072,
+      "gefallen": 0.751,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.008
+     },
+     "leitplanken": {
+      "kipp_median_deg": 18.866343402767342,
+      "unterarm_median_deg": 10.82932127811587,
+      "kraft_mittel_n": 15.200341934807552,
+      "kraft_ueber_15n_anteil": 0.5237758945386064,
+      "stall_anteil": 0.29834288954697247,
+      "absinken_mm": 5.1416023976385254,
+      "unruhe": 1.4007342635822848
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       1.0
+      ],
+      "kraft_n": [
+       0.006049313514077731,
+       0.0,
+       0.0,
+       0.0,
+       15.19429256956456
+      ],
+      "finger_mit_kontakt": 1.0
+     }
+    },
+    {
+     "aufgabenerfolg": 0.595,
+     "haltequote": 0.604,
+     "fehler": {
+      "startfehler": 0.055,
+      "gefallen": 0.341,
+      "instabil": 0.0,
+      "anforderung_verletzt": 0.009
+     },
+     "leitplanken": {
+      "kipp_median_deg": 24.653299724236103,
+      "unterarm_median_deg": 18.49289768725502,
+      "kraft_mittel_n": 36.555685630065746,
+      "kraft_ueber_15n_anteil": 0.9405767108167779,
+      "stall_anteil": 0.9994830005662371,
+      "absinken_mm": 0.10204038872624076,
+      "unruhe": 6.703878327531715
+     },
+     "fingernutzung": {
+      "finger": [
+       "daumen",
+       "zeige",
+       "mittel",
+       "ring",
+       "klein"
+      ],
+      "kontakt_anteil": [
+       0.9627069545700061,
+       0.32499999977148675,
+       0.0,
+       0.25991997808766926,
+       0.0
+      ],
+      "kraft_n": [
+       26.904490574898308,
+       6.073470303548241,
+       0.0,
+       3.577724592464156,
+       0.0
+      ],
+      "finger_mit_kontakt": 1.547626932429162
+     }
+    }
+   ],
+   "anforderung_max_kipp_deg": 45,
+   "aufgabenerfolg": {
+    "mittel": 0.3998,
+    "iqm": 0.4244,
+    "je_seed": [
+     0.488,
+     0.143,
+     0.604,
+     0.169,
+     0.595
+    ],
+    "iqm_ki95": [
+     0.15559750000000003,
+     0.6004025
+    ],
+    "fehlschlag_seeds": 0.6,
+    "ki95": [
+     0.22599999999999998,
+     0.5746149999999998
+    ]
+   },
+   "haltequote": {
+    "mittel": 0.4202,
+    "iqm": 0.4425,
+    "je_seed": [
+     0.489,
+     0.219,
+     0.612,
+     0.177,
+     0.604
+    ],
+    "iqm_ki95": [
+     0.19580000000000003,
+     0.6077025
+    ],
+    "fehlschlag_seeds": 0.6,
+    "ki95": [
+     0.260595,
+     0.5808049999999999
+    ]
+   },
+   "netz": {
+    "actor": [
+     256,
+     128,
+     64
+    ],
+    "critic": [
+     512,
+     256,
+     128
+    ],
+    "aktivierung": "elu",
+    "verlauf": 5,
+    "eingaenge": 105,
+    "actor_parameter": 68808,
+    "lernrate": 0.001,
+    "entropie": 0.005,
+    "epochen": 5,
+    "mini_batches": 4,
+    "schritte_je_umgebung": 32,
+    "iterationen": 1500,
+    "umgebungen": 1024
+   },
+   "fingernutzung": {
+    "je_seed_kontakt": [
+     [
+      0.9182685753368679,
+      0.9896898432987111,
+      0.0024199046171698834,
+      0.0,
+      0.08423653714252152
+     ],
+     [
+      0.9611111114558564,
+      0.6602359209975152,
+      0.021727549524544035,
+      0.03276255674932373,
+      0.9154490116796538
+     ],
+     [
+      0.9881399799795711,
+      0.0,
+      0.9669389994510638,
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     [
+      0.9627069545700061,
+      0.32499999977148675,
+      0.0,
+      0.25991997808766926,
+      0.0
+     ]
+    ],
+    "finger_mit_kontakt": 1.8177213845323918
+   },
+   "leitplanken": {
+    "kipp_median_deg": 22.696126093041876,
+    "unterarm_median_deg": 18.002448099184708,
+    "kraft_mittel_n": 40.75561616169077,
+    "kraft_ueber_15n_anteil": 0.8826457719984082,
+    "stall_anteil": 0.8585269718352425,
+    "absinken_mm": 2.8137927581324824,
+    "unruhe": 7.171946185252404
+   },
+   "fehler": {
+    "startfehler": 0.0588,
+    "gefallen": 0.5208,
+    "instabil": 0.0002,
+    "anforderung_verletzt": 0.020399999999999998
+   }
+  }
  }
 }

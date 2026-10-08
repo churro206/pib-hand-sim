@@ -736,6 +736,13 @@ Objekt bleibt sichtbar (YCB-Protokolle). Einzige Stelle, an der über Bedingunge
 - Neue Objekte im Benchmark erfordern die Nachbewertung aller Policies (`leaderboard --bewerten`, ~1 min je
   Lauf und Objekt); Testobjekte (nie trainiert) als eigene Bedingung kennzeichnen.
 - Videos aller Seeds nicht im Git (Hugging Face), die besten je Policy schon (`beste_videos/`).
+- **Ergänzung 2026-10-08 — Auswertung v2:** EXP-012 (3 von 5 Seeds greifen, 2 gar nicht) zeigte, dass das Mittel
+  über alle Seeds zwei Fragen vermischt. Getrennt nach Chan et al. 2020 (*Measuring the Reliability of RL
+  Algorithms*): **Leistung** (IQM der erfolgreichen Seeds) und **Zuverlässigkeit** (erfolgreiche Seeds k/n,
+  Clopper-Pearson, exakter Fisher-Test); Gesamt-IQM bleibt Sortierschlüssel des Leaderboards. Befund: wenn das
+  Training gelingt, liegen alle Rezepte bei 68–75 % Leistung — sie unterscheiden sich vor allem in der
+  Zuverlässigkeit, und der Quader ist überall der Engpass. Bericht auf einen Kopf mit fünf Zeilen verdichtet,
+  Details ausklappbar (`experiments/README.md` → „Auswertung v2“).
 
 ---
 

@@ -547,6 +547,68 @@ def condition_lines(res: dict, ref: dict, label: str) -> list[str]:
     return lines
 
 
+def _details(title: str, body: list[str]) -> list[str]:
+    return ["", "<details>", f"<summary>{title}</summary>", ""] + body + ["", "</details>"]
+
+
+def head_lines(d: Path, exp: dict, pexp: dict | None, rec: dict, prec: dict | None, res: dict,
+               parent_main: dict, own_training: bool) -> tuple[list[str], dict]:
+    """Kopf des Berichts (Auswertung v2): Leistung, Zuverlässigkeit, Leitplanken, Befund, Urteilsvorschlag."""
+    pct = lambda x: "–" if x is None else f"{100 * x:.0f} %"  # noqa: E731
+    ci = lambda v: f"[{100 * v[0]:.0f}–{100 * v[1]:.0f} %]"  # noqa: E731
+    per_obj = " · ".join(f"{k} {pct(v)}" for k, v in zip(rec["kurz"], rec["leistung_je_objekt"]))
+    rez = {k: v for k, v in rec.items() if not k.startswith("_")}
+    src_dir = d if own_training else exp_path(exp.get("laeufe_von") or exp.get("eltern"))
+    causes = failure_causes(src_dir, rec)
+    lines = []
+    if not own_training:
+        ref = rec["leistung_je_objekt"][0]
+        gaps = " · ".join(f"{k} {pct(v)}" + (f" ({100 * (v - ref):+.0f} PP)" if j and v is not None and ref is not None else "")
+                          for j, (k, v) in enumerate(zip(rec["kurz"], rec["leistung_je_objekt"])))
+        lines += [f"**Transfer** (Läufe von {exp.get('laeufe_von') or exp.get('eltern')}, erfolgreiche Seeds, Median): {gaps}",
+                  f"**Zuverlässigkeit** {rec['k']}/{rec['n']} Seeds erfolgreich {ci(rec['zuverlaessigkeit_ki95'])}"
+                  + (f" — ohne Erfolg: {', '.join(causes)}" if causes else "")]
+        return lines, rez
+    lei = rec["leistung"]
+    cmp = compare_recipes(rec, prec) if prec else {}
+    rez["vergleich"] = {"eltern": exp.get("eltern"), **cmp} if cmp else None
+    l1 = (f"**Leistung** {pct(lei['iqm'])} {ci(lei['iqm_ki95'])} (erfolgreiche Seeds, IQM über die Objekte; "
+          f"je Objekt {per_obj})" if lei else "**Leistung** – (kein erfolgreicher Seed)")
+    if "leistung_p" in cmp:
+        lo, hi = cmp["leistung_ki95"]
+        word = "gesichert besser" if lo > 0.5 else ("gesichert schlechter" if hi < 0.5 else "kein Unterschied")
+        l1 += f" — ggü. {exp['eltern']}: P(besser) = {cmp['leistung_p']:.2f} [{lo:.2f}–{hi:.2f}] → {word}"
+    l2 = f"**Zuverlässigkeit** {rec['k']}/{rec['n']} Seeds erfolgreich {ci(rec['zuverlaessigkeit_ki95'])}"
+    if cmp:
+        word = ("gesichert schlechter" if cmp["zuverlaessigkeit_schlechter"] else
+                "gesichert besser" if cmp["zuverlaessigkeit_besser"] else "nicht unterscheidbar")
+        l2 += (f" — {exp['eltern']}: {prec['k']}/{prec['n']}, exakter Fisher-Test p = {cmp['fisher_p']:.2f} → {word}"
+               + (" (für eine Aussage ≥ 10 Seeds je Experiment)" if word == "nicht unterscheidbar" else ""))
+    violated = (res.get("vergleich") or {}).get("leitplanken_verletzt") or []
+    l3 = "**Leitplanken** " + ("; ".join(violated) + " ✗" if violated else ("eingehalten" if cmp else "– (keine Eltern)"))
+    finds = []
+    if causes:
+        finds.append("ohne Erfolg: " + ", ".join(causes))
+    vals = [v for v in rec["leistung_je_objekt"] if v is not None]
+    if len(vals) > 1:
+        j = int(np.argmin([v if v is not None else 2 for v in rec["leistung_je_objekt"]]))
+        finds.append(f"Engpass {rec['kurz'][j]} ({pct(rec['leistung_je_objekt'][j])})")
+    if parent_main:
+        lp, pp = res["leitplanken"], parent_main["leitplanken"]
+        fc = (res.get("fingernutzung") or {}).get("finger_mit_kontakt")
+        fp = (parent_main.get("fingernutzung") or {}).get("finger_mit_kontakt")
+        for label, c, q, f in (("Kippwinkel", lp.get("kipp_median_deg"), pp.get("kipp_median_deg"), "{:.0f}°"),
+                               ("Finger am Objekt", fc, fp, "{:.1f}"), ("Unruhe", lp.get("unruhe"), pp.get("unruhe"), "{:.2f}")):
+            if c is not None and q and abs(c - q) / abs(q) >= 0.25:
+                finds.append(f"{label} {f.format(c)} ({exp['eltern']}: {f.format(q)})")
+    l4 = "**Befund** " + ("; ".join(finds) if finds else "–")
+    u = (verdict_v2(cmp, violated) if cmp else
+         "Ausgangswert" if not pexp else "kein Vergleich (Eltern ohne Benchmark-Bewertung)")
+    rez["urteil"] = u
+    l5 = f"**Urteilsvorschlag** ({AUSWERTUNG}): **{u}**"
+    return [l1, "", l2, "", l3, "", l4, "", l5], rez
+
+
 def report(exp_id: str):
     d, exp = load(exp_id)
     pexp = load(exp["eltern"])[1] if exp.get("eltern") else None
@@ -560,44 +622,46 @@ def report(exp_id: str):
     own_training = exp.get("training") is not None
     parent_main = aggregate(pexp, pexp["bedingungen"][0]) if pexp and own_training else {}
     res["konfig_unterschiede"] = config_diff(res["_params"], parent_main["_params"]) if parent_main else []
+    used = BENCHMARK if recipe(exp) else conds
+    rec = recipe(exp, used)
+    prec = recipe(pexp, used) if (pexp and own_training) else None
     out = _clean(res)
     if len(results) > 1:
         out["weitere_bedingungen"] = {r["bedingung"]: _clean(r) for r, _, _ in results[1:]}
+    head, rez = head_lines(d, exp, pexp, rec, prec, res, parent_main, own_training) if rec else ([], None)
+    if rec:
+        out["rezept"] = rez
+        out["benchmark"] = {r["bedingung"]: _clean(r) for r in rec["_res"]}
     (d / "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
-    tr = training_plots(d, exp, training=own_training, conditions=len(results) > 1)
+    tr = training_plots(d, exp, training=own_training, conditions=bool(rec) and len(rec["bedingungen"]) > 1)
 
-    lines = [f"# {exp_id}: {exp.get('titel', '')}", ""]
+    lines = [f"# {exp_id}: {exp.get('titel', '')}", ""] + head
+    src = exp.get("laeufe_von") or exp.get("eltern")
     if own_training:
         best, bv = best_videos(d, exp)
         if bv:
-            lines += [f"**Beste Videos** (Seed {best}, bester mittlerer Aufgabenerfolg über alle Objekte, "
-                      "3 Episoden): " + " · ".join(bv), ""]
-    if not own_training:
-        src = exp.get("laeufe_von") or exp.get("eltern")
-        lines += [f"Ohne eigenes Training — bewertet die Läufe von {src}.", ""]
-    if len(results) > 1:
-        g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
-        lines += ["| Bedingung | Objekt | Kipp ≤ | Aufgabenerfolg [95-%-KI] | IQM | Haltequote | Kipp° | Finger | Urteilsvorschlag |",
-                  "|---|---|---|---|---|---|---|---|---|"]
-        for r, _, label in results:
-            fn = (r.get("fingernutzung") or {}).get("finger_mit_kontakt")
-            lines.append(f"| `{r['bedingung']}` | `{r['objekt']}` | {r['anforderung_max_kipp_deg']}° | "
-                         f"{_pct(r['aufgabenerfolg']['mittel'])} [{_pct(r['aufgabenerfolg']['ki95'][0])} – "
-                         f"{_pct(r['aufgabenerfolg']['ki95'][1])}] | {_pct(r['aufgabenerfolg']['iqm'])} | "
-                         f"{_pct(r['haltequote']['mittel'])} | {g(r['leitplanken'].get('kipp_median_deg'))} | "
-                         f"{'–' if fn is None else f'{fn:.1f}'} | {r['vergleich']['urteil']}"
-                         f"{f' (ggü. {label})' if label else ''} |")
-        lines += ["", "![Ergebnis je Bedingung](diagramme/bedingungen.svg)"]
-        for r, rf, label in results:
-            lines += ["", f"## Bedingung `{r['bedingung']}`", ""] + condition_lines(r, rf, label)
-    else:
-        lines += condition_lines(*results[0])
-    if tr:
-        lines += training_section(tr)
+            lines += ["", f"**Beste Videos** (Seed {best}, 3 Episoden): " + " · ".join(bv)]
+    if (d / "diagramme" / "bedingungen.svg").exists():
+        lines += ["", "![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)"]
     if (d / "diagramme" / "verlauf.svg").exists() and own_training:
-        lines += ["", "## Verlauf über die Episode", "",
-                  "Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.",
-                  "", "![Verlauf über die Episode](diagramme/verlauf.svg)"]
+        lines += ["", "![Verlauf über die Episode](diagramme/verlauf.svg)"]
+
+    # ── Details (ausklappbar) ──
+    body = []
+    if len(results) > 1:
+        for r, rf, label in results:
+            body += ["", f"#### Bedingung `{r['bedingung']}`", ""] + condition_lines(r, rf, label)
+    else:
+        body += condition_lines(*results[0])
+    lines += _details("Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)", body)
+    if tr:
+        lines += _details("Trainingsverlauf", training_section(tr)[2:])
+    elif not own_training:
+        sd = exp_path(src).name
+        lines += ["", f"Trainingsverlauf: siehe Quelle [{src}](../{sd}/bericht.md) — "
+                  + " · ".join(f"[{t}](../{sd}/diagramme/{n}.svg)" for n, t in (
+                      ("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
+                      ("ppo", "PPO-Diagnose")))]
     vids = sorted((d / "videos").glob("*.mp4")) if (d / "videos").exists() else []
     vsrc = d if vids else (exp_path(src) if not own_training else None)
     vids = vids or (sorted((vsrc / "videos").glob("*.mp4")) if vsrc and (vsrc / "videos").exists() else [])
@@ -605,37 +669,31 @@ def report(exp_id: str):
         rel = "videos" if vsrc == d else f"../{vsrc.name}/videos"
         objs = list(dict.fromkeys(v.stem.rsplit("_s", 1)[0] for v in vids))
         seeds_v = sorted({v.stem.rsplit("_s", 1)[1] for v in vids}, key=int)
-        lines += ["", "## Videos", "", "Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode."
-                  + (f" Quelle: {src}." if vsrc != d else ""), "",
-                  "| Objekt | " + " | ".join(f"Seed {s}" for s in seeds_v) + " |", "|---|" + "---|" * len(seeds_v)]
+        vb = ["16 Umgebungen, eine Episode (nicht im Git, Hugging Face)." + (f" Quelle: {src}." if vsrc != d else ""), "",
+              "| Objekt | " + " | ".join(f"Seed {s}" for s in seeds_v) + " |", "|---|" + "---|" * len(seeds_v)]
         for o in objs:
-            lines.append(f"| `{o}` | " + " | ".join(
+            vb.append(f"| `{o}` | " + " | ".join(
                 f"[▶]({rel}/{o}_s{s}.mp4)" if (vsrc / "videos" / f"{o}_s{s}.mp4").exists() else "–" for s in seeds_v) + " |")
-    if tr:
-        pass
-    elif not own_training:
-        sd = exp_path(src).name
-        lines += ["", "## Trainingsverlauf", "", f"Siehe Quelle [{src}](../{sd}/bericht.md#trainingsverlauf): "
-                  + " · ".join(f"[{t}](../{sd}/diagramme/{n}.svg)" for n, t in (
-                      ("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
-                      ("ppo", "PPO-Diagnose")))]
+        lines += _details("Videos aller Seeds", vb)
     n = res["netz"]
-    lines += ["", "## Netz und Training", "",
-              f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "
-              f"(Verlauf {n['verlauf']}) · Critic {n['critic']} · PPO: Lernrate {n['lernrate']}, Entropie {n['entropie']}, "
-              f"{n['epochen']} Epochen × {n['mini_batches']} Mini-Batches, {n['schritte_je_umgebung']} Schritte/Umgebung · "
-              f"{n['umgebungen']} Umgebungen × {n['iterationen']} Iterationen"]
+    nb = [f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "
+          f"(Verlauf {n['verlauf']}) · Critic {n['critic']} · PPO: Lernrate {n['lernrate']}, Entropie {n['entropie']}, "
+          f"{n['epochen']} Epochen × {n['mini_batches']} Mini-Batches, {n['schritte_je_umgebung']} Schritte/Umgebung · "
+          f"{n['umgebungen']} Umgebungen × {n['iterationen']} Iterationen"]
     if parent_main:
         diffs = res["konfig_unterschiede"]
-        lines += ["", f"## Konfiguration gegenüber {exp['eltern']} ({len(diffs)} Unterschiede)", "",
-                  f"Geplante Änderung: {exp.get('aenderung', '')}", ""]
-        lines += [f"- `{x}`" for x in diffs[:80]] or ["- keine"]
+        nb += ["", f"Geplante Änderung: {exp.get('aenderung', '')}", "",
+               f"Konfiguration gegenüber {exp['eltern']} ({len(diffs)} Unterschiede):", ""]
+        nb += [f"- `{x}`" for x in diffs[:80]] or ["- keine"]
         if len(diffs) > 80:
-            lines.append(f"- … {len(diffs) - 80} weitere (results.json)")
+            nb.append(f"- … {len(diffs) - 80} weitere (results.json)")
+    lines += _details("Netz, Training und Konfiguration", nb)
     (d / "bericht.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    for r, _, _ in results:
-        log(f"{exp_id} [{r['bedingung']}]: Aufgabenerfolg {_pct(r['aufgabenerfolg']['mittel'])}, Haltequote "
-            f"{_pct(r['haltequote']['mittel'])} → {r['vergleich']['urteil']}")
+    if rez and rez.get("leistung"):
+        log(f"{exp_id}: Leistung {_pct(rez['leistung']['iqm'])}, {rez['k']}/{rez['n']} Seeds erfolgreich"
+            + (f" → {rez['urteil']}" if rez.get("urteil") else ""))
+    else:
+        log(f"{exp_id}: kein erfolgreicher Seed")
 
 
 # ── bench / run / eval / done ─────────────────────────────────────────────────
@@ -784,7 +842,9 @@ def _index_row(d: Path, exp: dict, cond: dict, r: dict, first: bool) -> str:
     g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
     ident = f"[{exp['id']}]({d.name}/experiment.yaml)" if first else f"↳ {exp['id']}"
     head = (f"| {ident} | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | " if first else f"| {ident} | | | ")
-    vs = r.get("vergleich", {})
+    vs = dict(r.get("vergleich", {}))
+    if first and (r.get("rezept") or {}).get("urteil"):
+        vs["urteil"] = r["rezept"]["urteil"] + f" ({AUSWERTUNG})"
     gegen = f" (ggü. {vs['gegen']})" if vs.get("gegen") and not first else ""
     return (head + f"{cond['name']} ≤{requirement(cond)}° | {r.get('seeds', '–')} | "
             f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
@@ -838,7 +898,13 @@ def pooled_iqm(results: list[dict], rng) -> dict | None:
     IQM davon; 95-%-KI per stratifiziertem Bootstrap (je Objekt Seeds und Episoden ziehen)."""
     if not results or not all(results) or len({tuple(r["seed_ids"]) for r in results}) != 1:
         return None      # nur vollständig bewertete Policies (gleiche Seeds an allen Objekten)
-    per_obj = [r["_erfolg_je_seed"] for r in results]
+    return pooled_iqm_lists([r["_erfolg_je_seed"] for r in results], rng)
+
+
+def pooled_iqm_lists(per_obj: list[list[np.ndarray]], rng) -> dict | None:
+    """Wie pooled_iqm, direkt auf Erfolg je Episode: per_obj[Objekt][Seed] = Array."""
+    if not per_obj or not all(per_obj):
+        return None
     point = iqm([s.mean() for obj in per_obj for s in obj])
     boot = np.empty(BOOT)
     for b in range(BOOT):
@@ -861,6 +927,86 @@ def prob_improvement(x: list[list[float]], y: list[list[float]], rng) -> dict:
         boot[b] = p([np.asarray(xo)[rng.integers(0, len(xo), len(xo))] for xo in x],
                     [np.asarray(yo)[rng.integers(0, len(yo), len(yo))] for yo in y])
     return {"p": p(x, y), "ki95": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))]}
+
+
+# ── Auswertung v2: Leistung und Zuverlässigkeit getrennt (Chan et al. 2020, Agarwal et al. 2021) ──────
+
+AUSWERTUNG = "auswertung-v2"
+
+
+def clopper_pearson(k: int, n: int, alpha: float = 0.05) -> list[float]:
+    from scipy.stats import beta
+    lo = 0.0 if k == 0 else float(beta.ppf(alpha / 2, k, n - k + 1))
+    hi = 1.0 if k == n else float(beta.ppf(1 - alpha / 2, k + 1, n - k))
+    return [lo, hi]
+
+
+def recipe(exp: dict, conds: list[dict] | None = None) -> dict | None:
+    """Kennzahlen eines Rezepts über Bedingungen (Standard: Benchmark): Leistung = IQM des Aufgabenerfolgs der
+    erfolgreichen Seeds (Mittel über die Objekte ≥ 50 %, README) über Seeds × Objekte; Zuverlässigkeit =
+    erfolgreiche Seeds k/n (Clopper-Pearson-KI); Gesamt = IQM aller Seeds × Objekte (rliable)."""
+    conds = conds or BENCHMARK
+    res = [aggregate(exp, c) for c in conds]
+    if not all(res) or len({tuple(r["seed_ids"]) for r in res}) != 1:
+        return None
+    M = np.array([r["aufgabenerfolg"]["je_seed"] for r in res])            # Objekte × Seeds
+    ok = M.mean(axis=0) >= FAIL_BELOW
+    rng = np.random.default_rng(0)
+    k, n = int(ok.sum()), len(ok)
+    return {"auswertung": AUSWERTUNG, "bedingungen": [c["name"] for c in conds],
+            "kurz": [c.get("kurz", c["name"]) for c in conds], "seed_ids": res[0]["seed_ids"],
+            "je_seed": M.tolist(), "erfolgreich": ok.tolist(), "k": k, "n": n,
+            "zuverlaessigkeit_ki95": clopper_pearson(k, n),
+            "leistung": pooled_iqm_lists([[s for s, o in zip(r["_erfolg_je_seed"], ok) if o] for r in res], rng) if k else None,
+            "leistung_je_objekt": [float(np.median(M[i, ok])) if k else None for i in range(len(conds))],
+            "gesamt": pooled_iqm_lists([r["_erfolg_je_seed"] for r in res], rng), "_res": res, "_M": M, "_ok": ok}
+
+
+def compare_recipes(child: dict, parent: dict) -> dict:
+    """Leistung: P(Kind > Eltern) über die erfolgreichen Seeds (rliable); Zuverlässigkeit: exakter Fisher-Test."""
+    from scipy.stats import fisher_exact
+    out = {}
+    if child["k"] and parent["k"] and child["bedingungen"] == parent["bedingungen"]:
+        pi = prob_improvement([child["_M"][i, child["_ok"]].tolist() for i in range(len(child["bedingungen"]))],
+                              [parent["_M"][i, parent["_ok"]].tolist() for i in range(len(parent["bedingungen"]))],
+                              np.random.default_rng(0))
+        out["leistung_p"], out["leistung_ki95"] = pi["p"], pi["ki95"]
+    out["fisher_p"] = float(fisher_exact([[child["k"], child["n"] - child["k"]],
+                                          [parent["k"], parent["n"] - parent["k"]]])[1])
+    out["zuverlaessigkeit_schlechter"] = out["fisher_p"] < 0.05 and child["k"] / child["n"] < parent["k"] / parent["n"]
+    out["zuverlaessigkeit_besser"] = out["fisher_p"] < 0.05 and child["k"] / child["n"] > parent["k"] / parent["n"]
+    return out
+
+
+def verdict_v2(cmp: dict, violated: list[str]) -> str:
+    lo, hi = cmp.get("leistung_ki95", [0, 1])
+    if "leistung_p" in cmp and lo > 0.5 and not cmp["zuverlaessigkeit_schlechter"] and not violated:
+        return "besser"
+    if ("leistung_p" in cmp and hi < 0.5) or cmp["zuverlaessigkeit_schlechter"]:
+        u = "schlechter"
+    else:
+        u = "kein Unterschied"
+    return u + (", Leitplanke verletzt" if violated else "")
+
+
+def failure_causes(d: Path, rec: dict) -> list[str]:
+    """Ursache je gescheitertem Seed: hält gekippt (Haltequote ≥ 50 %), lernt nicht zu greifen (Gegengriff im
+    Training ≈ 0) oder greift, verliert das Objekt."""
+    tj = d / "diagramme" / "training.json"
+    train = {s["seed"]: s["endwerte"] for s in json.loads(tj.read_text())["je_seed"]} if tj.exists() else {}
+    main = rec["_res"][0]
+    out = []
+    for i, (s, ok) in enumerate(zip(rec["seed_ids"], rec["erfolgreich"])):
+        if ok:
+            continue
+        if main["je_seed"][i]["haltequote"] >= 0.5:
+            why = "hält, aber gekippt"
+        elif train.get(s, {}).get("Episode_Reward/good_contact", 1.0) < 0.05:
+            why = "lernt nicht zu greifen"
+        else:
+            why = "greift, verliert das Objekt"
+        out.append(f"Seed {s} ({why})")
+    return out
 
 
 def best_seed(res: dict):
@@ -996,86 +1142,70 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+def vorschlag(d: Path, exp: dict, rec: dict) -> str:
+    """Kurzer Urteilsvorschlag (Auswertung v2) aus results.json; ✓, wenn Leon ein Urteil bestätigt hat."""
+    r = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
+    u = (r.get("rezept") or {}).get("urteil") or "–"
+    return u + (" ✓" if "bestätigt" in str(exp.get("urteil") or "") else "")
+
+
 def write_leaderboard():
-    pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
-    rows, rng = [], np.random.default_rng(0)
+    """Rangliste aller Policies (Auswertung v2): sortiert nach Gesamt (IQM aller Seeds × Benchmark-Objekte,
+    rliable), daneben Leistung (erfolgreiche Seeds) je Objekt und Zuverlässigkeit (erfolgreiche Seeds)."""
+    pct = lambda x: "–" if x is None else f"{100 * x:.0f}"  # noqa: E731
+    ci = lambda m: f"[{pct(m['iqm_ki95'][0])}–{pct(m['iqm_ki95'][1])}]" if m else ""  # noqa: E731
+    rows = []
     for d, exp in trained_experiments():
-        res = {c["name"]: aggregate(exp, c) for c in BENCHMARK}
-        res["_gesamt"] = pooled_iqm([res[c["name"]] for c in BENCHMARK], rng)
-        rows.append((d, exp, res))
-    key = BENCHMARK[0]["name"]
-    rows.sort(key=lambda r: -(r[2]["_gesamt"]["iqm"] if r[2]["_gesamt"] else -1))
-    lead = rows[0][2]["_gesamt"] if rows and rows[0][2]["_gesamt"] else None
-
-    def ci(m, k="iqm_ki95"):
-        return f"{pct(m[k][0])}–{pct(m[k][1])}" if m.get(k) else "–"
-
+        rec = recipe(exp)
+        rows.append((d, exp, rec))
+    rows.sort(key=lambda r: -(r[2]["gesamt"]["iqm"] if r[2] and r[2]["gesamt"] else -1))
+    lead = rows[0][2] if rows and rows[0][2] else None
+    rng = np.random.default_rng(0)
     L = ["# Leaderboard — Greif-Policies", "",
-         "Automatisch erzeugt (`experiments.py done` / `leaderboard`). Alle Policies (Experimente mit eigenem Training) "
-         "unter denselben Benchmark-Bedingungen: Protokoll eval-v1, Kippwinkel ≤ 45°, Objekte "
-         + ", ".join(f"{c['kurz']} (`{c['objekt_id']}`)" for c in BENCHMARK) + ". Sortiert nach dem **IQM des "
-         "Aufgabenerfolgs über alle Objekte** (rliable: Erfolgsquoten aller Seeds × Objekte gepoolt, Mittel der "
-         "mittleren 50 % — robust gegen einzelne gescheiterte Seeds); 95-%-KI per stratifiziertem Bootstrap. "
-         "Je Objekt dasselbe über die Seeds. **P(1 > X)**: Wahrscheinlichkeit, dass ein Lauf von Platz 1 besser "
-         "ist als einer dieser Policy (rliable „probability of improvement“, gemittelt über die Objekte); "
-         "**gesichert**, wenn die untere KI-Grenze über 0,5 liegt — sonst kein belastbarer Abstand zu Platz 1. "
-         "Quelle: Agarwal et al. 2021, *Deep RL at the Edge of the Statistical Precipice*. Werte in %.", "",
-         "## Rangliste", "",
-         "| Rang | Experiment | Titel | Seeds | It. × Umg. | IQM alle Objekte [KI] | "
-         + " | ".join(f"IQM {c['kurz']} [KI]" for c in BENCHMARK) + " | Fehlschlag-Seeds | P(1 > X) [KI] | Urteil |",
-         "|---|---|---|---|---|---|" + "---|" * len(BENCHMARK) + "---|---|---|"]
-    for i, (d, exp, res) in enumerate(rows, 1):
-        m = res[key].get("aufgabenerfolg") if res[key] else None
-        tot = res["_gesamt"]
-        tie = "–"
-        if tot and lead and i > 1:
-            pi = prob_improvement([rows[0][2][c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK],
-                                  [res[c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK], rng)
-            tie = (f"{pi['p']:.2f} [{pi['ki95'][0]:.2f}–{pi['ki95'][1]:.2f}]"
-                   + (" gesichert" if pi["ki95"][0] > 0.5 else ""))
-        seeds = res[key]["seeds"] if res[key] else 0
-        cells = []
-        for c in BENCHMARK:
-            r = res[c["name"]]
-            cells.append(f"{pct(r['aufgabenerfolg']['iqm'])} [{ci(r['aufgabenerfolg'])}]" if r else "–")
-        n = (res[key] or {}).get("netz") or {}
-        # Fehlschlag: Seed unter 50 % Aufgabenerfolg im Mittel über die Objekte
-        seed_means = np.mean([res[c["name"]]["aufgabenerfolg"]["je_seed"] for c in BENCHMARK], axis=0) if tot else []
-        fails = f"{sum(v < FAIL_BELOW for v in seed_means)}/{seeds}" if tot else "–"
-        L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
-                 f"{seeds}{'' if seeds >= 5 else ' ⚠'} | {_budget_cell(n) if n else '–'} | "
-                 + (f"**{pct(tot['iqm'])}** [{ci(tot)}] | " if tot else "– | ") + " | ".join(cells) + " | "
-                 f"{fails} | {tie} | "
-                 f"{exp.get('urteil') or '–'} |")
-    L += ["", "⚠ weniger als 5 Seeds (vorläufig).", "",
-          f"## Verhalten ({BENCHMARK[0]['kurz']}, gehaltene Episoden, Mittel über Seeds)", "",
-          "| Experiment | Haltequote | Kipp° | Unterarm° | Finger am Objekt | Griffkraft [N] | Kraft > 15 N | Stall | Unruhe |",
-          "|---|---|---|---|---|---|---|---|---|"]
-    g = lambda x, f="{:.0f}": "–" if x is None else f.format(x)  # noqa: E731
-    for d, exp, res in rows:
-        r = res[key]
-        if not r:
+         f"Automatisch erzeugt ({AUSWERTUNG}). Benchmark: Protokoll eval-v1, Kippwinkel ≤ 45°, "
+         + ", ".join(c["kurz"] for c in BENCHMARK) + ". **Gesamt** = IQM des Aufgabenerfolgs über alle Seeds × Objekte "
+         "(rliable, sortiert danach). **Leistung** = dasselbe nur über die erfolgreichen Seeds (Mittel über die Objekte "
+         "≥ 50 %), je Objekt als Median. **Zuverlässigkeit** = erfolgreiche Seeds. **P(1 > X)**: Wahrscheinlichkeit, "
+         "dass ein Lauf von Platz 1 besser ist (gesichert, wenn die untere KI-Grenze > 0,5). Werte in %, KI 95 %. "
+         "Vorschlag = Urteilsregel v2 gegenüber den Eltern (✓: Leon hat das Experiment bewertet, Urteil im Bericht). "
+         "Quellen: Agarwal et al. 2021 (rliable), Chan et al. 2020 (Zuverlässigkeit).", "",
+         "| Rang | Experiment | Titel | Gesamt [KI] | Leistung [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
+         + " | erfolgreiche Seeds | Unruhe | P(1 > X) | Vorschlag (v2) | beste Videos |",
+         "|---|---|---|---|---|" + "---|" * len(BENCHMARK) + "---|---|---|---|---|"]
+    for i, (d, exp, rec) in enumerate(rows, 1):
+        if not rec:
+            L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | nicht vollständig bewertet |"
+                     + " |" * (len(BENCHMARK) + 7))
             continue
-        lp, fn = r["leitplanken"], (r.get("fingernutzung") or {}).get("finger_mit_kontakt")
-        L.append(f"| {exp['id']} | {pct(r['haltequote']['mittel'])} | {g(lp.get('kipp_median_deg'))} | "
-                 f"{g(lp.get('unterarm_median_deg'))} | {g(fn, '{:.1f}')} | {g(lp.get('kraft_mittel_n'))} | "
-                 f"{pct(lp.get('kraft_ueber_15n_anteil'))} | {pct(lp.get('stall_anteil'))} | {g(lp.get('unruhe'), '{:.2f}')} |")
-    L += ["", "## Einsatz-Kandidat je Policy", "",
-          "Bester Seed nach mittlerem Aufgabenerfolg über alle Benchmark-Objekte — Auswahl nach der Bewertung, "
-          "daher optimistisch; für Vergleiche zählt die Rangliste.", "",
-          "| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
-          "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
-    for d, exp, res in rows:
-        best, per = best_seed(res)
+        tie = "–"
+        if i > 1 and lead:
+            pi = prob_improvement([lead["_M"][j].tolist() for j in range(len(BENCHMARK))],
+                                  [rec["_M"][j].tolist() for j in range(len(BENCHMARK))], rng)
+            tie = f"{pi['p']:.2f} [{pi['ki95'][0]:.2f}–{pi['ki95'][1]:.2f}]" + (" gesichert" if pi["ki95"][0] > 0.5 else "")
+        best, _ = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
+        vids = " ".join(f"[▶]({d.name}/beste_videos/{c['objekt_id']}_s{best}.mp4)" for c in BENCHMARK
+                        if best is not None and (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists()) or "–"
+        unruhe = rec["_res"][0]["leitplanken"].get("unruhe")
+        warn = "" if rec["n"] >= 5 else " ⚠"
+        L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
+                 f"**{pct(rec['gesamt']['iqm'])}** {ci(rec['gesamt'])} | "
+                 + (f"{pct(rec['leistung']['iqm'])} {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
+                 + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + f" | {rec['k']}/{rec['n']}{warn} | "
+                 f"{'–' if unruhe is None else f'{unruhe:.2f}'} | {tie} | {vorschlag(d, exp, rec)} | {vids} |")
+    eins = ["| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
+            "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
+    for d, exp, rec in rows:
+        if not rec:
+            continue
+        best, per = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
         if best is None:
             continue
         run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), exp["laeufe"][0])
-        n = res[key].get("netz") or {}
-        vid = lambda c: (f" [▶]({d.name}/beste_videos/{c['objekt_id']}_s{best}.mp4)"  # noqa: E731
-                         if (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists() else "")
-        L.append(f"| {exp['id']} | {best} | "
-                 + " | ".join(pct(per[c["name"]].get(best)) + vid(c) for c in BENCHMARK)
-                 + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
+        n = rec["_res"][0].get("netz") or {}
+        eins.append(f"| {exp['id']} | {best} | " + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
+                    + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
+    L += ["", "⚠ weniger als 5 Seeds (vorläufig)."] + _details(
+        "Einsatz-Kandidaten (bester Seed je Policy — nach der Bewertung ausgewählt, daher optimistisch)", eins)
     (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     log(f"leaderboard.md aktualisiert ({len(rows)} Policies)")
 

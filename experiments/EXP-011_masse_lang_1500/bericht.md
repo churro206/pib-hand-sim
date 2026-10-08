@@ -1,16 +1,26 @@
 # EXP-011: EXP-006 mit 1500 Iterationen (längeres Training)
 
-**Beste Videos** (Seed 42, bester mittlerer Aufgabenerfolg über alle Objekte, 3 Episoden): [Ø 6 cm](beste_videos/zylinder_d6_s42.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s42.mp4) · [Quader](beste_videos/quader_7x7x20_s42.mp4)
+**Leistung** 68 % [62–78 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 91 % · Ø 8 cm 61 % · Quader 45 %) — ggü. EXP-006: P(besser) = 0.25 [0.06–0.47] → gesichert schlechter
 
-| Bedingung | Objekt | Kipp ≤ | Aufgabenerfolg [95-%-KI] | IQM | Haltequote | Kipp° | Finger | Urteilsvorschlag |
-|---|---|---|---|---|---|---|---|---|
-| `zylinder_seitlich` | `zylinder_d6` | 45° | 78.7 % [52.9 % – 93.1 %] | 90.9 % | 94.3 % | 28 | 2.9 | kein messbarer Unterschied (ggü. EXP-006) |
-| `zylinder_d8_seitlich` | `zylinder_d8` | 45° | 60.3 % [50.6 % – 72.7 %] | 57.9 % | 66.9 % | 25 | 2.9 | kein messbarer Unterschied (ggü. EXP-006) |
-| `quader_seitlich` | `quader_7x7x20` | 45° | 33.2 % [19.3 % – 46.7 %] | 36.0 % | 45.9 % | 30 | 2.9 | kein messbarer Unterschied (ggü. EXP-006) |
+**Zuverlässigkeit** 3/5 Seeds erfolgreich [15–95 %] — EXP-006: 4/5, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
-![Ergebnis je Bedingung](diagramme/bedingungen.svg)
+**Leitplanken** Unruhe: 1.2 > 0.374 ✗
 
-## Bedingung `zylinder_seitlich`
+**Befund** ohne Erfolg: Seed 43 (hält, aber gekippt), Seed 45 (hält, aber gekippt); Engpass Quader (45 %); Unruhe 1.20 (EXP-006: 0.31)
+
+**Urteilsvorschlag** (auswertung-v2): **schlechter, Leitplanke verletzt**
+
+**Beste Videos** (Seed 42, 3 Episoden): [Ø 6 cm](beste_videos/zylinder_d6_s42.mp4) · [Ø 8 cm](beste_videos/zylinder_d8_s42.mp4) · [Quader](beste_videos/quader_7x7x20_s42.mp4)
+
+![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)
+
+![Verlauf über die Episode](diagramme/verlauf.svg)
+
+<details>
+<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
+
+
+#### Bedingung `zylinder_seitlich`
 
 Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
 
@@ -36,7 +46,7 @@ Je Seed: 87.9 %, 27.2 %, 93.4 %, 93.5 %, 91.3 %
 
 Fingernutzung (Haltephase): im Mittel 2.89 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/97/85/97/0 · 100/0/95/0/100 · 99/99/0/27/0 · 100/0/0/96/0 · 99/55/0/99/96
 
-## Bedingung `zylinder_d8_seitlich`
+#### Bedingung `zylinder_d8_seitlich`
 
 Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
 
@@ -62,7 +72,7 @@ Je Seed: 83.2 %, 52.9 %, 59.4 %, 45.1 %, 60.8 %
 
 Fingernutzung (Haltephase): im Mittel 2.88 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/99/34/97/0 · 100/0/100/0/98 · 100/97/0/76/0 · 77/0/0/74/0 · 99/91/0/99/99
 
-## Bedingung `quader_seitlich`
+#### Bedingung `quader_seitlich`
 
 Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
 
@@ -88,7 +98,11 @@ Je Seed: 44.8 %, 17.2 %, 43.6 %, 10.7 %, 49.5 %
 
 Fingernutzung (Haltephase): im Mittel 2.92 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 96/97/56/89/0 · 100/0/98/0/98 · 97/99/0/63/0 · 98/0/0/95/0 · 98/84/0/97/95
 
-## Trainingsverlauf
+</details>
+
+<details>
+<summary>Trainingsverlauf</summary>
+
 
 Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar); geglättet, x = Simulationsschritte. Endwerte = Mittel der letzten 10 Iterationen (Belohnungsanteile je Sekunde Episode).
 
@@ -114,15 +128,12 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 ![PPO-Diagnose](diagramme/ppo.svg)
 
-## Verlauf über die Episode
+</details>
 
-Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.
+<details>
+<summary>Videos aller Seeds</summary>
 
-![Verlauf über die Episode](diagramme/verlauf.svg)
-
-## Videos
-
-Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face).
 
 | Objekt | Seed 42 | Seed 43 | Seed 44 | Seed 45 | Seed 46 |
 |---|---|---|---|---|---|
@@ -130,12 +141,17 @@ Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode.
 | `zylinder_d6` | [▶](videos/zylinder_d6_s42.mp4) | [▶](videos/zylinder_d6_s43.mp4) | [▶](videos/zylinder_d6_s44.mp4) | [▶](videos/zylinder_d6_s45.mp4) | [▶](videos/zylinder_d6_s46.mp4) |
 | `zylinder_d8` | [▶](videos/zylinder_d8_s42.mp4) | [▶](videos/zylinder_d8_s43.mp4) | [▶](videos/zylinder_d8_s44.mp4) | [▶](videos/zylinder_d8_s45.mp4) | [▶](videos/zylinder_d8_s46.mp4) |
 
-## Netz und Training
+</details>
+
+<details>
+<summary>Netz, Training und Konfiguration</summary>
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 1500 Iterationen
 
-## Konfiguration gegenüber EXP-006 (1 Unterschiede)
-
 Geplante Änderung: Nur Trainingsdauer: 1500 statt 300 Iterationen (Lift-Rezept), sonst wie EXP-006 (Task Heavy-v0). Bewertung direkt unter allen drei Objekten.
 
+Konfiguration gegenüber EXP-006 (1 Unterschiede):
+
 - `agent.max_iterations: 300 → 1500`
+
+</details>
