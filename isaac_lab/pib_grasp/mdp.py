@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import torch
 
 from isaaclab.assets import Articulation, RigidObject
-from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import ManagerTermBase, SceneEntityCfg
 from isaaclab.sensors import ContactSensor
 
 if TYPE_CHECKING:
@@ -140,6 +140,27 @@ def place_objects_by_size(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, 
         size = cache.ComputeWorldBound(stage.GetPrimAtPath(path)).ComputeAlignedRange().GetSize()
         obj.data.default_root_state[idx, 0] = hand_x - palm_gap - size[0] / 2
         obj.data.default_root_state[idx, 2] = table_top_z + size[2] / 2
+
+
+class GraspDifficultyScheduler(ManagerTermBase):
+    """Curriculum wie Dexsuites DifficultyScheduler (adr_curriculum.py), mit unserem Erfolgskriterium statt des
+    Zielkommandos: je Umgebung Schwierigkeit +1 nach einer erfolgreichen Episode (bis zum Zeitende gehalten,
+    Kippwinkel ≤ max_kipp_deg), sonst −1; difficulty_frac = Mittel / max_difficulty steuert über
+    initial_final_interpolate_fn Schwerkraft und Beobachtungsrauschen (EXP-017)."""
+
+    def __init__(self, cfg, env):
+        super().__init__(cfg, env)
+        self.current = torch.ones(env.num_envs, device=env.device) * self.cfg.params.get("init_difficulty", 0)
+        self.difficulty_frac = 0.0
+
+    def __call__(self, env: ManagerBasedRLEnv, env_ids, max_kipp_deg: float = 45.0, init_difficulty: int = 0,
+                 min_difficulty: int = 0, max_difficulty: int = 10):
+        import math
+        ok = env.termination_manager.time_outs[env_ids] & (object_tilt(env)[env_ids] <= math.radians(max_kipp_deg))
+        self.current[env_ids] = torch.where(ok, self.current[env_ids] + 1, self.current[env_ids] - 1).clamp(
+            min=min_difficulty, max=max_difficulty)
+        self.difficulty_frac = float(self.current.mean() / max(max_difficulty, 1))
+        return self.difficulty_frac
 
 
 # ── Belohnungen ───────────────────────────────────────────────────────────────

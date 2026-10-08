@@ -31,6 +31,10 @@ parser = argparse.ArgumentParser()
 src = parser.add_mutually_exclusive_group(required=True)
 src.add_argument("--policy", type=str, help="exported/policy.pt (TorchScript)")
 src.add_argument("--checkpoint", type=str, help="model_<n>.pt eines Trainingslaufs (wird exportiert)")
+src.add_argument("--regel", type=str, choices=["alle_schliessen", "bis_kontakt"],
+                 help="regelbasierter Griff statt Policy (Baseline, EXP-014/015)")
+parser.add_argument("--regel-param", dest="regel_param", type=str, default="",
+                    help="Parameter der Regel, z. B. schliessen=0.4,nachdruck_deg=5,rotator_deg=90")
 parser.add_argument("--num_envs", type=int, default=256)
 parser.add_argument("--episodes", type=int, default=1000, help="Zahl der gewerteten Episoden")
 parser.add_argument("--seed", type=int, default=1000, help="Bewertungs-Seed (≠ Trainings-Seeds)")
@@ -96,6 +100,8 @@ if args_cli.checkpoint:
     export_policy_as_onnx(runner.alg.policy, normalizer=normalizer, path=export_dir, filename="policy.onnx")
     args_cli.policy = os.path.join(export_dir, "policy.pt")
 
+if args_cli.regel:
+    args_cli.policy = f"regel:{args_cli.regel}:{args_cli.regel_param}"
 out_dir = Path(args_cli.out) if args_cli.out else (
     Path(args_cli.policy).resolve().parent.parent if "exported" in args_cli.policy
     else Path(__file__).resolve().parent.parent / "isaac_sim" / "tools")
@@ -104,7 +110,55 @@ STEM = PROTOCOL if args_cli.bedingung == "zylinder_seitlich" else f"{PROTOCOL}_{
 if args_cli.video:
     env = gym.wrappers.RecordVideo(env, video_folder=str(out_dir / ("videos" if STEM == PROTOCOL else f"videos_{args_cli.bedingung}")), step_trigger=lambda s: s == 0,
                                    video_length=args_cli.video, disable_logger=True)
-policy = torch.jit.load(args_cli.policy, map_location=uenv.device).eval()
+class RuleGrasp(torch.nn.Module):
+    """Regelbasierter Griff im selben Aktionsraum wie die Policy (relative Servo-Ziele, Skala wie ActionsCfg) und
+    nur mit denselben Sensoren (Gelenkwinkel, FSR). Bis rot_s: Daumen-Rotator auf rotator_deg, sonst halten.
+    Danach schließen Daumen und Finger mit 'schliessen' (Anteil des maximalen Schritts je 1/60 s).
+    alle_schliessen: weiter schließen bis zum Anschlag (Heuristik wie Chen et al. 2022).
+    bis_kontakt: je Finger ab FSR > kontakt_n nur noch um nachdruck_deg nachdrücken (Hsiao et al. 2010).
+    Handgelenk und Unterarm halten ihre Startstellung."""
+
+    def __init__(self, env, name: str, params: str):
+        super().__init__()
+        p = {"schliessen": 0.4, "rotator_deg": 90.0, "rot_s": 0.4, "nachdruck_deg": 5.0, "kontakt_n": 1.0}
+        for kv in filter(None, params.split(",")):
+            k, v = kv.split("=")
+            p[k.strip()] = float(v)
+        self.p, self.name, self.env = p, name, env
+        self.robot = env.scene["robot"]
+        self.ids = [self.robot.joint_names.index(n) for n in SERVO_JOINTS]
+        term = env.action_manager.get_term("servos")
+        s = term._scale                                      # (Umgebungen × Aktionen) oder Skalar
+        self.scale = s[0].clone() if torch.is_tensor(s) else torch.full((len(self.ids),), float(s), device=env.device)
+        self.hold = None
+        self.contact = torch.zeros(env.num_envs, 5, dtype=torch.bool, device=env.device)
+
+    def forward(self, obs):
+        import math
+        env, p = self.env, self.p
+        q = self.robot.data.joint_pos[:, self.ids]
+        t = mdp.episode_time(env)
+        new = t <= env.step_dt + 1e-6
+        if self.hold is None:
+            self.hold = q.clone()
+        self.hold[new] = q[new]
+        self.contact[new] = False
+        a = torch.zeros_like(q)
+        a[:, :2] = ((self.hold[:, :2] - q[:, :2]) / self.scale[:2]).clamp(-1, 1)             # Unterarm, Handgelenk
+        a[:, 2] = ((math.radians(p["rotator_deg"]) - q[:, 2]) / self.scale[2]).clamp(-1, 1)  # Daumen-Rotator
+        closing = (t >= p["rot_s"]).float()[:, None]
+        a[:, 3:] = p["schliessen"] * closing                                                 # Daumen + 4 Finger
+        if self.name == "bis_kontakt":
+            self.contact |= mdp.fingertip_forces(env) > p["kontakt_n"]                       # FSR: Daumen … klein
+            squeeze = (math.radians(p["nachdruck_deg"]) / self.scale[3:]).clamp(-1, 1)
+            a[:, 3:] = torch.where(self.contact, squeeze.expand_as(a[:, 3:]) * closing, a[:, 3:])
+        return a
+
+
+if args_cli.regel:
+    policy = RuleGrasp(uenv, args_cli.regel, args_cli.regel_param)
+else:
+    policy = torch.jit.load(args_cli.policy, map_location=uenv.device).eval()
 obs, _ = env.reset(seed=args_cli.seed)
 
 robot = uenv.scene["robot"]
@@ -253,7 +307,7 @@ summary = {
 }
 result = {
     "protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt,
-    "policy": str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
+    "policy": args_cli.policy if args_cli.regel else str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
     "episoden": E, "umgebungen": N, "anforderung": {"max_kipp_deg": REQ_DEG},
     "dauer_s": round(time.time() - t_start, 1), "zusammenfassung": summary,
     "netz": {"eingaenge": int(obs["policy"].shape[-1]), "ausgaenge": int(uenv.action_manager.total_action_dim),
@@ -299,7 +353,7 @@ if args_cli.verlauf:
     n = trace_n.clamp(min=1)
     last = int((trace_n > 0).nonzero().max().item()) + 1 if (trace_n > 0).any() else 0
     verlauf = {"protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt,
-               "policy": str(Path(args_cli.policy).resolve()), "episoden": E, "dt_s": dt,
+               "policy": args_cli.policy if args_cli.regel else str(Path(args_cli.policy).resolve()), "episoden": E, "dt_s": dt,
                "absenken_s": [GRASP_TIME_S, HOLD_START_S],
                "t_s": [round((k + 1) * dt, 4) for k in range(last)],
                "laufend_anteil": (trace_n[:last] / max(E, 1)).tolist(),

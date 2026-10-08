@@ -2,6 +2,8 @@
 
 **Leistung** 73 % [63–81 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 93 % · Ø 8 cm 72 % · Quader 54 %) — ggü. EXP-004: P(besser) = 0.67 [0.42–0.92] → kein Unterschied
 
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 81 % · Saftpackung 63 %
+
 **Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — EXP-004: 2/5, exakter Fisher-Test p = 0.52 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
 **Leitplanken** Unruhe: 1.58 > 1.04 ✗

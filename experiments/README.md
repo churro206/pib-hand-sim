@@ -121,6 +121,8 @@ Regeln:
   - **Urteilsregel**: *besser*, wenn P(besser) gesichert > 0,5 (untere KI-Grenze), die Zuverlässigkeit nicht
     gesichert schlechter ist (Fisher p < 0,05) und keine Leitplanke verletzt ist; *schlechter*, wenn P gesichert
     < 0,5 oder die Zuverlässigkeit gesichert schlechter; sonst *kein Unterschied* (+ „Leitplanke verletzt“).
+  - **Leaderboard** sortiert nach der **Leistung** (Leon, 2026-10-08: am Ende zählt eine brauchbare Policy je
+    Greifart; die Zuverlässigkeit bestimmt nur, wie viele Seeds man braucht). Gesamt-IQM steht daneben.
   - **Bericht**: Kopf mit Leistung, Zuverlässigkeit, Leitplanken, Befund (Ursache je gescheitertem Seed:
     lernt nicht zu greifen / greift, verliert das Objekt / hält, aber gekippt; Engpass-Objekt; deutliche
     Verhaltensänderung ggü. den Eltern) und Urteilsvorschlag; darunter Diagramm je Bedingung (jeder Seed ein

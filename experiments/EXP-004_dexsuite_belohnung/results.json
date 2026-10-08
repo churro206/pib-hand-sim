@@ -476,6 +476,10 @@
    "zuverlaessigkeit_schlechter": false,
    "zuverlaessigkeit_besser": false
   },
+  "testobjekte": {
+   "flasche_seitlich": 0.6964999999999999,
+   "saftpackung_seitlich": 0.545
+  },
   "urteil": "kein Unterschied, Leitplanke verletzt"
  },
  "benchmark": {

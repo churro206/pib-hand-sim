@@ -284,6 +284,11 @@ def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path, neu: bool = 
     return ok
 
 
+def rule_args(exp: dict) -> list[str]:
+    r = exp["regel"]
+    return ["--regel", r["name"], "--regel-param", r.get("param") or ""]
+
+
 def evaluate_condition(run_dir: Path, exp: dict, cond: dict, video: bool, out):
     req = cond["anforderung"].get("max_kipp_deg")
     # Regel: immer der LETZTE Checkpoint, nie der beste nach Bewertung (sonst Auswahl-Verzerrung)
@@ -291,7 +296,9 @@ def evaluate_condition(run_dir: Path, exp: dict, cond: dict, video: bool, out):
     exported = run_dir / "exported" / "policy.pt"
     # Export aktueller als der letzte Checkpoint → Export nehmen (z. B. EXP-000: Critic-Eingang
     # hat sich seitdem geändert, der Checkpoint lädt nicht mehr, der Actor schon)
-    if exported.exists() and (not ckpts or exported.stat().st_mtime >= ckpts[-1].stat().st_mtime):
+    if exp.get("regel"):
+        src = rule_args(exp)
+    elif exported.exists() and (not ckpts or exported.stat().st_mtime >= ckpts[-1].stat().st_mtime):
         src = ["--policy", str(exported)]
     else:
         src = ["--checkpoint", str(ckpts[-1])]
@@ -301,7 +308,7 @@ def evaluate_condition(run_dir: Path, exp: dict, cond: dict, video: bool, out):
     subprocess.run(base + src + ["--num_envs", str(EVAL["umgebungen"]), "--episodes", str(EVAL["episoden"]),
                                  "--out", str(run_dir)], cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
     if video:
-        subprocess.run(base + ["--policy", str(run_dir / "exported" / "policy.pt"),
+        subprocess.run(base + (rule_args(exp) if exp.get("regel") else ["--policy", str(run_dir / "exported" / "policy.pt")]) + [
                                "--num_envs", str(EVAL["video_umgebungen"]), "--episodes", str(EVAL["video_umgebungen"]),
                                "--video", str(EVAL["video_schritte"]), "--out", str(run_dir / "video_eval")],
                        cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
@@ -624,7 +631,7 @@ def report(exp_id: str):
         log(f"{exp_id}: keine Bewertungen gefunden")
         return
     res, ref, _ = results[0]
-    own_training = exp.get("training") is not None
+    own_training = exp.get("training") is not None or bool(exp.get("regel"))
     parent_main = aggregate(pexp, pexp["bedingungen"][0]) if pexp and own_training else {}
     res["konfig_unterschiede"] = config_diff(res["_params"], parent_main["_params"]) if parent_main else []
     used = BENCHMARK if recipe(exp) else conds
@@ -638,7 +645,8 @@ def report(exp_id: str):
         out["rezept"] = rez
         out["benchmark"] = {r["bedingung"]: _clean(r) for r in rec["_res"]}
     (d / "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
-    tr = training_plots(d, exp, training=own_training, conditions=bool(rec) and len(rec["bedingungen"]) > 1)
+    tr = training_plots(d, exp, training=exp.get("training") is not None,
+                        conditions=bool(rec) and len(rec["bedingungen"]) > 1)
 
     lines = [f"# {exp_id}: {exp.get('titel', '')}", ""] + head
     src = exp.get("laeufe_von") or exp.get("eltern")
@@ -681,6 +689,15 @@ def report(exp_id: str):
                 f"[▶]({rel}/{o}_s{s}.mp4)" if (vsrc / "videos" / f"{o}_s{s}.mp4").exists() else "–" for s in seeds_v) + " |")
         lines += _details("Videos aller Seeds", vb)
     n = res["netz"]
+    if exp.get("regel"):
+        rg = exp["regel"]
+        lines += _details("Regel und Parameterwahl", [
+            f"Regel `{rg['name']}`, gewählt `{rg.get('param')}` aus dem Raster (Aufgabenerfolg mit Seed 2000, Mittel über "
+            f"die Benchmark-Objekte): " + ", ".join(f"`{k}` {100 * v:.0f} %" for k, v in (exp.get("raster_ergebnis") or {}).items())])
+        (d / "bericht.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        log(f"{exp_id}: Regel {rg['name']} ({rg.get('param')}) — Leistung "
+            f"{_pct(rez['leistung']['iqm']) if rez and rez.get('leistung') else '–'}")
+        return
     nb = [f"Actor {n['actor']} ({n['aktivierung']}), {n['actor_parameter']} Parameter, {n['eingaenge']} Eingänge "
           f"(Verlauf {n['verlauf']}) · Critic {n['critic']} · PPO: Lernrate {n['lernrate']}, Entropie {n['entropie']}, "
           f"{n['epochen']} Epochen × {n['mini_batches']} Mini-Batches, {n['schritte_je_umgebung']} Schritte/Umgebung · "
@@ -739,6 +756,9 @@ def cmd_run(a):
     for exp_id in a.ids:
         d, exp = load(exp_id)
         t = exp["training"]
+        if exp.get("regel"):
+            run_rule(d, exp)
+            continue
         if t is None:
             run_without_training(d, exp)
             continue
@@ -783,6 +803,42 @@ def cmd_run(a):
         save_fields(d, status="trainiert")
         report(exp_id)
     cmd_done(a)
+
+
+def run_rule(d: Path, exp: dict):
+    """Regel-Baseline (kein RL): Parameterraster mit eigenem Bewertungs-Seed (2000, 256 Episoden je Benchmark-
+    Objekt) auswählen, dann die gewählte Einstellung nach eval-v1 (Seed 1000) bewerten — Auswahl und finale
+    Bewertung getrennt (Patterson et al. 2024)."""
+    r = exp["regel"]
+    run_dir = REPO / "logs" / "regel" / exp["id"]
+    run_dir.mkdir(parents=True, exist_ok=True)
+    log(f"== {exp['id']}: {exp.get('titel')} (Regel {r['name']}, Raster {r.get('raster')})")
+    save_fields(d, status="läuft", commit=sh("git", "rev-parse", "--short", "HEAD"))
+    scores = {}
+    tmp = LOGS / "_regel_tmp"
+    for ps in r.get("raster") or [r.get("param") or ""]:
+        vals = []
+        for c in BENCHMARK:
+            shutil.rmtree(tmp, ignore_errors=True)
+            cmd = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--regel", r["name"], "--regel-param", ps,
+                   "--objekt", c["objekt_id"], "--bedingung", c["name"], "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"]),
+                   "--num_envs", "256", "--episodes", "256", "--seed", "2000", "--out", str(tmp)]
+            with open(LOGS / f"{exp['id']}_raster.log", "a", encoding="utf-8") as f:
+                subprocess.run(cmd, cwd=REPO, stdout=f, stderr=subprocess.STDOUT, timeout=1800)
+            js = list(tmp.glob("eval-v1*.json"))
+            vals.append(json.loads(js[0].read_text())["zusammenfassung"]["aufgabenerfolg"] if js else 0.0)
+        scores[ps] = float(np.mean(vals))
+        log(f"  Raster {ps or '(Standard)'}: Aufgabenerfolg {100 * scores[ps]:.1f} % (Seed 2000, Mittel über die Objekte)")
+    shutil.rmtree(tmp, ignore_errors=True)
+    best = max(scores, key=scores.get)
+    r["param"] = best
+    save_fields(d, regel=r, raster_ergebnis={k: round(v, 3) for k, v in scores.items()},
+                laeufe=[str(run_dir.relative_to(REPO))])
+    exp["laeufe"] = [str(run_dir.relative_to(REPO))]
+    log(f"  gewählt: {best} → Bewertung eval-v1")
+    evaluate(run_dir, exp, video=True, log_file=LOGS / f"{exp['id']}_eval.log")
+    save_fields(d, status="bewertet")
+    report(exp["id"])
 
 
 def run_without_training(d: Path, exp: dict):
@@ -915,7 +971,7 @@ def trained_experiments() -> list[tuple[Path, dict]]:
     out = []
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
         exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
-        if exp.get("training") is not None and exp.get("laeufe"):
+        if (exp.get("training") is not None or exp.get("regel")) and exp.get("laeufe"):
             out.append((d, exp))
     return out
 
@@ -1052,6 +1108,8 @@ def best_videos(d: Path, exp: dict) -> tuple[object, list[str]]:
     """Links zu den Videos des besten Seeds je Benchmark-Objekt: lang (3 Episoden, beste_videos/, im Git,
     von `medien` aufgenommen), sonst die kurze Aufnahme aus videos/."""
     best, _ = best_seed({c["name"]: aggregate(exp, c) for c in BENCHMARK})
+    if exp.get("regel"):
+        best = 0
     if best is None:
         return None, []
     links = []
@@ -1101,9 +1159,10 @@ def cmd_medien(a):
             m = re.search(r"_s(\d+)$", r)
             seed = m.group(1) if m else "0"
             policy = run / "exported" / "policy.pt"
+            src = rule_args(exp) if exp.get("regel") else ["--policy", str(policy)]
             for c in BENCHMARK:
-                base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", "--policy",
-                        str(policy), "--objekt", c["objekt_id"], "--bedingung", c["name"],
+                base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", *src,
+                        "--objekt", c["objekt_id"], "--bedingung", c["name"],
                         "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"])]
                 vstem = stem(exp, c).replace(exp["protokoll"], "verlauf-v1", 1)
                 log_file = LOGS / f"medien_{Path(r).name}.log"
@@ -1139,6 +1198,8 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
     """Lange Videos (3 Episoden) des besten Seeds je Benchmark-Objekt → <experiment>/beste_videos/ (im Git);
     Videos anderer Seeds dort werden entfernt."""
     best, _ = best_seed({c["name"]: aggregate(exp, c) for c in BENCHMARK})
+    if exp.get("regel"):
+        best = 0                                             # ein Lauf, Label s0
     out = d / "beste_videos"
     keep = {f"{c['objekt_id']}_s{best}.mp4" for c in BENCHMARK} if best is not None else set()
     for old in out.glob("*.mp4") if out.exists() else []:
@@ -1146,7 +1207,7 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
             old.unlink()
     if best is None:
         return
-    run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), None)
+    run = exp["laeufe"][0] if exp.get("regel") else next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), None)
     if run is None:
         return
     out.mkdir(exist_ok=True)
@@ -1156,8 +1217,9 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
             continue
         log(f"  Bestes Video {exp['id']} s{best} {c['kurz']} (3 Episoden)")
         shutil.rmtree(tmp, ignore_errors=True)
-        cmd = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", "--policy",
-               str(REPO / run / "exported" / "policy.pt"), "--objekt", c["objekt_id"], "--bedingung", c["name"],
+        src = rule_args(exp) if exp.get("regel") else ["--policy", str(REPO / run / "exported" / "policy.pt")]
+        cmd = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", *src,
+               "--objekt", c["objekt_id"], "--bedingung", c["name"],
                "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"]), "--num_envs", str(EVAL["video_umgebungen"]),
                "--episodes", str(EVAL["video_umgebungen"]), "--video", str(EVAL["beste_video_schritte"]), "--out", str(tmp)]
         try:
@@ -1179,26 +1241,29 @@ def vorschlag(d: Path, exp: dict, rec: dict) -> str:
 
 
 def write_leaderboard():
-    """Rangliste aller Policies (Auswertung v2): sortiert nach Gesamt (IQM aller Seeds × Benchmark-Objekte,
-    rliable), daneben Leistung (erfolgreiche Seeds) je Objekt und Zuverlässigkeit (erfolgreiche Seeds)."""
+    """Rangliste aller Policies (Auswertung v2): sortiert nach **Leistung** (IQM der erfolgreichen Seeds über die
+    Benchmark-Objekte) — Ziel ist eine brauchbare Policy je Greifart, die Zuverlässigkeit ist zweitrangig (Leon,
+    2026-10-08). Daneben Gesamt (alle Seeds, rliable) und Zuverlässigkeit."""
     pct = lambda x: "–" if x is None else f"{100 * x:.0f}"  # noqa: E731
     ci = lambda m: f"[{pct(m['iqm_ki95'][0])}–{pct(m['iqm_ki95'][1])}]" if m else ""  # noqa: E731
     rows = []
     for d, exp in trained_experiments():
         rec = recipe(exp)
         rows.append((d, exp, rec))
-    rows.sort(key=lambda r: -(r[2]["gesamt"]["iqm"] if r[2] and r[2]["gesamt"] else -1))
+    rows.sort(key=lambda r: -(r[2]["leistung"]["iqm"] if r[2] and r[2]["leistung"] else -1))
     lead = rows[0][2] if rows and rows[0][2] else None
     rng = np.random.default_rng(0)
     L = ["# Leaderboard — Greif-Policies", "",
          f"Automatisch erzeugt ({AUSWERTUNG}). Benchmark: Protokoll eval-v1, Kippwinkel ≤ 45°, "
-         + ", ".join(c["kurz"] for c in BENCHMARK) + ". **Gesamt** = IQM des Aufgabenerfolgs über alle Seeds × Objekte "
-         "(rliable, sortiert danach). **Leistung** = dasselbe nur über die erfolgreichen Seeds (Mittel über die Objekte "
-         "≥ 50 %), je Objekt als Median; Testobjekte (nie trainiert) ebenso, nicht in Gesamt/Leistung. **Zuverlässigkeit** = erfolgreiche Seeds. **P(1 > X)**: Wahrscheinlichkeit, "
-         "dass ein Lauf von Platz 1 besser ist (gesichert, wenn die untere KI-Grenze > 0,5). Werte in %, KI 95 %. "
+         + ", ".join(c["kurz"] for c in BENCHMARK) + ". Sortiert nach **Leistung** = IQM des Aufgabenerfolgs der "
+         "erfolgreichen Seeds (Mittel über die Objekte ≥ 50 %) über Seeds × Objekte — Ziel ist eine brauchbare Policy je "
+         "Greifart; je Objekt als Median; Testobjekte (nie trainiert) ebenso, nicht in der Leistung. **Gesamt** = IQM über "
+         "alle Seeds (rliable). **Zuverlässigkeit** = erfolgreiche Seeds. **P(1 > X)**: Wahrscheinlichkeit, "
+         "dass ein erfolgreicher Lauf von Platz 1 besser ist (gesichert, wenn die untere KI-Grenze > 0,5). ⚠: unter 5 "
+         "Seeds oder unter 3 erfolgreichen — Leistung vorläufig. Werte in %, KI 95 %. "
          "Vorschlag = Urteilsregel v2 gegenüber den Eltern (✓: Leon hat das Experiment bewertet, Urteil im Bericht). "
          "Quellen: Agarwal et al. 2021 (rliable), Chan et al. 2020 (Zuverlässigkeit).", "",
-         "| Rang | Experiment | Titel | Gesamt [KI] | Leistung [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
+         "| Rang | Experiment | Titel | Leistung [KI] | Gesamt [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
          + " | " + " | ".join(c["kurz"] for c in TESTOBJEKTE)
          + " | erfolgreiche Seeds | Unruhe | P(1 > X) | Vorschlag (v2) | beste Videos |",
          "|---|---|---|---|---|" + "---|" * (len(BENCHMARK) + len(TESTOBJEKTE)) + "---|---|---|---|---|"]
@@ -1208,18 +1273,20 @@ def write_leaderboard():
                      + " |" * (len(BENCHMARK) + len(TESTOBJEKTE) + 7))
             continue
         tie = "–"
-        if i > 1 and lead:
-            pi = prob_improvement([lead["_M"][j].tolist() for j in range(len(BENCHMARK))],
-                                  [rec["_M"][j].tolist() for j in range(len(BENCHMARK))], rng)
+        if i > 1 and lead and lead["k"] and rec["k"]:       # über die erfolgreichen Seeds, passend zur Sortierung
+            pi = prob_improvement([lead["_M"][j, lead["_ok"]].tolist() for j in range(len(BENCHMARK))],
+                                  [rec["_M"][j, rec["_ok"]].tolist() for j in range(len(BENCHMARK))], rng)
             tie = f"{pi['p']:.2f} [{pi['ki95'][0]:.2f}–{pi['ki95'][1]:.2f}]" + (" gesichert" if pi["ki95"][0] > 0.5 else "")
         best, _ = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
+        if exp.get("regel"):
+            best = 0
         vids = " ".join(f"[▶]({d.name}/beste_videos/{c['objekt_id']}_s{best}.mp4)" for c in BENCHMARK
                         if best is not None and (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists()) or "–"
         unruhe = rec["_res"][0]["leitplanken"].get("unruhe")
-        warn = "" if rec["n"] >= 5 else " ⚠"
+        warn = "" if rec["n"] >= 5 and rec["k"] >= 3 else " ⚠"
         L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
-                 f"**{pct(rec['gesamt']['iqm'])}** {ci(rec['gesamt'])} | "
-                 + (f"{pct(rec['leistung']['iqm'])} {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
+                 + (f"**{pct(rec['leistung']['iqm'])}** {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
+                 f"{pct(rec['gesamt']['iqm'])} {ci(rec['gesamt'])} | "
                  + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + " | "
                  + " | ".join(pct(v) for v in test_performance(exp, rec)) + f" | {rec['k']}/{rec['n']}{warn} | "
                  f"{'–' if unruhe is None else f'{unruhe:.2f}'} | {tie} | {vorschlag(d, exp, rec)} | {vids} |")
@@ -1235,7 +1302,7 @@ def write_leaderboard():
         n = rec["_res"][0].get("netz") or {}
         eins.append(f"| {exp['id']} | {best} | " + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
                     + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
-    L += ["", "⚠ weniger als 5 Seeds (vorläufig)."] + _details(
+    L += [""] + _details(
         "Einsatz-Kandidaten (bester Seed je Policy — nach der Bewertung ausgewählt, daher optimistisch)", eins)
     (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     log(f"leaderboard.md aktualisiert ({len(rows)} Policies)")

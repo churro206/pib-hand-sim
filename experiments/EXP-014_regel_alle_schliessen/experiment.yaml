@@ -1,0 +1,70 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-014
+titel: 'Regel-Baseline: alle Finger schließen (kein RL)'
+datum: '2026-10-08'
+eltern: EXP-013
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Eine feste Heuristik ohne Lernen (Daumen in Opposition, dann alle Finger
+  voll schließen) hält am Ø-6-cm-Zylinder ähnlich gut wie RL (Machbarkeitstest 2026-10-04:
+  14–15/16), aber mit mehr Kippen und schlechter am Quader und an den Testobjekten;
+  Leistung über alle Objekte unter EXP-013 (77 %).'
+aenderung: 'Kein RL: regelbasierter Griff (eval_policy --regel alle_schliessen) im
+  selben Aktionsraum und mit denselben Sensoren wie die Policy. Bis 0,4 s Daumen-Rotator
+  auf 90°, dann Daumen und Finger mit fester Geschwindigkeit zu bis zum Anschlag;
+  Handgelenk/Unterarm halten. Raster schliessen 0,2/0,4/0,8 mit Seed 2000 gewählt,
+  final eval-v1 (Seed 1000). Vorbild: heuristische Baselines wie Chen et al. 2022.'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d6
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: zylinder_d8_seitlich
+  objekt: Zylinder Ø 8 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d8
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: quader_seitlich
+  objekt: Quader 7 × 7 × 20 cm (±10 %), Fläche zur Hand ±15°, 0,05–0,2 kg (Benchmark)
+  objekt_id: quader_7x7x20
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: flasche_seitlich
+  objekt: Flasche Ø 7 × 25 cm (±10 %), 0,05–0,2 kg (Testobjekt, nie trainiert — Höhe
+    außerhalb des Trainings)
+  objekt_id: flasche_d7x25
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: saftpackung_seitlich
+  objekt: Saftpackung 9 × 6 × 19 cm (±10 %), schmale Seite zur Hand ±15°, 0,05–0,2
+    kg (Testobjekt, nie trainiert)
+  objekt_id: saftpackung_9x6x19
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training: null
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment
+regel:
+  name: alle_schliessen
+  raster:
+  - schliessen=0.2
+  - schliessen=0.4
+  - schliessen=0.8

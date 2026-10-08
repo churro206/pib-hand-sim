@@ -3,8 +3,7 @@ id: EXP-013
 titel: Objektvielfalt im Training (18 Formen der Kategorie seitlich)
 datum: '2026-10-08'
 eltern: EXP-006
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Training an 18 Formen der Kategorie (statt nur am Ø-6-cm-Zylinder) hebt den Engpass Quader
   (EXP-006: Leistung 55 %) deutlich (≥ +15 PP), die Leistung über die Benchmark-Objekte ist mindestens gleich
@@ -65,9 +64,13 @@ training:
 fenstertest: false              # ersetzt durch Szenenprüfung _check_multi.py (Leon remote)
 
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: ff7c673+lokal
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_18-58-22_EXP-013_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_19-19-09_EXP-013_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_19-32-23_EXP-013_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_19-45-13_EXP-013_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_20-03-02_EXP-013_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

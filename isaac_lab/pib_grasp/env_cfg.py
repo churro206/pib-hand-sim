@@ -27,6 +27,8 @@ from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.managers import CurriculumTermCfg as CurrTerm
+from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg
 from isaaclab.utils import configclass
@@ -34,6 +36,7 @@ from isaaclab.utils import configclass
 from pib_hand_left_v5_cfg import PIB_HAND_LEFT_V5_CFG, SERVO_JOINTS
 
 from isaaclab_tasks.manager_based.manipulation.dexsuite.mdp import rewards as dexsuite_rewards
+from isaaclab_tasks.manager_based.manipulation.dexsuite.mdp import curriculums as dexsuite_curriculums
 
 from . import mdp
 
@@ -412,6 +415,59 @@ class PibGraspEnvCfg_HeavyMulti(PibGraspEnvCfg_Heavy):
 
 FINGER_START_MAX_DEG = 4.0
 WRIST_START_MAX_DEG = 3.0
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiRand(PibGraspEnvCfg_HeavyMulti):
+    """EXP-016: wie EXP-013, Randomisierung der Hand wie Dexsuite: Servo-Gains 0,5–2 (statt 0,8–1,25) und
+    Gelenkreibung × 0–5 (neu, dexsuite_env_cfg.EventCfg.joint_friction). Größe bleibt ±10 % (Dexsuite 0,75–1,5
+    würde Objekte unter 15 cm Höhe erzeugen — außerhalb der Kategorie seitlich)."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.events.servo_gains.params["stiffness_distribution_params"] = (0.5, 2.0)
+        self.events.servo_gains.params["damping_distribution_params"] = (0.5, 2.0)
+        self.events.joint_friction = EventTerm(
+            func=base_mdp.randomize_joint_parameters, mode="startup",
+            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+                    "friction_distribution_params": (0.0, 5.0), "operation": "scale"})
+
+
+@configclass
+class CurriculumADRCfg:
+    """Wie Dexsuite (adr_curriculum.CurriculumCfg): Schwierigkeit 0–10 je Umgebung nach Erfolg; Schwerkraft
+    0 → 9,81 m/s² und Rauschen der Gelenkwinkel-Beobachtung 0 → ±0,1 rad (Dexsuite-Endwerte). FSR ohne
+    Rauschen (Dexsuite hat keine Kraftsensoren)."""
+    adr = CurrTerm(func=mdp.GraspDifficultyScheduler,
+                   params={"max_kipp_deg": 45.0, "init_difficulty": 0, "min_difficulty": 0, "max_difficulty": 10})
+    gravity_adr = CurrTerm(func=base_mdp.modify_term_cfg, params={
+        "address": "events.variable_gravity.params.gravity_distribution_params",
+        "modify_fn": dexsuite_curriculums.initial_final_interpolate_fn,
+        "modify_params": {"initial_value": ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+                          "final_value": ((0.0, 0.0, -9.81), (0.0, 0.0, -9.81)), "difficulty_term_str": "adr"}})
+    joint_pos_noise_min_adr = CurrTerm(func=base_mdp.modify_term_cfg, params={
+        "address": "observations.policy.joint_pos.noise.n_min",
+        "modify_fn": dexsuite_curriculums.initial_final_interpolate_fn,
+        "modify_params": {"initial_value": 0.0, "final_value": -0.1, "difficulty_term_str": "adr"}})
+    joint_pos_noise_max_adr = CurrTerm(func=base_mdp.modify_term_cfg, params={
+        "address": "observations.policy.joint_pos.noise.n_max",
+        "modify_fn": dexsuite_curriculums.initial_final_interpolate_fn,
+        "modify_params": {"initial_value": 0.0, "final_value": 0.1, "difficulty_term_str": "adr"}})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiADR(PibGraspEnvCfg_HeavyMulti):
+    """EXP-017: wie EXP-013, plus Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen wachsen mit dem
+    Erfolg). Dexsuite: 'deliberate trick … starting with no gravity (easy) … the agent learns more smoothly'."""
+    curriculum: CurriculumADRCfg = CurriculumADRCfg()
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.events.variable_gravity = EventTerm(func=base_mdp.randomize_physics_scene_gravity, mode="reset",
+                                                 params={"gravity_distribution_params": ([0.0, 0.0, 0.0], [0.0, 0.0, 0.0]),
+                                                         "operation": "abs"})
+        self.observations.policy.joint_pos.noise = Unoise(n_min=0.0, n_max=0.0)
+        self.observations.policy.enable_corruption = True
 START_REF_S = 0.1     # Startposition = Objektlage bei 0,1 s (abgesetzt, Größe eingeschwungen)
 
 

@@ -2,6 +2,8 @@
 
 **Leistung** 71 % [64–78 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 89 % · Ø 8 cm 74 % · Quader 55 %) — ggü. EXP-004: P(besser) = 0.69 [0.48–0.92] → kein Unterschied
 
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 67 % · Saftpackung 61 %
+
 **Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — EXP-004: 2/5, exakter Fisher-Test p = 0.52 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
 **Leitplanken** Griffkraft Mittel [N]: 92.6 > 71.6 ✗

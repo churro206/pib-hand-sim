@@ -27,3 +27,28 @@ Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote in %, [95
 | [EXP-012](EXP-012_dexsuite_belohnung_voll/experiment.yaml) | Belohnung wie Dexsuite (Annäherung mit Handfläche, Position 3D zur Startposition) | EXP-006 | zylinder_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 55.7 [18.2–93.4] | 64.1 | 40.0 | 56.0 [18.3–93.7] | 17 | 24 | 99.5 | 2.2 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
 | ↳ EXP-012 | | | zylinder_d8_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 44.2 [13.7–75.1] | 48.5 | 40.0 | 44.7 [14.0–75.8] | 16 | 25 | 99.6 | 2.0 | schlechter (ggü. EXP-006) |  |
 | ↳ EXP-012 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 30.0 [9.7–50.5] | 34.3 | 80.0 | 30.4 [9.8–51.1] | 16 | 26 | 99.7 | 2.1 | schlechter (ggü. EXP-006) |  |
+| [EXP-013](EXP-013_objektvielfalt/experiment.yaml) | Objektvielfalt im Training (18 Formen der Kategorie seitlich) | EXP-006 | zylinder_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 50.3 [16.0–84.8] | 56.6 | 40.0 | 55.6 [18.1–93.1] | 27 | 32 | 100.0 | 2.9 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-013 | | | zylinder_d8_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 49.4 [16.1–83.2] | 55.6 | 40.0 | 51.1 [16.4–86.1] | 22 | 31 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-006) |  |
+| ↳ EXP-013 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 33.6 [10.2–57.6] | 37.0 | 60.0 | 36.4 [11.6–61.3] | 23 | 32 | 100.0 | 2.8 | kein messbarer Unterschied (ggü. EXP-006) |  |
+| ↳ EXP-013 | | | flasche_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 49.1 [16.4–83.1] | 55.4 | 40.0 | 51.7 [16.8–86.7] | 24 | 30 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-006) |  |
+| ↳ EXP-013 | | | saftpackung_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 39.6 [12.7–66.7] | 45.4 | 40.0 | 41.7 [13.4–69.9] | 23 | 34 | 100.0 | 2.8 | kein messbarer Unterschied (ggü. EXP-006) |  |
+| [EXP-014](EXP-014_regel_alle_schliessen/experiment.yaml) | Regel-Baseline: alle Finger schließen (kein RL) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
+| ↳ EXP-014 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-014 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-014 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-014 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-015](EXP-015_regel_bis_kontakt/experiment.yaml) | Regel-Baseline: schließen bis Kontakt, taktiler Reflex (kein RL) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
+| ↳ EXP-015 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-015 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-015 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-015 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-016](EXP-016_randomisierung_dexsuite/experiment.yaml) | Randomisierung der Hand wie Dexsuite (Servo-Gains 0,5–2, Gelenkreibung) | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
+| ↳ EXP-016 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-016 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-016 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-016 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-017](EXP-017_curriculum_dexsuite/experiment.yaml) | Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg), 1500 Iterationen | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
+| ↳ EXP-017 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-017 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-017 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| ↳ EXP-017 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |

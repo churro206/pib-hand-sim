@@ -1,0 +1,72 @@
+# experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-016
+titel: Randomisierung der Hand wie Dexsuite (Servo-Gains 0,5–2, Gelenkreibung)
+datum: '2026-10-08'
+eltern: EXP-013
+status: geplant                 # geplant | läuft | ausgewertet | verworfen
+
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: Breitere Randomisierung der Hand wie Dexsuite (Servo-Gains 0,5–2, Gelenkreibung)
+  macht die Policy robuster gegenüber Servo-Streuung (wichtig für die echte Hand),
+  ohne die Leistung im Benchmark zu senken (P(besser) ggü. EXP-013 nicht gesichert
+  < 0,5).
+aenderung: 'Randomisierung wie Dexsuite (Task HeavyMultiRand-v0): Servo-Gains 0,5–2
+  statt 0,8–1,25, Gelenkreibung × 0–5 (neu). Objektgröße bleibt ±10 % (Dexsuite 0,75–1,5
+  würde Objekte unter 15 cm erzeugen).'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d6
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: zylinder_d8_seitlich
+  objekt: Zylinder Ø 8 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d8
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: quader_seitlich
+  objekt: Quader 7 × 7 × 20 cm (±10 %), Fläche zur Hand ±15°, 0,05–0,2 kg (Benchmark)
+  objekt_id: quader_7x7x20
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: flasche_seitlich
+  objekt: Flasche Ø 7 × 25 cm (±10 %), 0,05–0,2 kg (Testobjekt, nie trainiert — Höhe
+    außerhalb des Trainings)
+  objekt_id: flasche_d7x25
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: saftpackung_seitlich
+  objekt: Saftpackung 9 × 6 × 19 cm (±10 %), schmale Seite zur Hand ±15°, 0,05–0,2
+    kg (Testobjekt, nie trainiert)
+  objekt_id: saftpackung_9x6x19
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-HeavyMultiRand-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: null
+laeufe: []
+
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: ""                    # Kurzfassung der Zahlen
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: ""                     # was folgt daraus, nächstes Experiment
