@@ -11,6 +11,7 @@ die conda-Umgebung env_isaaclab muss aktiv sein (isaaclab.sh nimmt deren Python)
   /usr/bin/python3 isaac_lab/experiments.py eval EXP-000 [--neu]        # fehlende (--neu: alle) Bewertungen + Bericht
   /usr/bin/python3 isaac_lab/experiments.py bericht EXP-000             # nur Bericht + Trainingsdiagramme neu
   /usr/bin/python3 isaac_lab/experiments.py done                        # index.md neu erzeugen
+  /usr/bin/python3 isaac_lab/experiments.py medien [EXP-006] --videos --verlauf   # Videos + Episodenverlauf
 
 run, eval und done enden mit der Sicherung nach Hugging Face (backup_policies.py --upload;
 abschalten mit --kein-backup).
@@ -432,6 +433,8 @@ def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict
     Läufe und/oder Ergebnis je Bedingung (aus results.json); Fehler nur als Warnung."""
     runs = list(dict.fromkeys(exp.get("laeufe") or []))
     out = d / "diagramme" / "training.json"
+    vstems = [(stem(exp, c).replace(exp["protokoll"], "verlauf-v1", 1), c["kurz"]) for c in BENCHMARK]
+    trace = training and any((REPO / r / f"{s}.json").exists() for r in runs for s, _ in vstems)
     if not runs or not (training or conditions):
         return None
     if os.environ.get("CONDA_DEFAULT_ENV") != "env_isaaclab":
@@ -442,6 +445,8 @@ def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict
             cmd += ["--bedingungen", str((d / "results.json").relative_to(REPO))]
         if training:
             cmd += ["--runs", *runs]
+        if trace:
+            cmd += ["--verlauf-laeufe", *runs, "--verlauf-bedingungen", *(f"{s}={k}" for s, k in vstems)]
         if training and exp.get("eltern"):
             _, pexp = load(exp["eltern"])
             cmd += ["--eltern-runs", *dict.fromkeys(pexp.get("laeufe") or []), "--eltern-name", exp["eltern"]]
@@ -583,6 +588,25 @@ def report(exp_id: str):
         lines += condition_lines(*results[0])
     if tr:
         lines += training_section(tr)
+    if (d / "diagramme" / "verlauf.svg").exists() and own_training:
+        lines += ["", "## Verlauf über die Episode", "",
+                  "Benchmark-Objekte, Mittel über Seeds und laufende Episoden (256 je Lauf); grau: Tisch senkt sich.",
+                  "", "![Verlauf über die Episode](diagramme/verlauf.svg)"]
+    vids = sorted((d / "videos").glob("*.mp4")) if (d / "videos").exists() else []
+    vsrc = d if vids else (exp_path(src) if not own_training else None)
+    vids = vids or (sorted((vsrc / "videos").glob("*.mp4")) if vsrc and (vsrc / "videos").exists() else [])
+    if vids:
+        rel = "videos" if vsrc == d else f"../{vsrc.name}/videos"
+        objs = list(dict.fromkeys(v.stem.rsplit("_s", 1)[0] for v in vids))
+        seeds_v = sorted({v.stem.rsplit("_s", 1)[1] for v in vids}, key=int)
+        lines += ["", "## Videos", "", "Bewertung mit der aktuellen Kamera, 16 Umgebungen, eine Episode."
+                  + (f" Quelle: {src}." if vsrc != d else ""), "",
+                  "| Objekt | " + " | ".join(f"Seed {s}" for s in seeds_v) + " |", "|---|" + "---|" * len(seeds_v)]
+        for o in objs:
+            lines.append(f"| `{o}` | " + " | ".join(
+                f"[▶]({rel}/{o}_s{s}.mp4)" if (vsrc / "videos" / f"{o}_s{s}.mp4").exists() else "–" for s in seeds_v) + " |")
+    if tr:
+        pass
     elif not own_training:
         sd = exp_path(src).name
         lines += ["", "## Trainingsverlauf", "", f"Siehe Quelle [{src}](../{sd}/bericht.md#trainingsverlauf): "
@@ -849,6 +873,53 @@ def cmd_leaderboard(a):
         backup()
 
 
+def cmd_medien(a):
+    """Je Policy, Seed und Benchmark-Objekt: Verlauf über die Episode (verlauf-v1_*.json im Laufordner,
+    256 Episoden) und Video mit der aktuellen Kamera → experiments/EXP-NNN/videos/<objekt>_s<seed>.mp4.
+    Vorhandenes bleibt (--neu: neu erzeugen); Bewertungsdateien werden nie überschrieben (--nur-medien)."""
+    check_env()
+    exps = [(d, e) for d, e in trained_experiments() if not a.ids or e["id"] in a.ids]
+    tmp = LOGS / "_medien_tmp"
+    for d, exp in exps:
+        vdir = d / "videos"
+        vdir.mkdir(exist_ok=True)
+        for r in dict.fromkeys(exp["laeufe"]):
+            run = REPO / r
+            m = re.search(r"_s(\d+)$", r)
+            seed = m.group(1) if m else "0"
+            policy = run / "exported" / "policy.pt"
+            for c in BENCHMARK:
+                base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", "--policy",
+                        str(policy), "--objekt", c["objekt_id"], "--bedingung", c["name"],
+                        "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"])]
+                vstem = stem(exp, c).replace(exp["protokoll"], "verlauf-v1", 1)
+                log_file = LOGS / f"medien_{Path(r).name}.log"
+                with open(log_file, "a", encoding="utf-8") as out:
+                  try:
+                    if a.verlauf and (a.neu or not (run / f"{vstem}.json").exists()):
+                        log(f"  Verlauf {exp['id']} s{seed} {c['kurz']}")
+                        subprocess.run(base + ["--verlauf", "--num_envs", "256", "--episodes", "256", "--out", str(run)],
+                                       cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
+                    target = vdir / f"{c['objekt_id']}_s{seed}.mp4"
+                    if a.videos and (a.neu or not target.exists()):
+                        log(f"  Video {exp['id']} s{seed} {c['kurz']}")
+                        shutil.rmtree(tmp, ignore_errors=True)
+                        subprocess.run(base + ["--num_envs", str(EVAL["video_umgebungen"]), "--episodes",
+                                               str(EVAL["video_umgebungen"]), "--video", str(EVAL["video_schritte"]),
+                                               "--out", str(tmp)], cwd=REPO, stdout=out, stderr=subprocess.STDOUT,
+                                       timeout=1800)
+                        found = sorted(tmp.rglob("*.mp4"))
+                        if found:
+                            shutil.move(str(found[0]), target)
+                        else:
+                            log(f"  WARNUNG: kein Video ({log_file})")
+                  except subprocess.TimeoutExpired:
+                    log(f"  WARNUNG: Zeitüberschreitung {exp['id']} s{seed} {c['kurz']} ({log_file})")
+        report(exp["id"])
+    shutil.rmtree(tmp, ignore_errors=True)
+    cmd_done(a)
+
+
 def write_leaderboard():
     pct = lambda x: "–" if x is None else f"{100 * x:.1f}"  # noqa: E731
     rows, rng = [], np.random.default_rng(0)
@@ -966,13 +1037,18 @@ def main():
     e.add_argument("--neu", action="store_true", help="vorhandene Bewertungen neu rechnen (sonst nur fehlende)")
     bt = sub.add_parser("bericht")
     bt.add_argument("ids", nargs="+")
+    md = sub.add_parser("medien")
+    md.add_argument("ids", nargs="*", help="Experimente (leer: alle Policies)")
+    md.add_argument("--videos", action="store_true")
+    md.add_argument("--verlauf", action="store_true")
+    md.add_argument("--neu", action="store_true")
     lb = sub.add_parser("leaderboard")
     lb.add_argument("--bewerten", action="store_true", help="fehlende Benchmark-Bewertungen nachholen")
     d = sub.add_parser("done")
-    for s in (r, e, bt, lb, d):
+    for s in (r, e, bt, md, lb, d):
         s.add_argument("--kein-backup", action="store_true", help="nicht nach Hugging Face sichern")
     a = p.parse_args()
-    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "leaderboard": cmd_leaderboard, "done": cmd_done}[a.cmd](a)
+    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "leaderboard": cmd_leaderboard, "medien": cmd_medien, "done": cmd_done}[a.cmd](a)
 
 
 if __name__ == "__main__":

@@ -38,3 +38,6 @@ isaac_sim/tools/_*.txt
 logs/
 # Hydra-Ausgaben von Isaac Labs train.py/play.py
 outputs/
+
+# Bewertungsvideos je Experiment (groß, Sicherung auf Hugging Face)
+experiments/*/videos/

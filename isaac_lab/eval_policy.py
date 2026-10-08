@@ -14,6 +14,10 @@ bei einer neuen Version überschrieben. Andere Bedingung (Objekt aus env_cfg.OBJ
   ~/IsaacLab/isaaclab.sh -p isaac_lab/eval_policy.py --checkpoint <run>/model_299.pt --headless
 Mit --checkpoint: lädt wie Isaac Labs play.py und exportiert nach <run>/exported/ (JIT + ONNX).
 Mit --video N: zeichnet die ersten N Schritte auf (<out>/videos/), braucht Kameras.
+Mit --verlauf: zusätzlich Verlauf über die Episode (je Zeitschritt, Mittel über laufende Episoden:
+Objekthöhe ggü. Start, Kippwinkel, Finger am Objekt, Griffkraft, Anteil laufender Episoden) →
+verlauf-v1[_<bedingung>].json. --nur-medien: keine Bewertungsdateien schreiben (Video/Verlauf allein,
+überschreibt keine vorhandene Bewertung).
 """
 import argparse
 import sys
@@ -37,6 +41,9 @@ parser.add_argument("--out", type=str, default=None, help="Ausgabeordner (<proto
                     "Standard: Laufordner bzw. isaac_sim/tools/")
 parser.add_argument("--video", type=int, default=0, help="Schritte Video am Anfang (0 = aus)")
 parser.add_argument("--real_time", action="store_true", help="Auf Echtzeit bremsen (zum Zuschauen)")
+parser.add_argument("--verlauf", action="store_true", help="Verlauf über die Episode messen")
+parser.add_argument("--nur-medien", dest="nur_medien", action="store_true",
+                    help="keine eval-Dateien schreiben (nur Video/Verlauf)")
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
 if args_cli.video:
@@ -124,9 +131,20 @@ hold_fobj = torch.zeros(N, 5, device=dev)        # … und Objektkraft je Finger
 forearm0 = robot.data.joint_pos[:, forearm].clone()
 z0 = obj.data.root_pos_w[:, 2].clone()           # Dosenhöhe beim Episodenstart (Größe randomisiert)
 episodes = []                                   # abgeschlossene Episoden
+# Verlauf je Zeitschritt seit Episodenstart (Summen über laufende Episoden, nur abgeschlossene zählen)
+T = int(uenv.max_episode_length) + 2
+trace_keys = ("hoehe_mm", "kipp_deg", "finger", "kraft_n")
+trace_sum = {k: torch.zeros(T, device=dev) for k in trace_keys}
+trace_n = torch.zeros(T, device=dev)
+ep_trace = {k: torch.zeros(N, T, device=dev) for k in trace_keys}   # laufende Episode je Umgebung
 
 
 def finish(i, reason):
+    if args_cli.verlauf:
+        n_i = int(steps[i].item())
+        trace_n[:n_i] += 1
+        for k in trace_keys:
+            trace_sum[k][:n_i] += ep_trace[k][i, :n_i]
     held = reason == "time_out"
     req_ok = REQ_DEG is None or math.degrees(max_tilt[i].item()) <= REQ_DEG
     n = max(steps[i].item(), 1.0)
@@ -183,6 +201,13 @@ with torch.inference_mode():
         am = uenv.action_manager
         act_rate[live] += ((am.action - am.prev_action) ** 2).sum(-1)[live]
         sink[live] = (z0 - obj.data.root_pos_w[:, 2]).clamp(min=0.0)[live]   # Hand fest → ggü. Startlage
+        if args_cli.verlauf:
+            idx = (steps - 1).long().clamp(0, T - 1)
+            rows = live.nonzero().flatten()
+            vals = {"hoehe_mm": 1000 * (obj.data.root_pos_w[:, 2] - z0), "kipp_deg": torch.rad2deg(tilt),
+                    "finger": (fo > 1.0).float().sum(-1), "kraft_n": f.sum(-1)}
+            for k in trace_keys:
+                ep_trace[k][rows, idx[rows]] = vals[k][rows]
         if args_cli.real_time:
             time.sleep(max(0.0, dt - (time.time() - t0)))
 
@@ -270,8 +295,21 @@ lines = [
 ]
 if args_cli.video and getattr(env, "recording", False):
     env.stop_recording()                        # Video schreiben, auch wenn kürzer als --video
-(out_dir / f"{STEM}.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
-(out_dir / f"{STEM}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+if args_cli.verlauf:
+    n = trace_n.clamp(min=1)
+    last = int((trace_n > 0).nonzero().max().item()) + 1 if (trace_n > 0).any() else 0
+    verlauf = {"protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt,
+               "policy": str(Path(args_cli.policy).resolve()), "episoden": E, "dt_s": dt,
+               "absenken_s": [GRASP_TIME_S, HOLD_START_S],
+               "t_s": [round((k + 1) * dt, 4) for k in range(last)],
+               "laufend_anteil": (trace_n[:last] / max(E, 1)).tolist(),
+               **{k: (trace_sum[k][:last] / n[:last]).tolist() for k in trace_keys}}
+    vstem = STEM.replace(PROTOCOL, "verlauf-v1", 1)
+    (out_dir / f"{vstem}.json").write_text(json.dumps(verlauf), encoding="utf-8")
+    print(f"Verlauf: {out_dir / (vstem + '.json')}", flush=True)
+if not args_cli.nur_medien:
+    (out_dir / f"{STEM}.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+    (out_dir / f"{STEM}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 print("\n".join(lines), flush=True)
 print(f"Bericht: {out_dir / (STEM + '.txt')}", flush=True)
 os._exit(0)

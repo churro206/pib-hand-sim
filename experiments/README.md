@@ -22,6 +22,7 @@ experiments/
     results.json            automatisch: Metriken je Seed + Zusammenfassung + Urteilsvorschlag
     bericht.md              automatisch: lesbarer Bericht des Laufs (mit Trainingsverlauf)
     diagramme/              automatisch: Trainingsdiagramme (SVG) + training.json (Endwerte je Seed)
+    videos/                 automatisch (`medien`): <objekt>_s<seed>.mp4 je Benchmark-Objekt (nicht im Git, auf HF)
 logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     params/env.yaml, agent.yaml   Isaac Lab: vollständige Konfiguration
     meta.json                     Commit, Versionen, GPU, Befehl, Zeiten
@@ -67,6 +68,7 @@ Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
 /usr/bin/python3 isaac_lab/experiments.py done                           # 7: index.md + Sicherung
 /usr/bin/python3 isaac_lab/experiments.py bericht EXP-002                # Bericht + Diagramme neu, ohne Neubewertung
 /usr/bin/python3 isaac_lab/experiments.py leaderboard [--bewerten]       # Rangliste (--bewerten: fehlende Benchmark-Bewertungen)
+/usr/bin/python3 isaac_lab/experiments.py medien [EXP-006] --videos --verlauf   # Videos + Verlauf über die Episode
 ```
 
 Regeln:

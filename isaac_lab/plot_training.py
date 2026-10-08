@@ -9,6 +9,8 @@ Liest events.out.tfevents.* aller Seeds und schreibt nach <experiment>/diagramme
   training.json    Endwerte je Seed (Mittel der letzten 10 Iterationen, ungeglättet)
   bedingungen.svg  mit --bedingungen <results.json>: Ergebnis je Bedingung (Objekt) — Aufgabenerfolg,
                    Finger am Objekt, Kippwinkel je Seed, dazu Mittel (und 95-%-KI beim Aufgabenerfolg)
+  verlauf.svg      mit --verlauf-laeufe/--verlauf-bedingungen: Verlauf über die Episode je Objekt (Mittel über
+                   Seeds und laufende Episoden): Objekthöhe ggü. Start, Kippwinkel, Finger am Objekt, Griffkraft
 Seeds dünn (Farbe fest je Seed), Mittel über die Seeds kräftig; Eltern (Mittel, gestrichelt) nur
 bei Abbrüchen und PPO — die Trainings-Belohnung ist zwischen Experimenten nicht vergleichbar
 (ADR-016). x-Achse: Simulationsschritte (Iteration × Umgebungen × Schritte je Umgebung).
@@ -220,11 +222,52 @@ def plot_conditions(out: Path, results: dict, exp_name: str):
     plt.close(fig)
 
 
+def plot_trace(out: Path, runs: list[str], conds: list[tuple[str, str]], exp_name: str):
+    """Verlauf über die Episode: je Objekt eine Linie (Mittel über die Seeds), Absenken markiert."""
+    panels = [("hoehe_mm", "Objekthöhe ggü. Start [mm]"), ("kipp_deg", "Kippwinkel [°]"),
+              ("finger", "Finger am Objekt (> 1 N)"), ("kraft_n", "Griffkraft, Summe FSR [N]")]
+    fig, axes = plt.subplots(2, 2, figsize=(4.2 * 2, 2.6 * 2 + 0.9), squeeze=False)
+    fig.patch.set_facecolor(SURFACE)
+    handles, marks = {}, None
+    for j, (stem, kurz) in enumerate(conds):
+        data = [json.loads((REPO / r / f"{stem}.json").read_text()) for r in runs if (REPO / r / f"{stem}.json").exists()]
+        if not data:
+            continue
+        n = min(len(v["t_s"]) for v in data)
+        t = np.array(data[0]["t_s"][:n])
+        marks = data[0]["absenken_s"]
+        for ax, (key, title) in zip(axes.flat, panels):
+            y = np.mean([v[key][:n] for v in data], axis=0)
+            h, = ax.plot(t, y, color=SEED_COLORS[j], linewidth=2.0, solid_capstyle="round")
+            handles.setdefault(f"{kurz} ({len(data)} Seeds)", h)
+    for ax, (key, title) in zip(axes.flat, panels):
+        style_axis(ax)
+        ax.set_title(title, fontsize=9.5, color=INK, loc="left")
+        ax.set_xlabel("Zeit [s]", fontsize=8, color=INK2)
+        if marks:
+            ax.axvspan(marks[0], marks[1], color=GRID, alpha=0.6, linewidth=0)
+        if key == "hoehe_mm":
+            ax.axhline(0, color=AXIS, linewidth=1.0)
+    if marks:
+        axes[0, 0].annotate("Tisch senkt sich", (marks[1], 0), xytext=(4, 6), textcoords="offset points",
+                            fontsize=7.5, color=INK2)
+    fig.suptitle(f"{exp_name}: Verlauf über die Episode (Mittel über Seeds und laufende Episoden)", x=0.01,
+                 ha="left", fontsize=11, color=INK)
+    fig.legend(handles.values(), handles.keys(), loc="upper left", ncol=max(len(handles), 1), fontsize=8,
+               frameon=False, labelcolor=INK2, bbox_to_anchor=(0.0, 1 - 0.32 / fig.get_figheight()),
+               handlelength=1.8, columnspacing=1.2)
+    fig.tight_layout(rect=(0, 0, 1, 1 - 0.5 / fig.get_figheight()), pad=0.6)
+    fig.savefig(out, format="svg", facecolor=SURFACE, metadata={"Date": None})
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--exp-dir", required=True)
     ap.add_argument("--runs", nargs="*", default=[])
     ap.add_argument("--bedingungen", default=None, help="results.json → bedingungen.svg")
+    ap.add_argument("--verlauf-laeufe", nargs="*", default=[])
+    ap.add_argument("--verlauf-bedingungen", nargs="*", default=[], help="<dateistamm>=<Kurzname> je Objekt")
     ap.add_argument("--eltern-runs", nargs="*", default=[])
     ap.add_argument("--eltern-name", default="")
     a = ap.parse_args()
@@ -237,6 +280,10 @@ def main():
     if a.bedingungen:
         plot_conditions(exp_dir / "diagramme" / "bedingungen.svg", json.loads((REPO / a.bedingungen).read_text()), exp_name)
         print(f"Diagramm: {exp_dir / 'diagramme' / 'bedingungen.svg'}")
+    if a.verlauf_laeufe and a.verlauf_bedingungen:
+        conds = [tuple(s.split("=", 1)) for s in a.verlauf_bedingungen]
+        plot_trace(exp_dir / "diagramme" / "verlauf.svg", a.verlauf_laeufe, conds, exp_name)
+        print(f"Diagramm: {exp_dir / 'diagramme' / 'verlauf.svg'}")
     if not a.runs:
         return
     runs = [r for r in (load_run(REPO / p) for p in a.runs) if r]

@@ -22,7 +22,7 @@ REPO = Path(__file__).resolve().parent.parent
 RUNS = REPO / "logs" / "rsl_rl" / "pib_grasp_hand_left"
 DEFAULT_REPO_ID = "churro206/pib-grasp-policies"
 KEEP = ["exported/*", "params/*", "meta.json", "pib_hand_sim.diff", "pib_hand_sim_untracked.tar.gz",
-        "eval-v*.json", "eval-v*.txt", "events.out.tfevents.*", "video_eval/videos/*.mp4"]
+        "eval-v*.json", "eval-v*.txt", "verlauf-v*.json", "events.out.tfevents.*", "video_eval/videos/*.mp4"]
 
 MODEL_CARD = """---
 license: other
