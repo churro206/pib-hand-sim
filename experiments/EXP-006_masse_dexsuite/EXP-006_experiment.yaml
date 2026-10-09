@@ -1,0 +1,55 @@
+# EXP-NNN_experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-006
+titel: Objektmasse wie Dexsuite (0,04–0,4 kg)
+datum: '2026-10-07'
+eltern: EXP-004
+status: ausgewertet
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Mit schwereren Objekten im Training (wie Dexsuite) reicht der Pinzettengriff
+  nicht mehr; die Policy lernt, mehr Finger einzusetzen (Fingerzahl > 2) und hält
+  auch die leichteren Bewertungsobjekte sicherer. Risiko: Servo-Grenzen (2,94 Nm)
+  — schwere Dosen evtl. nicht haltbar, Aufgabenerfolg könnte sinken. Bewertung in
+  der unveränderten eval-v1-Umgebung (Zylinder 0,05–0,2 kg, ≤ 45°), direkt mit EXP-004
+  vergleichbar.'
+aenderung: 'Trainingsmasse der Dose 0,04–0,4 kg statt 0,05–0,2 kg (Dexsuite: 0,2 kg
+  × 0,2–2; Task Pib-Grasp-Hand-Left-Heavy-v0).'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-Heavy-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:          # 45, 46 nachgetragen 2026-10-07 (Regel 5 Seeds)
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: c5f71d9
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-56-52_EXP-006_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-09-35_EXP-006_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-21-47_EXP-006_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-41-08_EXP-006_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-52-56_EXP-006_s46
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: '5 Seeds: Aufgabenerfolg 77,5 % [52,0–93,4], IQM 89,0 %, Seeds 93/27/94/82/91
+  %; Haltequote 92 %, Kippwinkel 30°, Finger 2,9 (Kraftgriff), Unruhe 0,31 (ruhigste
+  Policy), Griffkraft 86 N. Leaderboard Platz 1: IQM über alle Objekte 67,8 % (Ø 6
+  cm 89, Ø 8 cm 74, Quader 53 %). Hebt das Objekt vor dem Absenken ~5 cm an (Verlauf).'
+urteil: kein gesicherter Unterschied zu EXP-004 nach eval-v1, aber robuster (1/5 Fehlschlag-Seeds)
+  und beste Übertragung — neue Baseline — bestätigt (Leon, 2026-10-08)
+schluss: Breitere Masse (wie Dexsuite) ergibt Kraftgriff mit ~3 Fingern und den besten
+  Transfer auf andere Objekte. Baseline für die nächsten Experimente (EXP-012 ff.).
+commit_nachtrag: 73b412a

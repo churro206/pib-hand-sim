@@ -149,14 +149,29 @@ def exp_path(exp_id: str) -> Path:
     return hits[0]
 
 
+def exp_prefix(d: Path) -> str:
+    return d.name.split("_")[0]                       # EXP-017_curriculum_dexsuite → EXP-017
+
+
+def exp_file(d: Path, name: str, sub: str = "") -> Path:
+    """Datei im Experimentordner mit Präfix EXP-NNN_, damit Namen repo-weit eindeutig sind (Editor-Tabs, Suche):
+    exp_file(d, "results.json") → EXP-017_results.json; sub = Unterordner (diagramme, videos, beste_videos)."""
+    return d / sub / f"{exp_prefix(d)}_{name}"
+
+
+def report_file(d: Path) -> Path:
+    """Bericht eines Experiments: <ordner>/<ordner>.md (heißt wie der Ordner, mit Kurzname)."""
+    return d / f"{d.name}.md"
+
+
 def load(exp_id: str) -> tuple[Path, dict]:
     d = exp_path(exp_id)
-    return d, yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
+    return d, yaml.safe_load(exp_file(d, "experiment.yaml").read_text(encoding="utf-8"))
 
 
 def save_fields(d: Path, **fields):
     """Felder in experiment.yaml ersetzen, Kommentare/Reihenfolge erhalten (einfache Skalare/Listen)."""
-    p = d / "experiment.yaml"
+    p = exp_file(d, "experiment.yaml")
     text = p.read_text(encoding="utf-8")
     for key, value in fields.items():
         dumped = yaml.safe_dump({key: value}, allow_unicode=True, default_flow_style=False, sort_keys=False).rstrip()
@@ -178,7 +193,7 @@ def cmd_new(a):
     d = EXP_DIR / f"{new_id}_{a.kurz}"
     d.mkdir()
     text = (EXP_DIR / "_vorlage.yaml").read_text(encoding="utf-8")
-    (d / "experiment.yaml").write_text(text, encoding="utf-8")
+    exp_file(d, "experiment.yaml").write_text(text, encoding="utf-8")
     if a.ohne_training:          # nur bewerten: Läufe der Eltern unter eigenen Bedingungen
         training, extra = None, {"laeufe_von": a.eltern, "fenstertest": True}
     else:
@@ -191,7 +206,7 @@ def cmd_new(a):
         base = str(parent["commit"]).split("+")[0]
         print(f"\nCode-Unterschiede seit {a.eltern} ({base}) — es sollte genau eine Änderung sein:")
         print(sh("git", "diff", "--stat", base, "--", "isaac_lab", "config", "isaac_sim/usd") or "  (keine)")
-    print(f"\nJetzt ausfüllen: {d.relative_to(REPO)}/experiment.yaml → hypothese, aenderung, fenstertest")
+    print(f"\nJetzt ausfüllen: {exp_file(d, 'experiment.yaml').relative_to(REPO)} → hypothese, aenderung, fenstertest")
 
 
 # ── Unterprozesse: Training mit Schutz gegen Hängen ──────────────────────────
@@ -440,7 +455,7 @@ def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict
     """Diagramme (plot_training.py über isaaclab.sh) → <experiment>/diagramme/: Trainingsverlauf der eigenen
     Läufe und/oder Ergebnis je Bedingung (aus results.json); Fehler nur als Warnung."""
     runs = list(dict.fromkeys(exp.get("laeufe") or []))
-    out = d / "diagramme" / "training.json"
+    out = exp_file(d, "training.json", "diagramme")
     vstems = [(stem(exp, c).replace(exp["protokoll"], "verlauf-v1", 1), c["kurz"]) for c in BENCHMARK]
     trace = training and any((REPO / r / f"{s}.json").exists() for r in runs for s, _ in vstems)
     if not runs or not (training or conditions):
@@ -450,7 +465,7 @@ def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict
     else:
         cmd = [str(ISAACLAB), "-p", "isaac_lab/plot_training.py", "--exp-dir", str(d.relative_to(REPO))]
         if conditions:
-            cmd += ["--bedingungen", str((d / "results.json").relative_to(REPO))]
+            cmd += ["--bedingungen", str(exp_file(d, "results.json").relative_to(REPO))]
         if training:
             cmd += ["--runs", *runs]
         if trace:
@@ -465,7 +480,7 @@ def training_plots(d: Path, exp: dict, training: bool, conditions: bool) -> dict
     return json.loads(out.read_text()) if training and out.exists() else None
 
 
-def training_section(tr: dict) -> list[str]:
+def training_section(tr: dict, pre: str) -> list[str]:
     figs = [("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
             ("ppo", "PPO-Diagnose")]
     seeds = tr["je_seed"]
@@ -486,7 +501,7 @@ def training_section(tr: dict) -> list[str]:
         known = [v for v in vals if v is not None]
         lines.append(f"| {tag.split('/', 1)[1]} | " + " | ".join(cells) + f" | {fmt(float(np.mean(known)))} |")
     for name, title in figs:
-        lines += ["", f"![{title}](diagramme/{name}.svg)"]
+        lines += ["", f"![{title}](diagramme/{pre}_{name}.svg)"]
     return lines
 
 
@@ -644,7 +659,7 @@ def report(exp_id: str):
     if rec:
         out["rezept"] = rez
         out["benchmark"] = {r["bedingung"]: _clean(r) for r in rec["_res"]}
-    (d / "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    exp_file(d, "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
     tr = training_plots(d, exp, training=exp.get("training") is not None,
                         conditions=bool(rec) and len(rec["bedingungen"]) > 1)
 
@@ -654,10 +669,11 @@ def report(exp_id: str):
         best, bv = best_videos(d, exp)
         if bv:
             lines += ["", f"**Beste Videos** (Seed {best}, 3 Episoden): " + " · ".join(bv)]
-    if (d / "diagramme" / "bedingungen.svg").exists():
-        lines += ["", "![Ergebnis je Bedingung — Punkte = Seeds](diagramme/bedingungen.svg)"]
-    if (d / "diagramme" / "verlauf.svg").exists() and own_training:
-        lines += ["", "![Verlauf über die Episode](diagramme/verlauf.svg)"]
+    for name, title, show in (("bedingungen", "Ergebnis je Bedingung — Punkte = Seeds", True),
+                              ("verlauf", "Verlauf über die Episode", own_training)):
+        f = exp_file(d, f"{name}.svg", "diagramme")
+        if f.exists() and show:
+            lines += ["", f"![{title}](diagramme/{f.name})"]
 
     # ── Details (ausklappbar) ──
     body = []
@@ -668,11 +684,12 @@ def report(exp_id: str):
         body += condition_lines(*results[0])
     lines += _details("Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)", body)
     if tr:
-        lines += _details("Trainingsverlauf", training_section(tr)[2:])
+        lines += _details("Trainingsverlauf", training_section(tr, exp_prefix(d))[2:])
     elif not own_training:
-        sd = exp_path(src).name
-        lines += ["", f"Trainingsverlauf: siehe Quelle [{src}](../{sd}/bericht.md) — "
-                  + " · ".join(f"[{t}](../{sd}/diagramme/{n}.svg)" for n, t in (
+        sdir = exp_path(src)
+        sd, sp = sdir.name, exp_prefix(sdir)
+        lines += ["", f"Trainingsverlauf: siehe Quelle [{src}](../{sd}/{sd}.md) — "
+                  + " · ".join(f"[{t}](../{sd}/diagramme/{sp}_{n}.svg)" for n, t in (
                       ("lernkurve", "Lernkurve"), ("belohnung", "Belohnungsanteile"), ("abbrueche", "Abbrüche"),
                       ("ppo", "PPO-Diagnose")))]
     vids = sorted((d / "videos").glob("*.mp4")) if (d / "videos").exists() else []
@@ -680,13 +697,14 @@ def report(exp_id: str):
     vids = vids or (sorted((vsrc / "videos").glob("*.mp4")) if vsrc and (vsrc / "videos").exists() else [])
     if vids:
         rel = "videos" if vsrc == d else f"../{vsrc.name}/videos"
-        objs = list(dict.fromkeys(v.stem.rsplit("_s", 1)[0] for v in vids))
+        vp = exp_prefix(vsrc) + "_"
+        objs = list(dict.fromkeys(v.stem.removeprefix(vp).rsplit("_s", 1)[0] for v in vids))
         seeds_v = sorted({v.stem.rsplit("_s", 1)[1] for v in vids}, key=int)
         vb = ["16 Umgebungen, eine Episode (nicht im Git, Hugging Face)." + (f" Quelle: {src}." if vsrc != d else ""), "",
               "| Objekt | " + " | ".join(f"Seed {s}" for s in seeds_v) + " |", "|---|" + "---|" * len(seeds_v)]
         for o in objs:
             vb.append(f"| `{o}` | " + " | ".join(
-                f"[▶]({rel}/{o}_s{s}.mp4)" if (vsrc / "videos" / f"{o}_s{s}.mp4").exists() else "–" for s in seeds_v) + " |")
+                f"[▶]({rel}/{vp}{o}_s{s}.mp4)" if exp_file(vsrc, f"{o}_s{s}.mp4", "videos").exists() else "–" for s in seeds_v) + " |")
         lines += _details("Videos aller Seeds", vb)
     n = res["netz"]
     if exp.get("regel"):
@@ -694,7 +712,7 @@ def report(exp_id: str):
         lines += _details("Regel und Parameterwahl", [
             f"Regel `{rg['name']}`, gewählt `{rg.get('param')}` aus dem Raster (Aufgabenerfolg mit Seed 2000, Mittel über "
             f"die Benchmark-Objekte): " + ", ".join(f"`{k}` {100 * v:.0f} %" for k, v in (exp.get("raster_ergebnis") or {}).items())])
-        (d / "bericht.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        report_file(d).write_text("\n".join(lines) + "\n", encoding="utf-8")
         log(f"{exp_id}: Regel {rg['name']} ({rg.get('param')}) — Leistung "
             f"{_pct(rez['leistung']['iqm']) if rez and rez.get('leistung') else '–'}")
         return
@@ -710,7 +728,7 @@ def report(exp_id: str):
         if len(diffs) > 80:
             nb.append(f"- … {len(diffs) - 80} weitere (results.json)")
     lines += _details("Netz, Training und Konfiguration", nb)
-    (d / "bericht.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    report_file(d).write_text("\n".join(lines) + "\n", encoding="utf-8")
     if rez and rez.get("leistung"):
         log(f"{exp_id}: Leistung {_pct(rez['leistung']['iqm'])}, {rez['k']}/{rez['n']} Seeds erfolgreich"
             + (f" → {rez['urteil']}" if rez.get("urteil") else ""))
@@ -883,8 +901,8 @@ def cmd_done(a):
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     n_exp = 0
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
-        exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
-        main = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
+        exp = yaml.safe_load(exp_file(d, "experiment.yaml").read_text(encoding="utf-8"))
+        main = json.loads(exp_file(d, "results.json").read_text()) if exp_file(d, "results.json").exists() else {}
         n_exp += 1
         for k, cond in enumerate(exp["bedingungen"]):
             r = main if k == 0 else (main.get("weitere_bedingungen") or {}).get(cond["name"], {})
@@ -901,7 +919,7 @@ def _index_row(d: Path, exp: dict, cond: dict, r: dict, first: bool) -> str:
     ae, hq, lp = r.get("aufgabenerfolg"), r.get("haltequote"), r.get("leitplanken", {})
     f = lambda m: f"{pct(m['mittel'])} [{pct(m['ki95'][0])}–{pct(m['ki95'][1])}]" if m else "–"  # noqa: E731
     g = lambda x: "–" if x is None else f"{x:.0f}"  # noqa: E731
-    ident = f"[{exp['id']}]({d.name}/experiment.yaml)" if first else f"↳ {exp['id']}"
+    ident = f"[{exp['id']}]({d.name}/{exp_file(d, 'experiment.yaml').name})" if first else f"↳ {exp['id']}"
     head = (f"| {ident} | {exp.get('titel', '')} | {exp.get('eltern') or '–'} | " if first else f"| {ident} | | | ")
     vs = dict(r.get("vergleich", {}))
     if first and (r.get("rezept") or {}).get("urteil"):
@@ -970,7 +988,7 @@ def test_performance(exp: dict, rec: dict | None) -> list:
 def trained_experiments() -> list[tuple[Path, dict]]:
     out = []
     for d in sorted(EXP_DIR.glob("EXP-[0-9][0-9][0-9]_*")):
-        exp = yaml.safe_load((d / "experiment.yaml").read_text(encoding="utf-8"))
+        exp = yaml.safe_load(exp_file(d, "experiment.yaml").read_text(encoding="utf-8"))
         if (exp.get("training") is not None or exp.get("regel")) and exp.get("laeufe"):
             out.append((d, exp))
     return out
@@ -1075,7 +1093,7 @@ def verdict_v2(cmp: dict, violated: list[str]) -> str:
 def failure_causes(d: Path, rec: dict) -> list[str]:
     """Ursache je gescheitertem Seed: hält gekippt (Haltequote ≥ 50 %), lernt nicht zu greifen (Gegengriff im
     Training ≈ 0) oder greift, verliert das Objekt."""
-    tj = d / "diagramme" / "training.json"
+    tj = exp_file(d, "training.json", "diagramme")
     train = {s["seed"]: s["endwerte"] for s in json.loads(tj.read_text())["je_seed"]} if tj.exists() else {}
     main = rec["_res"][0]
     out = []
@@ -1114,10 +1132,10 @@ def best_videos(d: Path, exp: dict) -> tuple[object, list[str]]:
         return None, []
     links = []
     for c in BENCHMARK:
-        name = f"{c['objekt_id']}_s{best}.mp4"
         for sub in ("beste_videos", "videos"):
-            if (d / sub / name).exists():
-                links.append(f"[{c['kurz']}]({sub}/{name})")
+            f = exp_file(d, f"{c['objekt_id']}_s{best}.mp4", sub)
+            if f.exists():
+                links.append(f"[{c['kurz']}]({sub}/{f.name})")
                 break
     return best, links
 
@@ -1142,7 +1160,7 @@ def cmd_leaderboard(a):
 
 def cmd_medien(a):
     """Je Policy, Seed und Benchmark-Objekt: Verlauf über die Episode (verlauf-v1_*.json im Laufordner,
-    256 Episoden) und Video mit der aktuellen Kamera → experiments/EXP-NNN/videos/<objekt>_s<seed>.mp4.
+    256 Episoden) und Video mit der aktuellen Kamera → experiments/EXP-NNN_*/videos/EXP-NNN_<objekt>_s<seed>.mp4.
     Vorhandenes bleibt (--neu: neu erzeugen); Bewertungsdateien werden nie überschrieben (--nur-medien)."""
     check_env()
     exps = [(d, e) for d, e in trained_experiments() if not a.ids or e["id"] in a.ids]
@@ -1172,7 +1190,7 @@ def cmd_medien(a):
                         log(f"  Verlauf {exp['id']} s{seed} {c['kurz']}")
                         subprocess.run(base + ["--verlauf", "--num_envs", "256", "--episodes", "256", "--out", str(run)],
                                        cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
-                    target = vdir / f"{c['objekt_id']}_s{seed}.mp4"
+                    target = exp_file(d, f"{c['objekt_id']}_s{seed}.mp4", "videos")
                     if a.videos and (a.neu or not target.exists()):
                         log(f"  Video {exp['id']} s{seed} {c['kurz']}")
                         shutil.rmtree(tmp, ignore_errors=True)
@@ -1201,7 +1219,7 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
     if exp.get("regel"):
         best = 0                                             # ein Lauf, Label s0
     out = d / "beste_videos"
-    keep = {f"{c['objekt_id']}_s{best}.mp4" for c in BENCHMARK} if best is not None else set()
+    keep = {exp_file(d, f"{c['objekt_id']}_s{best}.mp4", "beste_videos").name for c in BENCHMARK} if best is not None else set()
     for old in out.glob("*.mp4") if out.exists() else []:
         if old.name not in keep:
             old.unlink()
@@ -1212,7 +1230,7 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
         return
     out.mkdir(exist_ok=True)
     for c in BENCHMARK:
-        target = out / f"{c['objekt_id']}_s{best}.mp4"
+        target = exp_file(d, f"{c['objekt_id']}_s{best}.mp4", "beste_videos")
         if target.exists() and not neu:
             continue
         log(f"  Bestes Video {exp['id']} s{best} {c['kurz']} (3 Episoden)")
@@ -1235,7 +1253,7 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
 
 def vorschlag(d: Path, exp: dict, rec: dict) -> str:
     """Kurzer Urteilsvorschlag (Auswertung v2) aus results.json; ✓, wenn Leon ein Urteil bestätigt hat."""
-    r = json.loads((d / "results.json").read_text()) if (d / "results.json").exists() else {}
+    r = json.loads(exp_file(d, "results.json").read_text()) if exp_file(d, "results.json").exists() else {}
     u = (r.get("rezept") or {}).get("urteil") or "–"
     return u + (" ✓" if "bestätigt" in str(exp.get("urteil") or "") else "")
 
@@ -1269,7 +1287,7 @@ def write_leaderboard():
          "|---|---|---|---|---|" + "---|" * (len(BENCHMARK) + len(TESTOBJEKTE)) + "---|---|---|---|---|"]
     for i, (d, exp, rec) in enumerate(rows, 1):
         if not rec:
-            L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | nicht vollständig bewertet |"
+            L.append(f"| {i} | [{exp['id']}]({d.name}/{d.name}.md) | {exp.get('titel', '')} | nicht vollständig bewertet |"
                      + " |" * (len(BENCHMARK) + len(TESTOBJEKTE) + 7))
             continue
         tie = "–"
@@ -1280,11 +1298,11 @@ def write_leaderboard():
         best, _ = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
         if exp.get("regel"):
             best = 0
-        vids = " ".join(f"[▶]({d.name}/beste_videos/{c['objekt_id']}_s{best}.mp4)" for c in BENCHMARK
-                        if best is not None and (d / "beste_videos" / f"{c['objekt_id']}_s{best}.mp4").exists()) or "–"
+        bv = [exp_file(d, f"{c['objekt_id']}_s{best}.mp4", "beste_videos") for c in BENCHMARK] if best is not None else []
+        vids = " ".join(f"[▶]({d.name}/beste_videos/{f.name})" for f in bv if f.exists()) or "–"
         unruhe = rec["_res"][0]["leitplanken"].get("unruhe")
         warn = "" if rec["n"] >= 5 and rec["k"] >= 3 else " ⚠"
-        L.append(f"| {i} | [{exp['id']}]({d.name}/bericht.md) | {exp.get('titel', '')} | "
+        L.append(f"| {i} | [{exp['id']}]({d.name}/{d.name}.md) | {exp.get('titel', '')} | "
                  + (f"**{pct(rec['leistung']['iqm'])}** {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
                  f"{pct(rec['gesamt']['iqm'])} {ci(rec['gesamt'])} | "
                  + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + " | "

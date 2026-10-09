@@ -67,7 +67,7 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
 - Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
 - Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, 5 Seeds, Bewertung nach eval-v1/Auswertung v2 — nicht über die Trainings-Belohnung vergleichen; Trainingsvarianten als Task-IDs in `pib_grasp/__init__.py`
 - `SceneEntityCfg` mit Körper-/Gelenknamen **nie** als Standardargument einer mdp-Funktion — Isaac Lab löst sie nur in den `params` eines Terms auf (ADR-017, Korrektur)
-- Neue Szenen/Varianten vor einem Lauf prüfen: Szenenprüfung (`_check_multi.py`), Belohnungsdiagnose (`_reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
+- Neue Szenen/Varianten vor einem Lauf prüfen: Szenenprüfung (`tools/check_multi.py`), Belohnungsdiagnose (`tools/reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -122,11 +122,11 @@ isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eva
 isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
 experiments/leaderboard.md               Rangliste aller Policies (Benchmark-Objekte, rliable)
 isaac_lab/plot_training.py               Trainingsdiagramme (TensorBoard → SVG) für die Experiment-Berichte
-isaac_lab/_check_multi.py                Szenenprüfung Objektvielfalt (Lage, Startfehler, Bilder) statt Fenstertest
-isaac_lab/_reward_diag.py                Größenordnung der Belohnungsterme je Phase (vor jedem Lauf, ADR-017)
-isaac_lab/_diag_anheben.py               Diagnose Anheben vor dem Absenken (2026-10-08)
+isaac_lab/tools/check_multi.py           Szenenprüfung Objektvielfalt (Lage, Startfehler, Bilder) statt Fenstertest
+isaac_lab/tools/reward_diag.py           Größenordnung der Belohnungsterme je Phase (vor jedem Lauf, ADR-017)
+isaac_lab/tools/diag_anheben.py          Diagnose Anheben vor dem Absenken (2026-10-08)
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
-experiments/                             Experimente (experiment.yaml, Berichte), index.md, README
+experiments/                             Experimente (je Ordner EXP-NNN_*-Dateien: experiment.yaml, Bericht, Diagramme, Videos), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
 ros2_ws/src/pib_bringup/config/controllers.yaml   JTC + JointStateBroadcaster, 50 Hz
 ros2_ws/src/pib_bringup/launch/pib_sim.launch.py  startet gesamten ros2_control-Stack (v4)
@@ -141,4 +141,4 @@ im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für d
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
 → Entscheidungen: @docs/decisions.md (ADR-011–020) | Sprint: @docs/current-sprint.md
-→ RL-Ursprungs-Prompt/Bewertung: `docs/rl-grasping-notes.md`
+→ RL-Ursprungs-Prompt/Bewertung: `docs/archiv/rl-grasping-notes.md` (Archiv: alte Pläne/Prompts in `docs/archiv/`)

@@ -1,0 +1,54 @@
+# EXP-NNN_experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-005
+titel: Kontaktbelohnung nach Fingerzahl
+datum: '2026-10-07'
+eltern: EXP-004
+status: ausgewertet
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'EXP-004 hält mit genau 2 Fingern (Daumen + einer), weil der Gegengriff-Term
+  nur das verlangt. Eine zusätzliche Belohnung, die mit der Zahl der Finger an der
+  Dose steigt, führt zu einem Kraftgriff: mittlere Fingerzahl deutlich > 2, Kippwinkel
+  kleiner (mehr Auflagepunkte), Griffkraft je Finger kleiner; Aufgabenerfolg mindestens
+  wie EXP-004. Bewertung in der unveränderten eval-v1-Umgebung (Zylinder 0,05–0,2
+  kg, ≤ 45°), direkt mit EXP-004 vergleichbar.'
+aenderung: Zusätzlicher Belohnungsterm finger_count = 1 · (Finger mit Objektkontakt
+  > 1 N)/4 · 𝟙[Daumen in Kontakt], ganze Episode (Task Pib-Grasp-Hand-Left-FingerCount-v0).
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-FingerCount-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:          # 45, 46 nachgetragen 2026-10-08 (Regel 5 Seeds)
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: c5f71d9
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-19-15_EXP-005_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-32-21_EXP-005_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_12-44-39_EXP-005_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_12-53-14_EXP-005_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_13-06-33_EXP-005_s46
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: '5 Seeds: Aufgabenerfolg 71,4 % [41,7–91,3], IQM 83,7 %, Seeds 93/14/88/71/91
+  %; Haltequote 90 %, Kippwinkel 34°, Finger 2,9, Griffkraft 93 N. Leaderboard Platz
+  2 (IQM alle Objekte 64,4 %; Ø 8 cm 69 %, Quader 53 %), gleichauf mit Platz 1.'
+urteil: kein messbarer Unterschied zu EXP-004 (mehr Finger, mehr Kraft) — bestätigt
+  (Leon, 2026-10-08)
+schluss: Fingerzahl-Belohnung bringt mehr Finger, aber keinen gesicherten Vorteil;
+  nicht als Baseline, bleibt im Leaderboard als gleichwertige Alternative.
+commit_nachtrag: 8ad1e8d

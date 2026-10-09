@@ -72,7 +72,7 @@ bleiben unverändert (kein `dof_`-Präfix, kein Onshape-Re-Export nur für den N
       sind aus dem Baum entfernt (Git-Historie behält sie)
 - [x] `config/pib_hand_config.py` → `pib_hand_config_v4.py`, alle Loader-Referenzen
       (`start.py`, `setup_stage.py`, `autostart.py`, `isaac_sim/tools/*.py`) nachgezogen
-- [x] `pib_upperbody_urdf/` → `pib_upperbody_urdf_v4/`; `pib_upperbody_urdf_v5/` eingecheckt
+- [x] `pib_upperbody_urdf/` → `pib_upperbody_urdf_v4/` (am 2026-10-09 gelöscht: Duplikat von `ros2_ws/src/pib_description_v4/`); `pib_upperbody_urdf_v5/` eingecheckt
       (roher `onshape-to-robot`-Export)
 - [x] `ros2_ws/src/pib_description/` → `pib_description_v4/` (Package-Name in
       `package.xml`/`CMakeLists.txt`, `package://`-Mesh-Pfade in der URDF, sowie
@@ -190,7 +190,7 @@ linken Hand. Meilensteine: M1 Policy greift in der Sim, M2 läuft quantisiert au
 - [x] Probelauf 300 Iterationen: Dose fällt 100 % → 19 %, Gegengriff 0 → 0,38; ONNX-Export
 - [x] Policy im Fenster bewertet (`play.py`, Video `videos/isaac_lab_pib_hand_inference_test.webm`):
       hält viele Dosen — dreht dafür aber den Unterarm, bis die Dose auf der Handfläche liegt
-### Plan ab 2026-10-06 (Bewertung von `docs/rl-greifen-poc-prompt.md`)
+### Plan ab 2026-10-06 (Bewertung von `docs/archiv/rl-greifen-poc-prompt.md`)
 
 Entscheidungen (Leon, 2026-10-06):
 - Unterarm bleibt im Aktionsraum — stattdessen Aufrecht-Belohnung + Abbruch bei Kippwinkel
@@ -304,7 +304,7 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 - [x] **Leaderboard** (`experiments/leaderboard.md`, rliable: IQM über alle Objekte, P(1 > X)): Platz 1
       **EXP-006 = neue Baseline** (IQM 68 %), EXP-005/007/011 gleichauf
 - [x] Verlauf über die Episode + Videos je Policy/Seed/Objekt (`experiments.py medien`), beste Videos im Git
-- [x] **Diagnose Anheben** (`isaac_lab/_diag_anheben.py`, 2026-10-08): Die Policies heben das Objekt vor dem
+- [x] **Diagnose Anheben** (`isaac_lab/tools/diag_anheben.py`, 2026-10-08): Die Policies heben das Objekt vor dem
       Absenken 3–6 cm an. Nicht der Annäherungsterm (weiteste Fingerspitze ist der kleine Finger unten,
       Optimum läge tiefer, Effekt ±2 %), sondern der **tragende Griff**: angehobene Episoden werden zu
       ~100 % gehalten, nicht angehobene zu 0–78 %; der kleine Finger liegt unter dem Dosenboden (Schaufel).
@@ -319,7 +319,7 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 - [x] **Auswertung v2** (ADR-019): Leistung (erfolgreiche Seeds) und Zuverlässigkeit getrennt; Leaderboard nach
       **Leistung** sortiert (Leon: eine brauchbare Policy je Greifart genügt)
 - [x] **EXP-013 Objektvielfalt** (18 Formen, `HeavyMulti-v0`; Startbeugung Finger/Handgelenk verkleinert, sonst
-      1/3 Überlappungen — `_check_multi.py`): Leistung 77 %, beste Testobjekte (Flasche 84, Saft 67 %);
+      1/3 Überlappungen — `tools/check_multi.py`): Leistung 77 %, beste Testobjekte (Flasche 84, Saft 67 %);
       Quader 57 % (kaum besser), 3/5 Seeds
 - [x] **EXP-014/015 Regel-Baselines** (kein RL, ADR-020): „alle schließen“ 71 %, „bis Kontakt“ 68 % — RL (EXP-013)
       gesichert besser (+6 PP), aber die Regel ist viel ruhiger (Unruhe 0,01), kippt weniger, greift mit ~5 Fingern;

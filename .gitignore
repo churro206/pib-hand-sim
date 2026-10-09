@@ -28,6 +28,7 @@ isaac_sim/tools/_pose_dump.json
 
 # Diagnose-Ausgaben der isaac_sim/tools/-Skripte (Script-Editor-Konsole nicht kopierbar)
 isaac_sim/tools/_*.txt
+isaac_sim/tools/_*.png
 
 # Lokale Sicherungskopien von Stages
 *.usd.bak-*

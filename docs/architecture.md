@@ -174,7 +174,7 @@ Isaac Lab (conda env_isaaclab)                         reale Hand (Ziel)
 - **Bewertung**: `eval_policy.py` (eval-v1, auch `--regel` für Regel-Baselines, `--verlauf`, Videos),
   `experiments.py` (Experimente, Auswertung v2, Leaderboard, Medien).
 - **Werkzeuge**: `check_hand_asset.py` (Mimic, Sensoren, Antriebe), `scripted_grasp_test.py`
-  (Machbarkeit ohne Policy), `_probe_geometry.py`/`_debug_scene.py` (Diagnose).
+  (Machbarkeit ohne Policy), `tools/probe_geometry.py`/`tools/debug_scene.py` (Diagnose).
 - Schnittstelle Policy ↔ Firmware: `docs/conventions.md` → „Isaac Lab“.
 
 ### Ziel-Architektur Greifen (Vorschlag, 2026-10-07)

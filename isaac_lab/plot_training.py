@@ -1,7 +1,7 @@
 """
 plot_training.py — Trainingsdiagramme eines Experiments aus den TensorBoard-Logs (rsl_rl).
 
-Liest events.out.tfevents.* aller Seeds und schreibt nach <experiment>/diagramme/:
+Liest events.out.tfevents.* aller Seeds und schreibt nach <experiment>/diagramme/EXP-NNN_<name>:
   lernkurve.svg    Train/mean_reward, Train/mean_episode_length
   belohnung.svg    Episode_Reward/* (Belohnung je Sekunde Episode, wie Isaac Lab sie loggt)
   abbrueche.svg    Episode_Termination/* (Anteil der Episoden je Abbruchgrund)
@@ -279,14 +279,16 @@ def main():
 
     exp_dir = REPO / a.exp_dir
     exp_name = exp_dir.name.split("_")[0]
-    (exp_dir / "diagramme").mkdir(exist_ok=True)
+    out_dir = exp_dir / "diagramme"
+    out_dir.mkdir(exist_ok=True)
+    out = lambda name: out_dir / f"{exp_name}_{name}"      # noqa: E731 — Präfix EXP-NNN_ (eindeutige Dateinamen)
     if a.bedingungen:
-        plot_conditions(exp_dir / "diagramme" / "bedingungen.svg", json.loads((REPO / a.bedingungen).read_text()), exp_name)
-        print(f"Diagramm: {exp_dir / 'diagramme' / 'bedingungen.svg'}")
+        plot_conditions(out("bedingungen.svg"), json.loads((REPO / a.bedingungen).read_text()), exp_name)
+        print(f"Diagramm: {out('bedingungen.svg')}")
     if a.verlauf_laeufe and a.verlauf_bedingungen:
         conds = [tuple(s.split("=", 1)) for s in a.verlauf_bedingungen]
-        plot_trace(exp_dir / "diagramme" / "verlauf.svg", a.verlauf_laeufe, conds, exp_name)
-        print(f"Diagramm: {exp_dir / 'diagramme' / 'verlauf.svg'}")
+        plot_trace(out("verlauf.svg"), a.verlauf_laeufe, conds, exp_name)
+        print(f"Diagramm: {out('verlauf.svg')}")
     if not a.runs:
         return
     runs = [r for r in (load_run(REPO / p) for p in a.runs) if r]
@@ -294,14 +296,11 @@ def main():
     if not runs:
         raise SystemExit("keine TensorBoard-Logs gefunden")
     runs.sort(key=lambda r: (r["seed"] is None, r["seed"]))
-    out_dir = exp_dir / "diagramme"
-    out_dir.mkdir(exist_ok=True)
-
     all_tags = sorted({t for r in runs for t in r["scalars"]})
     for key, (title, sel, with_parent) in FIGURES.items():
         tags = [t for t in all_tags if t.startswith(sel)] if isinstance(sel, str) else [t for t in sel if t in all_tags]
         if tags:
-            plot_figure(out_dir / f"{key}.svg", title, tags, runs, parent if with_parent else [],
+            plot_figure(out(f"{key}.svg"), title, tags, runs, parent if with_parent else [],
                         a.eltern_name, key == "abbrueche", exp_name)
 
     summary = {"tail_iterationen": TAIL, "je_seed": [
@@ -309,7 +308,7 @@ def main():
          "simulationsschritte_mio": round(max(len(v[0]) for v in r["scalars"].values()) * r["steps_per_iter"] / 1e6, 1),
          "endwerte": {t: float(np.mean(v[1][-TAIL:])) for t, v in sorted(r["scalars"].items())}}
         for r in runs]}
-    (out_dir / "training.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False), encoding="utf-8")
+    out("training.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"Diagramme: {out_dir} ({len(runs)} Läufe, Eltern {len(parent)})")
 
 

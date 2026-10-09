@@ -40,7 +40,7 @@ from isaaclab_tasks.manager_based.manipulation.dexsuite.mdp import curriculums a
 
 from . import mdp
 
-# ── Geometrie (Hand-Root-Frame aus isaac_lab/_probe_geometry.py, 2026-10-04) ───
+# ── Geometrie (Hand-Root-Frame aus isaac_lab/tools/probe_geometry.py, 2026-10-04) ───
 # Ohne Drehung zeigen die Finger nach −y, die Handfläche nach −z, der Daumen liegt auf
 # −x. Drehung +90° um y: Handfläche → −x, Daumen → +z, Finger bleiben bei −y.
 HAND_POS = (0.0, 0.0, 0.5)
@@ -50,7 +50,7 @@ OBJECT_RADIUS = 0.03          # Dose Ø 6 cm
 OBJECT_HEIGHT = 0.15
 PALM_GAP = 0.035              # Handfläche ↔ Objektoberfläche (Vorgreifpose, für alle Objekte gleich)
 # Tischplatte 8,5 cm unter dem Hand-Root: die Spitze des kleinen Fingers liegt bei
-# −6,3 cm (_debug_scene.py), bei −6 cm stieß sie an den Tisch
+# −6,3 cm (tools/debug_scene.py), bei −6 cm stieß sie an den Tisch
 TABLE_TOP_Z = HAND_POS[2] - 0.085
 # Dosenmitte: 6,5 cm vor der Handfläche (−x), auf Höhe der Grundglieder zwischen MCP
 # (y ≈ −0,31) und PIP (y ≈ −0,35), steht auf dem Tisch. Bis 2026-10-04 y = −0,32: die
@@ -79,7 +79,7 @@ CONTACT_N = 1.0              # Kontaktschwelle Gegengriff (Dexsuite: threshold 1
 
 # ── Objektkatalog (Bedingungen, experiments/README.md) ───────────────────────────────────
 # Seitlich greifen braucht ≥ ~15 cm Höhe: die Fingerspitzen liegen 2,5–16,5 cm über der
-# Tischplatte (kleiner Finger … Daumen, _debug_scene.py, 2026-10-07); tiefer geht die Hand
+# Tischplatte (kleiner Finger … Daumen, tools/debug_scene.py, 2026-10-07); tiefer geht die Hand
 # nicht, sonst stößt der kleine Finger an den Tisch.
 # form, Maße [m] (Zylinder: Radius, Höhe; Quader: x, y, z), Drehung beim Reset [rad]
 OBJECTS = {
@@ -404,7 +404,7 @@ class PibGraspEnvCfg_HeavyMulti(PibGraspEnvCfg_Heavy):
             func=mdp.place_objects_by_size, mode="startup",
             params={"hand_x": HAND_POS[0], "palm_gap": PALM_GAP, "table_top_z": TABLE_TOP_Z})
         self.events.reset_object.params["pose_range"]["yaw"] = (-math.radians(15), math.radians(15))
-        # Startstellung ohne Überlappung (_check_multi.py, 2026-10-08): Fingerbeugung 0–15° und Handgelenk −10–0°
+        # Startstellung ohne Überlappung (tools/check_multi.py, 2026-10-08): Fingerbeugung 0–15° und Handgelenk −10–0°
         # ragten bei breiten/hohen Formen ins Objekt (~1/3 der Starts verschoben das Objekt > 5 mm); Daumen
         # unkritisch, behält 0–90° Rotator / 0–15° Beugung. Hand kommt wie in der Vorgreifpose fast offen an.
         r = self.events.reset_hand.params["ranges_deg"]

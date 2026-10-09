@@ -5,9 +5,9 @@
 #   Tab 1: Isaac Sim (USD laden + start.py + Play — Action Graph läuft mit)
 #   Tab 2: ros2_control-Stack (JTC + JointStateBroadcaster)
 #
-# Erster manueller Schritt danach:
-#   ros2 run pib_bringup test_client     (Pickup-Demo)
-#   ros2 run pib_bringup test_client     (oder eigene Action senden)
+# Lädt v4 (autostart.py kennt nur v4). Erster manueller Schritt danach:
+#   ros2 run pib_bringup test_client_pickup      (Pickup-Demo)
+#   ros2 run pib_bringup test_client_putdown     (Putdown-Demo, Umkehrung)
 #
 # Verwendung:
 #   ./scripts/launch.sh
@@ -41,4 +41,4 @@ echo "[launch] Terminals geöffnet."
 echo ""
 echo "  Erster manueller Schritt (wenn alles läuft):"
 echo "    source ${REPO_ROOT}/ros2_ws/install/setup.bash"
-echo "    ros2 run pib_bringup test_client"
+echo "    ros2 run pib_bringup test_client_pickup"

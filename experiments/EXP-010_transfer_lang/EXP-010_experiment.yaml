@@ -1,0 +1,49 @@
+# EXP-NNN_experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-010
+titel: Objekttransfer ohne Nachtraining (EXP-007-Policy, 1500 Iterationen)
+datum: '2026-10-07'
+eltern: EXP-007
+status: ausgewertet
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Längeres Training (EXP-007, 1500 statt 300 Iterationen) verbessert die Übertragung auf andere Objekte nicht nennenswert: Abstand des Aufgabenerfolgs (≤ 45°) zur Referenz Ø 6 cm an Ø 8 cm und Quader etwa wie in EXP-008 (± 10 Prozentpunkte).'
+aenderung: 'Kein Training — Bewertung der EXP-007-Läufe (5 Seeds) unter Zylinder Ø 8 cm und Quader 7 × 7 × 20 cm wie EXP-008; Referenz ist die bisherige Bedingung.'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg (Training, Referenz)
+  objekt_id: zylinder_d6
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: zylinder_d8_seitlich
+  objekt: Zylinder Ø 8 cm (±10 %), 15 cm, 0,05–0,2 kg (dicke Dose/Becher)
+  objekt_id: zylinder_d8
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: quader_seitlich
+  objekt: Quader 7 × 7 × 20 cm (±10 %), Fläche zur Hand ±15°, 0,05–0,2 kg (Milchpackung)
+  objekt_id: quader_7x7x20
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training: null
+fenstertest: true
+# --- automatisch (experiments.py run) ---
+commit: 73b412a
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_13-34-42_EXP-007_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_14-27-27_EXP-007_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_15-23-42_EXP-007_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_23-25-24_EXP-007_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-08_00-14-07_EXP-007_s46
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: 'Ø 6 cm 78,0 % → Ø 8 cm 61,6 % (−16 PP) → Quader 40,0 % (−38 PP); Finger
+  ~1,8. Sichten (Leon): Pinzettengriff instabiler, Anheben bleibt.'
+urteil: Hypothese bestätigt (längeres Training verbessert die Übertragung nicht) —
+  bestätigt (Leon, 2026-10-08)
+schluss: Mehr Training ersetzt keine Objektvielfalt.
+laeufe_von: EXP-007

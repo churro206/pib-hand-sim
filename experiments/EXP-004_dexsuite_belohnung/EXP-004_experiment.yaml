@@ -1,0 +1,62 @@
+# EXP-NNN_experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-004
+titel: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
+datum: '2026-10-07'
+eltern: EXP-000
+status: ausgewertet
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'EXP-001–003 scheiterten an der Belohnung, nicht am Kippabbruch: Annäherung
+  praktisch 0 (std 0,1), unbegrenzte Kraftstrafe > Annäherung → Policy spreizt die
+  Finger; ohne dichtes Haltesignal wird Halten nie entdeckt. Mit Dexsuites Belohnungssatz
+  (Annäherung std 0,4, Gegengriff, dichtes Halten und Aufrecht nur bei Gegengriff,
+  scharfer Erfolg Halten × Aufrecht, keine Kraftstrafe) greift die Policy wieder zu:
+  Haltequote deutlich > 0 (Richtung EXP-000: 86 %) und Kippwinkel deutlich < 104°;
+  Aufgabenerfolg ≤ 45° > 0. Erwartet: Kraft > 15 N und Stall-Anteil hoch (keine Kraftstrafe
+  mehr).'
+aenderung: 'Belohnungssatz nach Dexsuite (dexsuite_env_cfg.RewardsCfg) statt Eigenbau:
+  Annäherung std 0,4; Halten (2) und Aufrecht (4, std 1,5 rad) dicht, ab dem Absenken,
+  × Gegengriff; Erfolg (10) = Halten × Aufrecht (rot_std 0,5); Aktionsstrafen gekappt
+  (Dexsuite-Funktionen); Kraftstrafe entfällt; Abbruchstrafe nur für instabile Physik;
+  Absinken gegen die Höhe beim Absenken (Fehlerbehebung). Kein Kippabbruch (wie EXP-000).
+  Belohnungsterme vorab geprüft (isaac_sim/tools/_reward_diag.txt).'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v1
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:          # 45, 46 nachgetragen 2026-10-07 (Regel 5 Seeds, für EXP-008)
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  zusatz_args: []
+fenstertest: false
+# --- automatisch (experiments.py run) ---
+commit: e76c62e
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-06-59_EXP-004_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-19-29_EXP-004_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_11-31-37_EXP-004_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-10-29_EXP-004_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-07_22-24-38_EXP-004_s46
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: '5 Seeds (45/46 nachgetragen 2026-10-07): Aufgabenerfolg 47,6 % [13,9–81,5],
+  IQM 50,5 %, Seeds 88/56/88/0/6 % — Seed 45 lernt nicht zu greifen (Exploration bricht
+  ein), Seed 46 hält zu 95 %, kippt die Dose aber mit dem Unterarm (56°, wie EXP-000).
+  Haltequote 73 %, Kippwinkel 34°, Finger 2,0. Leaderboard: IQM über alle Objekte
+  27,6 %, gesichert schlechter als Platz 1 (P = 0,83).'
+urteil: besser als EXP-000, aber instabil (2/5 Seeds scheitern) — bestätigt (Leon,
+  2026-10-08)
+schluss: 'Die Dexsuite-Belohnung war der Durchbruch (ADR-017), aber als Baseline zu
+  instabil: mit 3 Seeds sah EXP-004 robust aus. Neue Baseline ist EXP-006.'
+commit_nachtrag: 73b412a

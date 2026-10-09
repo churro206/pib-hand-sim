@@ -1,17 +1,17 @@
 # pib Hand Simulation
 
 Simulationsserver für den RoboCup 2027 (@Home Liga).
-pib v4 Oberkörper (44 DOFs) in NVIDIA Isaac Sim 5.1 — steuerbar über ros2_control.
+pib-Oberkörper (v4 und v5, je 44 DOFs) in NVIDIA Isaac Sim 5.1 — steuerbar über ros2_control —
+und RL-Greifen in NVIDIA Isaac Lab für die reale linke v5-Hand.
 
-**Branch `experiment/omnigraph-lightweight`:** bewusst minimaler Zweig. Die Isaac-seitige
-ROS2-Anbindung läuft komplett über einen nativen Action Graph (OmniGraph) statt über
-eigenen Python-Bridge-Code. Alles, was für diesen Weg nicht gebraucht wird (robot_io,
-ControlMode-Architektur, Sequenz-Executor, LSTM-Pipeline), wurde aus diesem Branch entfernt.
-Der volle Stand liegt weiterhin auf `feature/ros2-control`.
-
-**Branch `feature/rl-grasping`:** dieser Stand plus RL-Greifen in NVIDIA Isaac Lab für die
-reale linke v5-Hand (Proof of Concept, `isaac_lab/`, ADR-014/015). Isaac Lab läuft in einer
-eigenen conda-Umgebung — Befehle in `docs/conventions.md` → „Isaac Lab“.
+**Branch `feature/rl-grasping`** = digitaler Zwilling von `experiment/omnigraph-lightweight`
+plus RL-Greifen (Proof of Concept, `isaac_lab/`, ADR-014–020):
+- **Digitaler Zwilling:** Die Isaac-seitige ROS2-Anbindung läuft komplett über einen nativen
+  Action Graph (OmniGraph) statt über eigenen Python-Bridge-Code. robot_io,
+  ControlMode-Architektur, Sequenz-Executor und LSTM-Pipeline liegen auf `feature/ros2-control`.
+- **RL-Greifen:** Greif-Policy für 8 Servos und 5 FSR, später int8 auf dem STM32N657. Isaac Lab
+  läuft in einer eigenen conda-Umgebung — Befehle in `docs/conventions.md` → „Isaac Lab“;
+  Experimente, Berichte und Rangliste in `experiments/` (`experiments/leaderboard.md`).
 
 ---
 
@@ -27,7 +27,7 @@ eigenen conda-Umgebung — Befehle in `docs/conventions.md` → „Isaac Lab“.
 | Servo-Aktuatormodell ST3215/ST3095 nach Datenblatt (ADR-012) | — | ✓ |
 | Contact Sensors (Fingertip-Kontaktkraft) | nur `index_right` (Einzel-Topic) | ✓ alle 10, gebündelt auf `/pib/fingertip_forces` (ADR-013) |
 | Handgelenk über Pleuel, Grenzen [−60°, 0°] (ADR-014) | — | ✓ |
-| RL-Greifen in Isaac Lab, linke Hand (ADR-015) | — | Proof of Concept: Policy lernt Daumen-Gegengriff, Dose fällt nur noch in ~19 % |
+| RL-Greifen in Isaac Lab, linke Hand (ADR-015–020) | — | Proof of Concept, Kraftgriff seitlich: beste Policy 80 % Aufgabenerfolg (EXP-017), Regel-Baseline 71 % (Stand 2026-10-09, `experiments/leaderboard.md`) |
 
 ---
 
@@ -244,12 +244,17 @@ isaac_sim/
   usd/
     pib_upperbody_v4.usd   Roboter (v4) + Action Graph
     pib_upperbody_v5.usd   Roboter (v5) + Action Graph
+    pib_hand_left_v5.usd   Hand + Unterarm (links) für Isaac Lab, Mimic/Limits/Antriebe eingebrannt
   tools/
     dump_pose.py           Nimmt Drive-Targets der aktuell posierten Gelenke als Waypoint
                             auf → isaac_sim/tools/_pose_dump.json (gitignored)
     audit_asset.py         Asset-Inspektion: Massen, Collider, Antriebe, ω_n·Δt/ζ (nur lesend)
     inspect_action_graph.py   Graph-Inventur aus der USD
     build_contact_sensors_v5.py, build_fingertip_force_graph_v5.py   Kontaktsensoren v5
+    bake_hand_asset_v5.py  Mimic/Limits/Antriebe/Self-Collision in die Hand-USD einbrennen
+
+pib_hand_left_urdf_v5/     onshape-to-robot-Export der linken Hand (Basis: elbow_lower)
+pib_upperbody_urdf_v5/     onshape-to-robot-Export des v5-Oberkörpers (Quelle der DOF-Namen)
 
 ros2_ws/src/
   pib_description_v4/     URDF (44 DOFs + ros2_control-Tags) + STL-Meshes
@@ -267,8 +272,24 @@ ros2_ws/src/
     pib_bringup/test_client_mimic_load_v5.py  Finger gegen Tisch, mit Diagnose
   topic_based_ros2_control/   Hardware-Interface-Bridge (Drittanbieter-Paket)
 
+isaac_lab/                 RL-Greifen (conda env_isaaclab, Befehle: docs/conventions.md → „Isaac Lab“)
+  pib_hand_left_v5_cfg.py  Isaac-Lab-Asset der linken Hand (Aktuatoren aus config/pib_hand_config_v5.py)
+  pib_grasp/               Greifaufgabe (env_cfg, mdp, PPO-Konfiguration), Trainingsvarianten als Task-IDs
+  train.py, play.py        Isaac Labs rsl_rl-Skripte mit den pib-Tasks
+  experiments.py           Experiment-Framework: new/run/eval/done, Leaderboard, Medien (ADR-016)
+  eval_policy.py           Bewertungsprotokoll eval-v1 (auch Regel-Baselines)
+  plot_training.py         Trainingsdiagramme für die Berichte
+  backup_policies.py       Policies → privates Hugging-Face-Repo
+  check_hand_asset.py, scripted_grasp_test.py   Asset-Prüfung, Machbarkeitstest ohne Policy
+  tools/                   Diagnose: check_multi.py (Szenenprüfung), reward_diag.py (Belohnungsterme), …
+
+experiments/               Experimente EXP-NNN_<kurzname>/ (Plan, Ergebnisse, Bericht, Diagramme, beste Videos),
+                           index.md, leaderboard.md, README.md (Ablauf, Metriken)
+
 scripts/
-  start_isaac.sh, start_ros2.sh, launch.sh   Terminal-Automatisierung
+  start_isaac.sh, start_ros2.sh, launch.sh   Terminal-Automatisierung (v4)
+
+docs/                      architecture, conventions, decisions (ADRs), current-sprint, handoff; archiv/
 ```
 
 ---

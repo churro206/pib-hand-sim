@@ -14,15 +14,18 @@ Dexsuite (Lift/Reorient unterscheiden sich nur im Erfolgskriterium).
 ```
 experiments/
   README.md                 dieses Dokument (Ablauf, Metriken, Entscheidungsregel)
-  _vorlage.yaml             Vorlage für experiment.yaml
+  _vorlage.yaml             Vorlage für EXP-NNN_experiment.yaml
   index.md                  automatisch: Vergleichstabelle aller Experimente
   leaderboard.md            automatisch: Rangliste aller Policies unter festen Benchmark-Bedingungen
-  EXP-NNN_<kurzname>/
-    experiment.yaml         Plan (vor dem Start) + Schluss (nach der Auswertung), von Hand
-    results.json            automatisch: Metriken je Seed + Zusammenfassung + Urteilsvorschlag
-    bericht.md              automatisch: lesbarer Bericht des Laufs (mit Trainingsverlauf)
-    diagramme/              automatisch: Trainingsdiagramme (SVG) + training.json (Endwerte je Seed)
-    videos/                 automatisch (`medien`): <objekt>_s<seed>.mp4 je Benchmark-Objekt (nicht im Git, auf HF)
+  EXP-NNN_<kurzname>/       alle Dateien mit Präfix EXP-NNN_ (eindeutige Namen in Editor-Tabs und Suche)
+    EXP-NNN_experiment.yaml Plan (vor dem Start) + Schluss (nach der Auswertung), von Hand
+    EXP-NNN_results.json    automatisch: Metriken je Seed + Zusammenfassung + Urteilsvorschlag
+    EXP-NNN_<kurzname>.md   automatisch: lesbarer Bericht des Laufs (mit Trainingsverlauf), heißt wie der Ordner
+    diagramme/              automatisch: EXP-NNN_<name>.svg (Training, Bedingungen, Verlauf)
+                            + EXP-NNN_training.json (Endwerte je Seed)
+    beste_videos/           automatisch (`medien`): EXP-NNN_<objekt>_s<seed>.mp4, bester Seed, 3 Episoden (im Git)
+    videos/                 automatisch (`medien`): EXP-NNN_<objekt>_s<seed>.mp4 je Seed und Benchmark-Objekt
+                            (nicht im Git, auf HF)
 logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     params/env.yaml, agent.yaml   Isaac Lab: vollständige Konfiguration
     meta.json                     Commit, Versionen, GPU, Befehl, Zeiten
@@ -56,7 +59,7 @@ Tag am Trainings-Commit.
 | 3 | **Trainieren**: alle Seeds, Metadaten werden gesichert | automatisch | `experiments.py run` |
 | 4 | **Evaluieren**: festes Protokoll (unten), letzter Checkpoint | automatisch | `experiments.py run` → `eval_policy.py` |
 | 5 | **Sichten**: Video, Auffälligkeiten | automatisch aufgenommen, Leon schaut | `videos/` im Laufordner |
-| 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel, Trainingsverlauf | automatisch, Leon bestätigt | `results.json`, `bericht.md`, `diagramme/` |
+| 6 | **Bewerten**: Vergleich mit den Eltern, Urteilsvorschlag nach Regel, Trainingsverlauf | automatisch, Leon bestätigt | `EXP-NNN_results.json`, `EXP-NNN_<kurzname>.md`, `diagramme/` |
 | 7 | **Dokumentieren & Entscheiden**: Schluss, nächstes Experiment; Policies sichern | Leon (Claude schlägt vor) | `experiments.py done` (sichert automatisch) |
 
 Befehle (conda-Umgebung `env_isaaclab` aktiv, Orchestrierung mit System-Python):
@@ -96,7 +99,7 @@ Regeln:
   Physik instabil. Trainingsspezifische Abbrüche (z. B. Kippen) sind in der Bewertung aus,
   der Kippwinkel wird gemessen — so bleiben Experimente mit unterschiedlichen
   Trainingsabbrüchen vergleichbar.
-- **Bedingung** = Objekt × Startpose × Anforderung (in `experiment.yaml`). Ergebnisse
+- **Bedingung** = Objekt × Startpose × Anforderung (in `EXP-NNN_experiment.yaml`). Ergebnisse
   immer je Bedingung, nie über Bedingungen gemittelt. Ein Experiment kann mehrere Bedingungen
   haben; jeder Lauf wird unter allen bewertet. `objekt_id` wählt das Objekt aus
   `pib_grasp/env_cfg.py` → `OBJECTS` (fehlt es: `zylinder_d6`); die Objektoberfläche liegt immer
@@ -206,7 +209,7 @@ int8 − float (M2).
   - *schlechter*: Intervall komplett < 0
   - *kein messbarer Unterschied*: sonst — dann gewinnt die einfachere Variante
   - *Leitplanke verletzt*: besser im Aufgabenerfolg, aber eine Leitplanke über der Toleranz
-- Das Urteil ist ein Vorschlag; Leon bestätigt es in `experiment.yaml` → `schluss`.
+- Das Urteil ist ein Vorschlag; Leon bestätigt es in `EXP-NNN_experiment.yaml` → `schluss`.
 
 ### Versionen
 
