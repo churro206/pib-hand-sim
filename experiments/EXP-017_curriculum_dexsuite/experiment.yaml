@@ -65,9 +65,13 @@ training:
   zusatz_args: []
 fenstertest: false
 # --- automatisch (experiments.py run) ---
-commit: 047cedf+lokal
-laeufe: []
-
+commit: f7903b2+lokal
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_00-27-24_EXP-017_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_01-12-10_EXP-017_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_02-09-52_EXP-017_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_02-52-01_EXP-017_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_03-47-23_EXP-017_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

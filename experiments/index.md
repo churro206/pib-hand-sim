@@ -47,8 +47,8 @@ Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote in %, [95
 | ↳ EXP-016 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 45.7 [22.8–59.8] | 55.6 | 20.0 | 46.8 [23.0–60.6] | 15 | 22 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
 | ↳ EXP-016 | | | flasche_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 55.7 [27.7–80.2] | 62.4 | 20.0 | 63.6 [30.6–84.7] | 16 | 26 | 100.0 | 2.9 | kein messbarer Unterschied (ggü. EXP-013) |  |
 | ↳ EXP-016 | | | saftpackung_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 52.2 [26.3–70.0] | 62.3 | 20.0 | 53.6 [25.8–71.0] | 16 | 23 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| [EXP-017](EXP-017_curriculum_dexsuite/experiment.yaml) | Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg), 1500 Iterationen | EXP-013 | zylinder_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-017 | | | zylinder_d8_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-017 | | | quader_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-017 | | | flasche_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-017 | | | saftpackung_seitlich ≤45° | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-017](EXP-017_curriculum_dexsuite/experiment.yaml) | Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg), 1500 Iterationen | EXP-013 | zylinder_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 35.9 [0.0–72.5] | 26.3 | 60.0 | 37.5 [0.0–75.3] | 24 | 25 | 100.0 | 3.4 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-017 | | | zylinder_d8_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 32.5 [0.0–65.4] | 24.0 | 60.0 | 33.0 [0.0–66.6] | 10 | 7 | 100.0 | 3.4 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-017 | | | quader_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 25.5 [0.0–51.6] | 18.9 | 60.0 | 25.7 [0.0–51.8] | 10 | 8 | 100.0 | 3.2 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-017 | | | flasche_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 33.4 [0.0–67.4] | 24.5 | 60.0 | 35.1 [0.0–70.5] | 17 | 9 | 100.0 | 3.4 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-017 | | | saftpackung_seitlich ≤45° | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 27.9 [0.0–56.3] | 20.9 | 60.0 | 28.3 [0.0–56.9] | 15 | 13 | 100.0 | 3.2 | kein messbarer Unterschied (ggü. EXP-013) |  |
