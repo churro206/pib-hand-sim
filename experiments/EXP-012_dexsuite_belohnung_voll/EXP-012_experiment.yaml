@@ -67,3 +67,15 @@ urteil: ""                      # bestätigtes Urteil (besser | schlechter | kei
 schluss: 'Entwurf: Die Dexsuite-Belohnung beseitigt das Anheben und halbiert das Kippen,
   ohne Leistungsgewinn; die Unruhe steigt stark. Nicht als Baseline übernommen; Anteil
   von Annäherungs-Fix vs. milderer Haltebelohnung ungeklärt.'
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts
+    im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines
+    sind verzerrt.'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Die Annäherung war hier korrigiert, Dexsuites Term ist für die feste Hand
+    in Vorgreifpose aber zu flach (offen 0,66 → zugegriffen 0,71) — daher kaum Wirkung.
+    Die stark gestiegene Unruhe ist auf rohen Aktionen gemessen. Aktionen unbegrenzt
+    (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen
+    großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung
+    (ADR-022).'

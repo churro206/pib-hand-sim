@@ -1,5 +1,9 @@
 # EXP-017: Curriculum wie Dexsuite (Schwerkraft und Beobachtungsrauschen nach Erfolg), 1500 Iterationen
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Nachbewertet unter eval-v2 (Leistung 86 %, Quader 80 %, YCB 57–70 %). 3/5 Seeds kommen nie in Gang — fehlendes Signal fürs Zugreifen. Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Unruhe 2,66 großteils Überziehen bei wachsendem Rauschen (σ 1,0 → 1,5). Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** 86 % [85–89 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 90 % · Ø 8 cm 89 % · Quader 80 %) — ggü. EXP-013: P(besser) = 0.78 [0.50–1.00] → kein Unterschied
 
 **Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 90 % · Saftpackung 85 % · Cracker (YCB) 70 % · Zucker (YCB) 61 % · Senf (YCB) 57 %
@@ -37,6 +41,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.00238 | | | | 0 |
 | Unruhe | 2.66 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 61.9 %, instabil 0.0 %, anforderung_verletzt 2.0 %
 
@@ -64,6 +69,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.0992 | | | | 0 |
 | Unruhe | 1.3 | | | | 0.889 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 63.9 %, instabil 0.0 %, anforderung_verletzt 0.6 %
 
@@ -91,6 +97,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.827 | | | | 0.0174 |
 | Unruhe | 1.92 | | | | 0.953 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 67.8 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -118,6 +125,7 @@ Bedingung `flasche_seitlich` (Objekt `flasche_d7x25`, Kippwinkel ≤ 45°), Prot
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.0127 | | | | 0.0161 |
 | Unruhe | 1.57 | | | | 0.834 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 62.4 %, instabil 0.0 %, anforderung_verletzt 1.7 %
 
@@ -145,6 +153,7 @@ Bedingung `saftpackung_seitlich` (Objekt `saftpackung_9x6x19`, Kippwinkel ≤ 45
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 1.32 | | | | 0.0045 |
 | Unruhe | 2.45 | | | | 0.856 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 65.3 %, instabil 0.0 %, anforderung_verletzt 0.5 %
 

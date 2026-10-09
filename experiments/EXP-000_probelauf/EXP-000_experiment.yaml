@@ -33,3 +33,17 @@ ergebnis: 'eval-v1 (≤ 45°, Neubewertung 2026-10-07): Aufgabenerfolg 2,0 %, Ha
   die Dose auf die Handfläche kippt.'
 urteil: "Ausgangswert"
 schluss: "Aufgabe lernbar, aber Belohnung lässt Kippen zu → EXP-001 (Kippabbruch + Aufrecht-Belohnung). Bewertung nach eval-v1 steht aus (Critic-Eingang hat sich geändert, Bewertung über den exportierten Actor)."
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts
+    im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines
+    sind verzerrt.'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt
+    der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein
+    Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs
+    (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und
+    Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung,
+    nicht Bewegung (ADR-022).'

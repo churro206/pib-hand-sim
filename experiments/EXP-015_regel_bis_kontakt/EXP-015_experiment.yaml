@@ -73,3 +73,7 @@ raster_ergebnis:
   schliessen=0.4,nachdruck_deg=4: 0.388
   schliessen=0.4,nachdruck_deg=5.7: 0.186
 protokoll_vorher: eval-v1
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Nachbewertet unter eval-v2: 68 % — RL gesichert besser; der Schluss „bis
+    auf wenige PP an RL“ gilt nur unter eval-v1.'

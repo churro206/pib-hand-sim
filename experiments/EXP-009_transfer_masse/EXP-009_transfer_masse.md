@@ -1,5 +1,9 @@
 # EXP-009: Objekttransfer ohne Nachtraining (EXP-006-Policy, Masse 0,04–0,4 kg)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt. Der Quader-Engpass des Transfers ist großteils Reset-Stoß.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
 **Transfer** (Läufe von EXP-006, erfolgreiche Seeds, Median): Ø 6 cm 92 % · Ø 8 cm 80 % (-13 PP) · Quader 55 % (-37 PP)
 **Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — ohne Erfolg: Seed 43 (hält, aber gekippt)
 
@@ -24,6 +28,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.8 % | | | | – |
 | Absinken [mm] | 0.0206 | | | | – |
 | Unruhe | 0.312 | | | | – |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 7.2 %, instabil 0.0 %, anforderung_verletzt 14.8 %
 
@@ -48,6 +53,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 99.8 % | | | | 99.8 % |
 | Absinken [mm] | 0.00526 | | | | 0.0206 |
 | Unruhe | 0.355 | | | | 0.312 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.6 %, gefallen 20.0 %, instabil 0.0 %, anforderung_verletzt 8.8 %
 
@@ -73,6 +79,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.8 % | | | | 99.8 % |
 | Absinken [mm] | 0.00101 | | | | 0.0206 |
 | Unruhe | 0.502 | | | | 0.312 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 6.1 %, gefallen 37.0 %, instabil 0.0 %, anforderung_verletzt 12.9 %
 

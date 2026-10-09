@@ -1,5 +1,11 @@
 # EXP-000: Probelauf Dexsuite-Muster (Ausgangswert)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** – (kein erfolgreicher Seed)
 
 **Zuverlässigkeit** 0/1 Seeds erfolgreich [0–98 %]
@@ -30,6 +36,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Proto
 | Stall-Anteil [Anteil] | 99.6 % | | | | – |
 | Absinken [mm] | 0 | | | | – |
 | Unruhe | 0.244 | | | | – |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 1.9 %, gefallen 12.1 %, instabil 0.0 %, anforderung_verletzt 86.1 %
 

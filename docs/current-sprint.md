@@ -344,20 +344,17 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 - [x] Reset-Überlappung → eval-v2 (oben, ADR-021)
 
 **Ablauf ab 2026-10-09 abends** (Leon: Nachbewertung nur, was Entscheidungen trägt)
-1. [ ] **Nachbewertung eval-v2** (~1,7 h GPU): `experiments.py umstellen EXP-013 EXP-014 EXP-015 EXP-017`, dann
-       `leaderboard --bewerten` (Benchmark + Testobjekte inkl. YCB) und `bericht` — Quader ohne Stöße? RL vs. Regel auf
-       YCB? Übrige Experimente bleiben eval-v1-Historie
-2. [ ] **Entscheidung A (Leon)**: Eltern EXP-013 oder EXP-017 — nach Leistung unter eval-v2; ohne gesicherten Unterschied
-       EXP-013 (300 statt 1500 Iterationen, Unruhe 0,7 statt 2,55)
-3. [ ] **EXP-018 „neue Basis“**: die Eltern mit dem neuen Reset neu trainiert (einzige Änderung) — EXP-013: ~1 h + 40 min
-       Bewertung; EXP-017: ~3,5 h (Nacht)
-4. [ ] **Unruhe** (Eltern EXP-018, je 5 Seeds, eine Nacht): **EXP-019 Strafen-Curriculum wie Isaac Lab Lift**
-       (Aktionsstrafen −0,005 → ~−0,05 nach ~½ des Trainings; Ausgangswert gemessen: `action_l2` −0,23/s gegen Halten/
-       Aufrecht/Erfolg 1,6/3,2/5,6 je s; Endwert per `tools/reward_diag.py`) und **EXP-020 Aktionsfilter wie DeXtreme**
-       (gleitender Mittelwert, α ≈ 0,5; muss auch in die Firmware). Dexsuite selbst hat **kein** Strafen-Curriculum
-5. [ ] danach: Bedingung **„rutschig“** (Senf mit Reibung 0,3–0,5, nur Bewertung), **M2-Kette** (int8 QDQ mit
-       Sim-Kalibrierdaten, int8 vs. float in der Sim, `stedgeai`)
-6. [ ] später: **Kraft dosieren** (Strafe auf Stall/FSR > 15 N per Curriculum; Leon: hinten angestellt), Griff „von oben“
+1. [x] **Nachbewertung eval-v2** (EXP-013/014/015/017): RL 83–86 %, Regeln 68–69 %, Quader RL 78–80 % (v1 57–64) —
+       der Quader-Engpass war die Szene; RL gesichert besser, am deutlichsten auf YCB
+2. [x] **Entscheidung A**: Eltern EXP-013 (EXP-017 nicht gesichert besser, auf YCB schlechter, unruhiger, teurer)
+3. [x] **EXP-018 „neue Basis“** (EXP-013 mit neuem Reset): nur 1/5 Seeds greifen → Ursache fehlendes Signal fürs Zugreifen
+4. [x] **Prüfung gegen die Vorbilder** (ADR-022): Annäherung ohne Signal, Aktionen unbegrenzt (bounds_loss fehlt),
+       Budget 0,5 % von Dexsuite, Critic ohne Objekteigenschaften; Nachträge in den alten Berichten
+5. [ ] **Nachtlauf 2026-10-09/10** (~9–10 h): EXP-019 Annäherung als Fortschritt (DexPBT, 10 Seeds) → EXP-018 Seeds 47–51
+       → EXP-022 (019 + Aktionen ±1) → EXP-020 Aktionen ±1 → EXP-021 Critic mit Objekteigenschaften
+6. [ ] danach: Trainingsdauer neu prüfen (300 vs. 1500 It. auf der besten Basis), dann Unruhe (Strafen-Curriculum wie
+       Lift, Aktionsfilter wie DeXtreme) auf echter Aufwandsstrafe; Bedingung **„rutschig“**; **M2-Kette**
+7. [ ] später: **Kraft dosieren** (Leon: hinten angestellt), Griff „von oben“, längerer Beobachtungsverlauf (HORA)
 - später (Prio 3–6, Leon 2026-10-09): Servo-Messung/Systemidentifikation mit LeRobot-Werkzeugen (Feetech STS3215),
   Regelrate und Verzögerung wie real; Greif-Ablauf (Romano 2011: schließen → halten mit Rutscherkennung → ablegen,
   „Griff steht“, Ablegen als Fähigkeit); Lehrer–Schüler/RMA (HORA) für den blinden Actor; int8 im Sim-Loop;

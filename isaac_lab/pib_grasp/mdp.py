@@ -80,6 +80,23 @@ def object_lin_vel(env: ManagerBasedRLEnv, object_cfg: SceneEntityCfg = SceneEnt
     return obj.data.root_lin_vel_w
 
 
+def object_properties(env: ManagerBasedRLEnv, object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Privilegiert (nur Critic, EXP-021; wie HORA und Dexsuite, deren Critic Masse/Reibung/Form kennt): halbe Tiefe,
+    halbe Breite, Höhe [m] (Bounding Box inkl. Zufallsgröße), Masse [kg], Haft- und Gleitreibung. Beim ersten Aufruf
+    nach den Startup-Events gelesen (ändern sich danach nicht); davor Nullen (Formbestimmung des Observation-Managers)."""
+    props = getattr(env, "_pib_object_props", None)
+    if props is not None:
+        return props
+    footprint = getattr(env, "pib_object_footprint", None)
+    if footprint is None:
+        return torch.zeros(env.num_envs, 6, device=env.device)
+    obj: RigidObject = env.scene[object_cfg.name]
+    mass = obj.root_physx_view.get_masses().reshape(env.num_envs, -1).sum(-1).to(env.device)
+    material = obj.root_physx_view.get_material_properties().reshape(env.num_envs, -1, 3)[:, 0, :2].to(env.device)
+    env._pib_object_props = torch.cat([footprint[:, [0, 1, 3]], mass[:, None], material], dim=-1)
+    return env._pib_object_props
+
+
 def phase(env: ManagerBasedRLEnv, drop_start_s: float) -> torch.Tensor:
     """Episodenzeit relativ zum Tisch-Absenken (privilegiert, nur Critic)."""
     return (episode_time(env) - drop_start_s).unsqueeze(-1)
@@ -137,14 +154,14 @@ def place_objects_by_size(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, 
     obj: RigidObject = env.scene[object_cfg.name]
     cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
     stage = env.scene.stage
-    # Grundriss je Umgebung für reset_object_gap_aware: halbe Tiefe/Breite, eckig (1) oder rund (0)
-    env.pib_object_footprint = torch.zeros(env.num_envs, 3, device=env.device)
+    # Grundriss je Umgebung für reset_object_gap_aware (halbe Tiefe/Breite, eckig 1 / rund 0) und Höhe [m]
+    env.pib_object_footprint = torch.zeros(env.num_envs, 4, device=env.device)
     for path in sim_utils.find_matching_prim_paths(obj.cfg.prim_path):
         idx = int(re.search(r"env_(\d+)", path).group(1))
         prim = stage.GetPrimAtPath(path)
         size = cache.ComputeWorldBound(prim).ComputeAlignedRange().GetSize()
         round_ = any(p.GetTypeName() == "Cylinder" for p in Usd.PrimRange(prim))
-        env.pib_object_footprint[idx] = torch.tensor([size[0] / 2, size[1] / 2, 0.0 if round_ else 1.0])
+        env.pib_object_footprint[idx] = torch.tensor([size[0] / 2, size[1] / 2, 0.0 if round_ else 1.0, size[2]])
         obj.data.default_root_state[idx, 0] = hand_x - palm_gap - size[0] / 2
         obj.data.default_root_state[idx, 2] = table_top_z + (root_height if root_height is not None
                                                              else lift + size[2] / 2)
@@ -167,7 +184,7 @@ def reset_object_gap_aware(env: ManagerBasedRLEnv, env_ids: torch.Tensor, pose_r
     positions = root_states[:, 0:3] + env.scene.env_origins[env_ids] + rand[:, 0:3]
     footprint = getattr(env, "pib_object_footprint", None)
     if footprint is not None:
-        a, b, square = footprint[env_ids].unbind(-1)
+        a, b, square = footprint[env_ids, :3].unbind(-1)
         yaw = rand[:, 5]
         positions[:, 0] -= square * (a * yaw.cos().abs() + b * yaw.sin().abs() - a)   # Objekt liegt bei −x der Hand
     orientations = math_utils.quat_mul(root_states[:, 3:7],
@@ -213,6 +230,31 @@ def fingertips_to_object(env: ManagerBasedRLEnv, std: float,
     tips = robot.data.body_pos_w[:, robot_cfg.body_ids]
     dist = torch.norm(tips - obj.data.root_pos_w[:, None, :], dim=-1).max(dim=-1).values
     return 1.0 - torch.tanh(dist / std)
+
+
+class FingertipProgress(ManagerTermBase):
+    """Annäherung wie NVIDIA AllegroKuka/DexPBT (IsaacGymEnvs allegro_kuka_base.py; Petrenko et al. 2023): je
+    Fingerspitze nur der Fortschritt zur Objektmitte, Σ max(kleinster bisheriger Abstand − aktueller, 0) — bloßes
+    Nahesein bringt nichts (nicht ausnutzbar), dass die Spitzen die Mitte hoher Objekte nie erreichen, stört nicht.
+    Nur in der Greifphase (vor dem Absenken; AllegroKuka: bis das Objekt angehoben ist). EXP-019, ersetzt
+    fingertips_to_object (maß alle Handkörper, für 3–4 cm Fingerweg ohnehin zu flach — ADR-022)."""
+
+    def __init__(self, cfg, env: ManagerBasedRLEnv):
+        super().__init__(cfg, env)
+        self.robot: Articulation = env.scene["robot"]
+        self.obj: RigidObject = env.scene["object"]
+        self.tip_ids = [self.robot.body_names.index(n) for n in FINGERTIP_LINKS]
+        self.closest = torch.full((env.num_envs, len(self.tip_ids)), -1.0, device=env.device)   # −1: neu setzen
+
+    def reset(self, env_ids=None):
+        self.closest[slice(None) if env_ids is None else env_ids] = -1.0
+
+    def __call__(self, env: ManagerBasedRLEnv, drop_start_s: float, max_delta: float = 0.05) -> torch.Tensor:
+        d = torch.norm(self.robot.data.body_pos_w[:, self.tip_ids] - self.obj.data.root_pos_w[:, None, :], dim=-1)
+        self.closest = torch.where(self.closest < 0, d, self.closest)
+        delta = (self.closest - d).clamp(0.0, max_delta)          # AllegroKuka: clip(…, 0, 10)
+        self.closest = torch.minimum(self.closest, d)
+        return delta.sum(dim=-1) * (episode_time(env) < drop_start_s).float()
 
 
 def thumb_opposition_contact(env: ManagerBasedRLEnv, threshold: float) -> torch.Tensor:

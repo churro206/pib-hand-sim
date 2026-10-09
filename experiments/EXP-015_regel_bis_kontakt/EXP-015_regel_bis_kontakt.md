@@ -1,5 +1,7 @@
 # EXP-015: Regel-Baseline: schließen bis Kontakt, taktiler Reflex (kein RL)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Nachbewertet unter eval-v2: 68 % — RL gesichert besser; der Schluss „bis auf wenige PP an RL“ gilt nur unter eval-v1.
+
 **Leistung** 68 % [66–70 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 74 % · Ø 8 cm 68 % · Quader 61 %) — ggü. EXP-013: P(besser) = 0.11 [0.00–0.33] → gesichert schlechter
 
 **Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 72 % · Saftpackung 72 % · Cracker (YCB) 66 % · Zucker (YCB) 68 % · Senf (YCB) 59 %
@@ -35,6 +37,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 1.8 % | | | | 100.0 % |
 | Absinken [mm] | 0.0216 | | | | 0 |
 | Unruhe | 0.0081 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 25.6 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -60,6 +63,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 0.0 % | | | | 100.0 % |
 | Absinken [mm] | 0 | | | | 0 |
 | Unruhe | 0.00814 | | | | 0.889 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 32.1 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -85,6 +89,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 0.7 % | | | | 100.0 % |
 | Absinken [mm] | 0 | | | | 0.0174 |
 | Unruhe | 0.00811 | | | | 0.953 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 38.6 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -110,6 +115,7 @@ Bedingung `flasche_seitlich` (Objekt `flasche_d7x25`, Kippwinkel ≤ 45°), Prot
 | Stall-Anteil [Anteil] | 0.7 % | | | | 100.0 % |
 | Absinken [mm] | 0.012 | | | | 0.0161 |
 | Unruhe | 0.00813 | | | | 0.834 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 28.5 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 
@@ -135,6 +141,7 @@ Bedingung `saftpackung_seitlich` (Objekt `saftpackung_9x6x19`, Kippwinkel ≤ 45
 | Stall-Anteil [Anteil] | 0.9 % | | | | 100.0 % |
 | Absinken [mm] | 0 | | | | 0.0045 |
 | Unruhe | 0.0082 | | | | 0.856 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 27.7 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 

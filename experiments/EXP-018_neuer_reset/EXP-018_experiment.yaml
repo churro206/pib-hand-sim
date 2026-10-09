@@ -3,8 +3,7 @@ id: EXP-018
 titel: 'Neue Basis: EXP-013 mit Reset ohne Überlappung (ADR-021)'
 datum: '2026-10-09'
 eltern: EXP-013
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-013 trainierte schon fast ohne Überlappung (Finger 0–4°, Platzierung
   nach Bounding Box); der neue Reset ändert fürs Training nur Daumen-MCP, Handgelenk
@@ -84,16 +83,40 @@ training:
   - 44
   - 45
   - 46
+  - 47
+  - 48
+  - 49
+  - 50
+  - 51
   zusatz_args: []
 fenstertest: false              # ersetzt durch tools/analyse_reset.py auf der Trainingsszene (HeavyMulti)
 # Szenenprüfung 2026-10-09 (tools/analyse_reset.py --objekt multi, 256 Starts): 1/256 Handkontakt (Daumenspitze in
 # Opposition, Rotator 83°, an der Ecke eines vergrößerten, um −14° gedrehten Quaders, 1,3 N, ~6 mm) — bewusst
 # belassen (Starts in Opposition bleiben, Leon); Bewertungsszenen 0/256 auf allen 8 Objekten.
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: 99ad99b
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_17-35-14_EXP-018_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_17-52-03_EXP-018_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-13-46_EXP-018_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-28-26_EXP-018_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-43-08_EXP-018_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
 schluss: ""                     # was folgt daraus, nächstes Experiment
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: '1/5 Seeds lernen greifen: ohne die zufälligen Kontakte der Reset-Stöße fehlt
+    jede Hilfe beim Entdecken — die Lernkurven entscheiden sich in den ersten 10–25
+    Iterationen. Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz)
+    statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach:
+    ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs
+    (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und
+    Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung,
+    nicht Bewegung (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: Seeds 47–51 im Nachtlauf 2026-10-09 nachtrainiert (Basis für EXP-019–021 mit
+    10 Seeds).

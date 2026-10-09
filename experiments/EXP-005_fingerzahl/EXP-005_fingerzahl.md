@@ -1,8 +1,14 @@
 # EXP-005: Kontaktbelohnung nach Fingerzahl
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Die Kontaktbelohnung nach Fingerzahl ersetzte teilweise das fehlende Signal fürs Zugreifen — das könnte die bessere Zuverlässigkeit (4/5) erklären, nicht die Fingerzahl selbst. Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** 71 % [64–78 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 89 % · Ø 8 cm 74 % · Quader 55 %) — ggü. EXP-004: P(besser) = 0.69 [0.48–0.92] → kein Unterschied
 
-**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 67 % · Saftpackung 61 %
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 67 % · Saftpackung 61 % · Cracker (YCB) – · Zucker (YCB) – · Senf (YCB) –
 
 **Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — EXP-004: 2/5, exakter Fisher-Test p = 0.52 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
@@ -34,6 +40,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.9 % | | | | 99.6 % |
 | Absinken [mm] | 0.0453 | | | | 0.0191 |
 | Unruhe | 0.49 | | | | 0.863 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 9.4 %, instabil 0.0 %, anforderung_verletzt 18.6 %
 

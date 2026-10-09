@@ -61,6 +61,7 @@ GUARDRAILS = [
     ("stall_anteil", "Stall-Anteil [Anteil]", 0.05, "abs"),
     ("absinken_mm", "Absinken [mm]", 5.0, "abs"),
     ("unruhe", "Unruhe", 0.20, "rel"),
+    ("unruhe_wirksam", "Unruhe wirksam (Aktion auf ±1 begrenzt)", 0.20, "rel"),   # ADR-022, ab 2026-10-09
 ]
 
 
@@ -318,6 +319,13 @@ def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path, neu: bool = 
     return ok
 
 
+def clip_args(run_dir: Path) -> list[str]:
+    """--action_clip wie im Training (agent.yaml clip_actions, EXP-020 ff.) — sonst sähe die Bewertung ungeclippte
+    Ausgaben, die die Policy so nie geschickt hat."""
+    clip = (load_params(run_dir).get("agent") or {}).get("clip_actions")
+    return ["--action_clip", str(clip)] if clip else []
+
+
 def rule_args(exp: dict) -> list[str]:
     r = exp["regel"]
     return ["--regel", r["name"], "--regel-param", r.get("param") or ""]
@@ -333,16 +341,17 @@ def evaluate_condition(run_dir: Path, exp: dict, cond: dict, video: bool, out):
     if exp.get("regel"):
         src = rule_args(exp)
     elif exported.exists() and (not ckpts or exported.stat().st_mtime >= ckpts[-1].stat().st_mtime):
-        src = ["--policy", str(exported)]
+        src = ["--policy", str(exported)] + clip_args(run_dir)
     else:
-        src = ["--checkpoint", str(ckpts[-1])]
+        src = ["--checkpoint", str(ckpts[-1])] + clip_args(run_dir)
     base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--max_kipp_deg", str(req if req is not None else -1),
             "--objekt", cond.get("objekt_id") or DEFAULT_OBJECT, "--bedingung", cond["name"]]
     log(f"    Bedingung {cond['name']}")
     subprocess.run(base + src + ["--num_envs", str(EVAL["umgebungen"]), "--episodes", str(EVAL["episoden"]),
                                  "--out", str(run_dir)], cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
     if video:
-        subprocess.run(base + (rule_args(exp) if exp.get("regel") else ["--policy", str(run_dir / "exported" / "policy.pt")]) + [
+        subprocess.run(base + (rule_args(exp) if exp.get("regel") else ["--policy", str(run_dir / "exported" / "policy.pt")]
+                               + clip_args(run_dir)) + [
                                "--num_envs", str(EVAL["video_umgebungen"]), "--episodes", str(EVAL["video_umgebungen"]),
                                "--video", str(EVAL["video_schritte"]), "--out", str(run_dir / "video_eval")],
                        cwd=REPO, stdout=out, stderr=subprocess.STDOUT, timeout=1800)
@@ -678,15 +687,20 @@ def report(exp_id: str):
     out = _clean(res)
     if len(results) > 1:
         out["weitere_bedingungen"] = {r["bedingung"]: _clean(r) for r, _, _ in results[1:]}
+    # Trainingsdiagramme zuerst: training.json braucht failure_causes (head_lines) — sonst beim ersten Bericht falsch
+    tr = training_plots(d, exp, training=exp.get("training") is not None, conditions=False)
     head, rez = head_lines(d, exp, pexp, rec, prec, res, parent_main, own_training) if rec else ([], None)
     if rec:
         out["rezept"] = rez
         out["benchmark"] = {r["bedingung"]: _clean(r) for r in rec["_res"]}
     exp_file(d, "results.json").write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
-    tr = training_plots(d, exp, training=exp.get("training") is not None,
-                        conditions=bool(rec) and len(rec["bedingungen"]) > 1)
+    if rec and len(rec["bedingungen"]) > 1:                  # Diagramm je Bedingung aus der neuen results.json
+        training_plots(d, exp, training=False, conditions=True)
 
-    lines = [f"# {exp_id}: {exp.get('titel', '')}", ""] + head
+    lines = [f"# {exp_id}: {exp.get('titel', '')}", ""]
+    for n in exp.get("nachtrag") or []:            # spätere Befunde, die die Schlüsse betreffen (von Hand im YAML)
+        lines += [f"> **Nachtrag {n.get('datum', '')}:** {n.get('text', '')}", ""]
+    lines += head
     src = exp.get("laeufe_von") or exp.get("eltern")
     if own_training:
         best, bv = best_videos(d, exp)
@@ -1219,7 +1233,7 @@ def cmd_medien(a):
             m = re.search(r"_s(\d+)$", r)
             seed = m.group(1) if m else "0"
             policy = run / "exported" / "policy.pt"
-            src = rule_args(exp) if exp.get("regel") else ["--policy", str(policy)]
+            src = rule_args(exp) if exp.get("regel") else ["--policy", str(policy)] + clip_args(run)
             for c in BENCHMARK:
                 base = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", *src,
                         "--objekt", c["objekt_id"], "--bedingung", c["name"],
@@ -1277,7 +1291,8 @@ def record_best_videos(d: Path, exp: dict, tmp: Path, neu: bool = False):
             continue
         log(f"  Bestes Video {exp['id']} s{best} {c['kurz']} (3 Episoden)")
         shutil.rmtree(tmp, ignore_errors=True)
-        src = rule_args(exp) if exp.get("regel") else ["--policy", str(REPO / run / "exported" / "policy.pt")]
+        src = rule_args(exp) if exp.get("regel") else (["--policy", str(REPO / run / "exported" / "policy.pt")]
+                                                       + clip_args(REPO / run))
         cmd = [str(ISAACLAB), "-p", "isaac_lab/eval_policy.py", "--headless", "--nur-medien", *src,
                "--objekt", c["objekt_id"], "--bedingung", c["name"],
                "--max_kipp_deg", str(c["anforderung"]["max_kipp_deg"]), "--num_envs", str(EVAL["video_umgebungen"]),

@@ -807,6 +807,53 @@ nicht die Policy — und ungleich je Objekt. Eine Vorgreifpose (ADR-018) bringt 
 
 ---
 
+## ADR-022: Prüfung des Setups gegen die Vorbilder — Annäherung, Aktionsgrenzen, Critic
+
+**Problem**: Mehrfach wich unser Nachbau von den Vorbildern ab, ohne dass es auffiel (Annäherungsterm ADR-017,
+Reset ADR-021). EXP-018 (sauberer Reset) lernte nur in 1/5 Seeds zu greifen. Prüfung von Code, PPO-Konfiguration,
+Bewertung und allen Experimenten gegen Isaac Lab Dexsuite, IsaacGymEnvs AllegroKuka (DexPBT) und rl_games (2026-10-09).
+Muster: Dexsuite wurde **stückweise** übernommen — eine Aufgabe mit Arm, der von weit weg anfährt und das Objekt zu einem
+Ziel trägt, mit ~200-fachem Trainingsbudget — für eine feste Hand in Vorgreifpose.
+
+**Befunde** (nach Gewicht):
+1. **Kein Signal fürs Zugreifen.** Unser Annäherungsterm maß den Unterarmansatz (35 cm, belohnt höchstens, das Objekt
+   zum Unterarm zu ziehen); auch korrigiert ist Dexsuites `object_ee_distance` (std 0,4 m, größter Abstand zur
+   Objektmitte) bei 3,5 cm Vorgreifabstand flach (offen 0,70 → zugegriffen ~0,75). Einziges Signal vor dem Absenken war der
+   binäre Gegengriff → Entdecken per Zufall; unter eval-v1 halfen die Reset-Stöße. Lernkurven: ob ein Seed greift,
+   entscheidet sich in den ersten 10–25 Iterationen.
+2. **Aktionen unbegrenzt.** Dexsuite hält im rl_games-Setup den Mittelwert der Policy per `bounds_loss_coef` (soft bound
+   1,1); `rsl_rl` hat das nicht, unsere Portierung hatte keinen Ersatz. Die Policy überzieht weit über die Servo-Sättigung
+   (|a| ≈ 2–3, damit auch die verrauschte Aktion voll drückt); `action_l2`/`action_rate_l2` und die Leitplanke Unruhe
+   messen großteils Rauschen und Überziehen, nicht Bewegung. Im langen Training wächst das Rauschen (EXP-017 σ 1,0 → 1,5).
+3. **Trainingsbudget ~0,5 % von Dexsuite** (300 It. × 1024 vs. 15 000 × 4096). „Länger trainieren macht unruhiger“
+   (EXP-007/011) ist mit Befund 2 nicht belastbar.
+4. **Critic kennt das Objekt nicht** (Größe, Masse, Reibung) — bei HORA und Dexsuite (Punktwolke) schon.
+5. Geringer: Halte-/Erfolgsbelohnung erst ab 2 s (γ = 0,99 bei 60 Hz); kurzer Beobachtungsverlauf (5 Schritte);
+   umgekippte 15-cm-Zylinder brechen nicht ab (Mitte sinkt nur 4,5 cm < 5 cm).
+Richtig umgesetzt: Mimic, Servo-/Pleuel-Modell, Kontaktsensoren, Gegengriff, Kontakt-Gates, Randomisierung, Protokoll.
+
+**Entscheidung** (Leon, 2026-10-09): je eine Änderung, Eltern EXP-018 (auf 10 Seeds erweitert):
+- EXP-019 Annäherung je Fingerspitze **nur als Fortschritt** wie NVIDIA AllegroKuka/DexPBT (`mdp.FingertipProgress`:
+  Σ max(kleinster bisheriger Abstand zur Objektmitte − aktueller, 0), nur vor dem Absenken, Gewicht 500 nach
+  `reward_diag`), 10 Seeds.
+- EXP-020 Aktionen auf ±1 (`clip_actions = 1.0`, Ersatz für bounds_loss; Bewertung mit `--action_clip`).
+- EXP-021 Critic mit Objektgröße, Masse, Reibung (`mdp.object_properties`).
+- EXP-022 = EXP-019 + Aktionen auf ±1.
+- Neue Kennzahl **Unruhe wirksam** (Änderung der auf ±1 begrenzten Aktion) neben der alten Unruhe.
+- Ältere Berichte bekommen Nachträge (`nachtrag` im YAML), welche Schlüsse die Befunde betreffen.
+- Danach: Trainingsdauer neu prüfen, erst dann Strafen-Curriculum/Filter/Kraft.
+
+**Begründung**: Die Befunde erklären die größten offenen Probleme (Seeds ohne Griff, Unruhe) mit Abweichungen von den
+Vorbildern; die Korrekturen übernehmen jeweils das bewährte Gegenstück (DexPBT, rl_games bounds_loss, HORA).
+
+**Konsequenzen**:
+- Arbeitsregel: ein Vorbild **als Ganzes** prüfen — passt die Aufgabe (bewegter Arm vs. feste Hand), fehlen Gegenstücke in
+  anderer Software (rl_games → rsl_rl), wie groß ist das Budget — bevor einzelne Terme übernommen werden.
+- Belastbar bleiben: Dexsuite-Belohnung statt Eigenbau (ADR-017), Opposition, Objektvielfalt für den Transfer.
+  Wackelig: Trainingsdauer, Unruhe, Fingerzahl, kleine Unterschiede zwischen EXP-005/006/012/016.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

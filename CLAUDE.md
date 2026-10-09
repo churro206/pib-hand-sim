@@ -66,6 +66,7 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
 - Kontaktsensor mit Objekt-Filter: **ein** `ContactSensorCfg` pro Fingerspitze
 - Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
 - Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, 5 Seeds, Bewertung nach eval-v2/Auswertung v2 (nur innerhalb eines Protokolls vergleichen, ADR-021) — nicht über die Trainings-Belohnung vergleichen; Trainingsvarianten als Task-IDs in `pib_grasp/__init__.py`
+- Vorbild **als Ganzes** prüfen, bevor Terme übernommen werden (ADR-022): passt die Aufgabe (Arm fährt an vs. feste Hand in Vorgreifpose), fehlt ein Gegenstück in anderer Software (rl_games `bounds_loss` → rsl_rl), wie groß ist das Budget
 - `SceneEntityCfg` mit Körper-/Gelenknamen **nie** als Standardargument einer mdp-Funktion — Isaac Lab löst sie nur in den `params` eines Terms auf (ADR-017, Korrektur)
 - Neue Szenen/Varianten/Objekte vor einem Lauf prüfen: Start ohne Überlappung (`tools/analyse_reset.py`, Kontaktsensor über beide Physik-Unterschritte, ≥ 256 Starts), Szenenprüfung (`tools/check_objekt.py`/`check_multi.py`), Belohnungsdiagnose (`tools/reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
 
@@ -142,5 +143,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–021) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–022) | Sprint: @docs/current-sprint.md
 → RL-Ursprungs-Prompt/Bewertung: `docs/archiv/rl-grasping-notes.md` (Archiv: alte Pläne/Prompts in `docs/archiv/`)

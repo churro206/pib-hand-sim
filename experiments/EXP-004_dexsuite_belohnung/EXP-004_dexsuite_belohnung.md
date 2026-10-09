@@ -1,8 +1,14 @@
 # EXP-004: Belohnungssatz wie Dexsuite (dicht + scharf, kontaktgekoppelt)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Die Instabilität (2/5 Seeds scheitern) ist das fehlende Signal fürs Zugreifen. Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** 73 % [70–76 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 88 % · Ø 8 cm 76 % · Quader 43 %)
 
-**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 70 % · Saftpackung 55 %
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 70 % · Saftpackung 55 % · Cracker (YCB) – · Zucker (YCB) – · Senf (YCB) –
 
 **Zuverlässigkeit** 2/5 Seeds erfolgreich [5–85 %] — EXP-000: 0/1, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
@@ -34,6 +40,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.6 % | | | | 99.6 % |
 | Absinken [mm] | 0.0191 | | | | 0 |
 | Unruhe | 0.863 | | | | 0.244 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.7 %, gefallen 26.3 %, instabil 0.0 %, anforderung_verletzt 25.5 %
 

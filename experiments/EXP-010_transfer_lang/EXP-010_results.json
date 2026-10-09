@@ -345,7 +345,8 @@
   "kraft_ueber_15n_anteil": 0.8930781170252114,
   "stall_anteil": 0.8591639854836778,
   "absinken_mm": 0.4701936183988019,
-  "unruhe": 1.576711147890909
+  "unruhe": 1.576711147890909,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.0052,
@@ -706,7 +707,8 @@
     "kraft_ueber_15n_anteil": 0.8702479437210519,
     "stall_anteil": 0.8618802772944768,
     "absinken_mm": 1.3494036753900367,
-    "unruhe": 5.479077699179671
+    "unruhe": 5.479077699179671,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0058,
@@ -1074,7 +1076,8 @@
     "kraft_ueber_15n_anteil": 0.8826457719984082,
     "stall_anteil": 0.8585269718352425,
     "absinken_mm": 2.8137927581324824,
-    "unruhe": 7.171946185252404
+    "unruhe": 7.171946185252404,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0588,
@@ -1519,7 +1522,8 @@
     "kraft_ueber_15n_anteil": 0.8930781170252114,
     "stall_anteil": 0.8591639854836778,
     "absinken_mm": 0.4701936183988019,
-    "unruhe": 1.576711147890909
+    "unruhe": 1.576711147890909,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0052,
@@ -1875,7 +1879,8 @@
     "kraft_ueber_15n_anteil": 0.8702479437210519,
     "stall_anteil": 0.8618802772944768,
     "absinken_mm": 1.3494036753900367,
-    "unruhe": 5.479077699179671
+    "unruhe": 5.479077699179671,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0058,
@@ -2231,7 +2236,8 @@
     "kraft_ueber_15n_anteil": 0.8826457719984082,
     "stall_anteil": 0.8585269718352425,
     "absinken_mm": 2.8137927581324824,
-    "unruhe": 7.171946185252404
+    "unruhe": 7.171946185252404,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0588,

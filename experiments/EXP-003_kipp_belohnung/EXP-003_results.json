@@ -140,7 +140,8 @@
   "kraft_ueber_15n_anteil": null,
   "stall_anteil": null,
   "absinken_mm": null,
-  "unruhe": null
+  "unruhe": null,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.004666666666666667,
@@ -236,7 +237,10 @@
   },
   "testobjekte": {
    "flasche_seitlich": null,
-   "saftpackung_seitlich": null
+   "saftpackung_seitlich": null,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
   "urteil": "kein Unterschied"
  },
@@ -383,7 +387,8 @@
     "kraft_ueber_15n_anteil": null,
     "stall_anteil": null,
     "absinken_mm": null,
-    "unruhe": null
+    "unruhe": null,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.004666666666666667,
@@ -631,7 +636,8 @@
     "kraft_ueber_15n_anteil": null,
     "stall_anteil": null,
     "absinken_mm": null,
-    "unruhe": null
+    "unruhe": null,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0026666666666666666,
@@ -879,7 +885,8 @@
     "kraft_ueber_15n_anteil": 1.0,
     "stall_anteil": 0.9814126394052045,
     "absinken_mm": 0.0,
-    "unruhe": 3.2334154547368725
+    "unruhe": 3.2334154547368725,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.07866666666666666,

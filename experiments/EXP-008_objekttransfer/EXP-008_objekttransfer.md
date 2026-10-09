@@ -1,5 +1,9 @@
 # EXP-008: Objekttransfer ohne Nachtraining (EXP-004-Policy an Becher und Milchpackung)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt. Der Quader-Engpass des Transfers ist großteils Reset-Stoß (eval-v2: RL-Quader 78–80 %).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
 **Transfer** (Läufe von EXP-004, erfolgreiche Seeds, Median): Ø 6 cm 88 % · Ø 8 cm 76 % (-12 PP) · Quader 43 % (-45 PP)
 **Zuverlässigkeit** 2/5 Seeds erfolgreich [5–85 %] — ohne Erfolg: Seed 43 (hält, aber gekippt), Seed 45 (lernt nicht zu greifen), Seed 46 (hält, aber gekippt)
 
@@ -24,6 +28,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.6 % | | | | – |
 | Absinken [mm] | 0.0191 | | | | – |
 | Unruhe | 0.863 | | | | – |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.7 %, gefallen 26.3 %, instabil 0.0 %, anforderung_verletzt 25.5 %
 
@@ -48,6 +53,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 99.3 % | | | | 99.6 % |
 | Absinken [mm] | 0.0424 | | | | 0.0191 |
 | Unruhe | 1.22 | | | | 0.863 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 43.1 %, instabil 0.0 %, anforderung_verletzt 21.9 %
 
@@ -75,6 +81,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 79.9 % | | | | 99.6 % |
 | Absinken [mm] | 0.0965 | | | | 0.0191 |
 | Unruhe | 0.858 | | | | 0.863 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 6.6 %, gefallen 49.7 %, instabil 0.0 %, anforderung_verletzt 22.1 %
 

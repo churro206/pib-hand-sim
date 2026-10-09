@@ -35,3 +35,12 @@ class PibGraspPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         desired_kl=0.01,
         max_grad_norm=1.0,
     )
+
+
+@configclass
+class PibGraspPPORunnerCfg_Clip(PibGraspPPORunnerCfg):
+    """EXP-020/022: Aktionen auf [−1, 1] begrenzt (rsl_rl-Wrapper, Isaac Lab clip_actions). NVIDIAs Dexsuite hält den
+    Mittelwert der Policy im rl_games-Setup per bounds_loss (soft bound 1,1) — rsl_rl hat das nicht, ohne Begrenzung
+    überzieht die Policy weit über die Servo-Sättigung (|a| 2–3, ADR-022). 1 · Skala 0,1 rad > 5° Sättigungsfehler:
+    volle Kraft bleibt erreichbar. Firmware: Netzausgabe ebenso auf [−1, 1] begrenzen."""
+    clip_actions = 1.0

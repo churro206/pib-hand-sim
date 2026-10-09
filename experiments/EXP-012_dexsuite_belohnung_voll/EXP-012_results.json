@@ -345,7 +345,8 @@
   "kraft_ueber_15n_anteil": 0.9989242216689814,
   "stall_anteil": 0.9954406542611176,
   "absinken_mm": 1.1429075167955107,
-  "unruhe": 2.8040794938389415
+  "unruhe": 2.8040794938389415,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.0028000000000000004,
@@ -733,7 +734,8 @@
     "kraft_ueber_15n_anteil": 0.9962316590657601,
     "stall_anteil": 0.9964441598935717,
     "absinken_mm": 6.019551759032141,
-    "unruhe": 7.637374688132979
+    "unruhe": 7.637374688132979,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0046,
@@ -1102,7 +1104,8 @@
     "kraft_ueber_15n_anteil": 0.9935772862507702,
     "stall_anteil": 0.99665043236564,
     "absinken_mm": 8.478745675320386,
-    "unruhe": 3.756798052434839
+    "unruhe": 3.756798052434839,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.057999999999999996,
@@ -1212,7 +1215,10 @@
   },
   "testobjekte": {
    "flasche_seitlich": 0.782,
-   "saftpackung_seitlich": 0.639
+   "saftpackung_seitlich": 0.639,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
   "urteil": "kein Unterschied, Leitplanke verletzt"
  },
@@ -1564,7 +1570,8 @@
     "kraft_ueber_15n_anteil": 0.9989242216689814,
     "stall_anteil": 0.9954406542611176,
     "absinken_mm": 1.1429075167955107,
-    "unruhe": 2.8040794938389415
+    "unruhe": 2.8040794938389415,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0028000000000000004,
@@ -1920,7 +1927,8 @@
     "kraft_ueber_15n_anteil": 0.9962316590657601,
     "stall_anteil": 0.9964441598935717,
     "absinken_mm": 6.019551759032141,
-    "unruhe": 7.637374688132979
+    "unruhe": 7.637374688132979,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0046,
@@ -2276,7 +2284,8 @@
     "kraft_ueber_15n_anteil": 0.9935772862507702,
     "stall_anteil": 0.99665043236564,
     "absinken_mm": 8.478745675320386,
-    "unruhe": 3.756798052434839
+    "unruhe": 3.756798052434839,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.057999999999999996,

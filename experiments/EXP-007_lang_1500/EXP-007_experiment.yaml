@@ -50,3 +50,17 @@ schluss: Längeres Training stabilisiert die Seeds, ändert den Griff nicht (Pin
   und macht die Bewegung unruhiger (Zappeln, Leon). Budget erst wieder erhöhen, wenn
   die Aufgabe erweitert ist.
 commit_nachtrag: 73b412a
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts
+    im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines
+    sind verzerrt.'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt
+    der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein
+    Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs
+    (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Der Schluss „länger trainieren macht unruhiger“ ist nicht belastbar: mit
+    unbegrenzten Aktionen wachsen im langen Training Rauschen und Überziehen, die
+    die Unruhe-Metrik misst — nach EXP-020/022 neu prüfen.'

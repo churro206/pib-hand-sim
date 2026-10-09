@@ -1,8 +1,12 @@
 # EXP-012: Belohnung wie Dexsuite (Annäherung mit Handfläche, Position 3D zur Startposition)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Die Annäherung war hier korrigiert, Dexsuites Term ist für die feste Hand in Vorgreifpose aber zu flach (offen 0,66 → zugegriffen 0,71) — daher kaum Wirkung. Die stark gestiegene Unruhe ist auf rohen Aktionen gemessen. Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** 73 % [69–78 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 93 % · Ø 8 cm 71 % · Quader 50 %) — ggü. EXP-006: P(besser) = 0.39 [0.14–0.67] → kein Unterschied
 
-**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 78 % · Saftpackung 64 %
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 78 % · Saftpackung 64 % · Cracker (YCB) – · Zucker (YCB) – · Senf (YCB) –
 
 **Zuverlässigkeit** 3/5 Seeds erfolgreich [15–95 %] — EXP-006: 4/5, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
@@ -37,6 +41,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.5 % | | | | 99.8 % |
 | Absinken [mm] | 1.14 | | | | 0.0206 |
 | Unruhe | 2.8 | | | | 0.312 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.3 %, gefallen 42.9 %, instabil 0.8 %, anforderung_verletzt 0.4 %
 
@@ -63,6 +68,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 99.6 % | | | | 99.8 % |
 | Absinken [mm] | 6.02 | | | | 0.00526 |
 | Unruhe | 7.64 | | | | 0.355 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 53.3 %, instabil 1.6 %, anforderung_verletzt 0.5 %
 
@@ -90,6 +96,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 99.7 % | | | | 99.8 % |
 | Absinken [mm] | 8.48 | | | | 0.00101 |
 | Unruhe | 3.76 | | | | 0.502 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 5.8 %, gefallen 61.6 %, instabil 2.2 %, anforderung_verletzt 0.4 %
 

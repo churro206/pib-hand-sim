@@ -1,5 +1,11 @@
 # EXP-013: Objektvielfalt im Training (18 Formen der Kategorie seitlich)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Nachbewertet unter eval-v2 (Leistung 83 %, Quader 78 %, YCB 80–86 %); das Training lief noch mit Resten der Reset-Überlappung (Daumen-MCP 0–15°, Handgelenk −3–0°).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung (ADR-022).
+
 **Leistung** 83 % [80–87 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 84 % · Ø 8 cm 87 % · Quader 78 %)
 
 **Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 85 % · Saftpackung 88 % · Cracker (YCB) 83 % · Zucker (YCB) 86 % · Senf (YCB) 80 %
@@ -37,6 +43,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 100.0 % | | | | – |
 | Absinken [mm] | 0 | | | | – |
 | Unruhe | 0.762 | | | | – |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 41.9 %, instabil 0.0 %, anforderung_verletzt 7.2 %
 
@@ -61,6 +68,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0 | | | | 0 |
 | Unruhe | 0.889 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 44.3 %, instabil 0.0 %, anforderung_verletzt 2.6 %
 
@@ -86,6 +94,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.0174 | | | | 0 |
 | Unruhe | 0.953 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 51.7 %, instabil 0.0 %, anforderung_verletzt 4.3 %
 
@@ -112,6 +121,7 @@ Bedingung `flasche_seitlich` (Objekt `flasche_d7x25`, Kippwinkel ≤ 45°), Prot
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.0161 | | | | 0 |
 | Unruhe | 0.834 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 43.7 %, instabil 0.0 %, anforderung_verletzt 3.5 %
 
@@ -137,6 +147,7 @@ Bedingung `saftpackung_seitlich` (Objekt `saftpackung_9x6x19`, Kippwinkel ≤ 45
 | Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
 | Absinken [mm] | 0.0045 | | | | 0 |
 | Unruhe | 0.856 | | | | 0.762 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.0 %, gefallen 46.0 %, instabil 0.1 %, anforderung_verletzt 3.0 %
 

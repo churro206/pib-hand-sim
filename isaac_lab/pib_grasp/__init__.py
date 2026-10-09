@@ -30,6 +30,21 @@ for _name, _cfg in (("FingerCount", "PibGraspEnvCfg_FingerCount"), ("Heavy", "Pi
         },
     )
 
+# ADR-022 (EXP-019–022): je Variante Env-Konfiguration × Agenten-Konfiguration (Clip = Aktionen auf [−1, 1])
+for _name, _cfg, _agent in (("HeavyMultiProgress", "PibGraspEnvCfg_HeavyMultiProgress", "PibGraspPPORunnerCfg"),
+                            ("HeavyMultiClip", "PibGraspEnvCfg_HeavyMulti", "PibGraspPPORunnerCfg_Clip"),
+                            ("HeavyMultiPriv", "PibGraspEnvCfg_HeavyMultiPriv", "PibGraspPPORunnerCfg"),
+                            ("HeavyMultiProgressClip", "PibGraspEnvCfg_HeavyMultiProgress", "PibGraspPPORunnerCfg_Clip")):
+    gym.register(
+        id=f"Pib-Grasp-Hand-Left-{_name}-v0",
+        entry_point="isaaclab.envs:ManagerBasedRLEnv",
+        disable_env_checker=True,
+        kwargs={
+            "env_cfg_entry_point": f"pib_grasp.env_cfg:{_cfg}",
+            "rsl_rl_cfg_entry_point": f"pib_grasp.agents.rsl_rl_ppo_cfg:{_agent}",
+        },
+    )
+
 gym.register(
     id="Pib-Grasp-Hand-Left-Play-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",

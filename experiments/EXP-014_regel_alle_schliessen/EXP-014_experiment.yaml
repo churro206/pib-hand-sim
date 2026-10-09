@@ -77,3 +77,8 @@ raster_ergebnis:
   schliessen=0.4: 0.646
   schliessen=0.8: 0.344
 protokoll_vorher: eval-v1
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Nachbewertet unter eval-v2: 69 % — RL (EXP-013, 83 %) gesichert besser; der
+    Schluss „Regel bis auf 6 PP an RL“ gilt nur unter eval-v1 (Reset-Stöße trafen
+    RL stärker).'

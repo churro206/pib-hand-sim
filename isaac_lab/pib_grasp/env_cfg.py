@@ -561,6 +561,33 @@ class PibGraspEnvCfg_HeavyDexsuite(PibGraspEnvCfg_Heavy):
     rewards: RewardsDexsuiteCfg = RewardsDexsuiteCfg()
 
 
+# ── ADR-022 (2026-10-09): Annäherung je Fingerspitze, Critic kennt das Objekt — je eine Änderung ggü. HeavyMulti ──
+PROGRESS_WEIGHT = 500.0     # Σ Fortschritt [m] je Schritt × dt × Gewicht; Größenordnung per tools/reward_diag.py
+
+
+@configclass
+class RewardsProgressCfg(RewardsCfg):
+    """EXP-019: Annäherung wie NVIDIA AllegroKuka/DexPBT (mdp.FingertipProgress) statt fingertips_to_object."""
+    fingertips_to_object = None
+    fingertip_progress = RewTerm(func=mdp.FingertipProgress, weight=PROGRESS_WEIGHT,
+                                 params={"drop_start_s": GRASP_TIME_S, "max_delta": 0.05})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiProgress(PibGraspEnvCfg_HeavyMulti):
+    """EXP-019 (und EXP-022 mit begrenzten Aktionen): wie EXP-018, Annäherung je Fingerspitze nur als Fortschritt."""
+    rewards: RewardsProgressCfg = RewardsProgressCfg()
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiPriv(PibGraspEnvCfg_HeavyMulti):
+    """EXP-021: wie EXP-018, Critic zusätzlich mit Objektgröße, Masse und Reibung (privilegiert, wie HORA/Dexsuite)."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.observations.critic.object_props = ObsTerm(func=mdp.object_properties)
+
+
 @configclass
 class PibGraspEnvCfg_PLAY(PibGraspEnvCfg):
     def __post_init__(self):

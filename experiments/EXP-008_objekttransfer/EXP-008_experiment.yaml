@@ -57,3 +57,14 @@ urteil: Hypothese bestätigt (teilweiser Transfer) — bestätigt (Leon, 2026-10
 schluss: Der Zylinder-Spezialist überträgt nur teilweise; Quader > 10 PP unter der
   Referenz → Training mit Objektvielfalt.
 laeufe_von: EXP-004
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts
+    im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines
+    sind verzerrt. Der Quader-Engpass des Transfers ist großteils Reset-Stoß (eval-v2:
+    RL-Quader 78–80 %).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt
+    der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein
+    Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs
+    (ADR-022).'

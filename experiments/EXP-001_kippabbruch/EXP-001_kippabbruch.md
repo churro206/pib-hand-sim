@@ -1,5 +1,9 @@
 # EXP-001: Kippabbruch + Aufrecht-Belohnung
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Zum Schluss „Annäherung std 0,1 ≈ 0“: der Term maß ohnehin nicht die Fingerspitzen. Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
 **Leistung** – (kein erfolgreicher Seed)
 
 **Zuverlässigkeit** 0/3 Seeds erfolgreich [0–71 %] — EXP-000: 0/1, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
@@ -30,6 +34,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 20°), Proto
 | Stall-Anteil [Anteil] | – | | | | 99.6 % |
 | Absinken [mm] | – | | | | 0 |
 | Unruhe | – | | | | 0.244 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 1.8 %, gefallen 98.2 %, instabil 0.0 %, anforderung_verletzt 0.0 %
 

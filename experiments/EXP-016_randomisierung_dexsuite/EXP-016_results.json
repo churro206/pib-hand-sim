@@ -345,7 +345,8 @@
   "kraft_ueber_15n_anteil": 0.9992339434451206,
   "stall_anteil": 0.999568014860471,
   "absinken_mm": 0.013542903024096822,
-  "unruhe": 1.2446028766289432
+  "unruhe": 1.2446028766289432,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.007200000000000001,
@@ -354,16 +355,8 @@
   "anforderung_verletzt": 0.066
  },
  "vergleich": {
-  "urteil": "kein messbarer Unterschied",
-  "differenz_aufgabenerfolg": 0.12242940000000002,
-  "differenz_ki95": [
-   -0.08140499999999992,
-   0.40640499999999996
-  ],
-  "leitplanken_verletzt": [
-   "Unruhe: 1.24 > 0.846"
-  ],
-  "gegen": "EXP-013"
+  "urteil": "kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)",
+  "gegen": null
  },
  "konfig_unterschiede": [
   "env.events.joint_friction.func: ∅ → isaaclab.envs.mdp.events:randomize_joint_parameters",
@@ -734,7 +727,8 @@
     "kraft_ueber_15n_anteil": 0.9984486512994504,
     "stall_anteil": 0.9996485693534443,
     "absinken_mm": 0.03684560608508112,
-    "unruhe": 1.9472579225057802
+    "unruhe": 1.9472579225057802,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0062,
@@ -743,16 +737,16 @@
     "anforderung_verletzt": 0.0528
    },
    "vergleich": {
-    "urteil": "kein messbarer Unterschied",
-    "differenz_aufgabenerfolg": 0.057819200000000015,
+    "urteil": "schlechter",
+    "differenz_aufgabenerfolg": -0.0732337,
     "differenz_ki95": [
-     -0.13061999999999999,
-     0.3102
+     -0.11259999999999992,
+     -0.02819000000000006
     ],
     "leitplanken_verletzt": [
-     "Unruhe: 1.95 > 1.01"
+     "Unruhe: 1.95 > 1.49"
     ],
-    "gegen": "EXP-013"
+    "gegen": "Referenz zylinder_seitlich"
    }
   },
   "quader_seitlich": {
@@ -1102,7 +1096,8 @@
     "kraft_ueber_15n_anteil": 0.9977467683793522,
     "stall_anteil": 0.9995247803316438,
     "absinken_mm": 0.22033110470065626,
-    "unruhe": 1.1079339423731271
+    "unruhe": 1.1079339423731271,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0718,
@@ -1111,14 +1106,14 @@
     "anforderung_verletzt": 0.010599999999999998
    },
    "vergleich": {
-    "urteil": "kein messbarer Unterschied",
-    "differenz_aufgabenerfolg": 0.11904590000000001,
+    "urteil": "schlechter",
+    "differenz_aufgabenerfolg": -0.17127230000000002,
     "differenz_ki95": [
-     -0.016004999999999964,
-     0.3290099999999999
+     -0.26602000000000003,
+     -0.0766
     ],
     "leitplanken_verletzt": [],
-    "gegen": "EXP-013"
+    "gegen": "Referenz zylinder_seitlich"
    }
   },
   "flasche_seitlich": {
@@ -1468,7 +1463,8 @@
     "kraft_ueber_15n_anteil": 0.9969899441476856,
     "stall_anteil": 0.9996132700515966,
     "absinken_mm": 0.33526503542752795,
-    "unruhe": 2.0335503581072727
+    "unruhe": 2.0335503581072727,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0072,
@@ -1477,16 +1473,16 @@
     "anforderung_verletzt": 0.0792
    },
    "vergleich": {
-    "urteil": "kein messbarer Unterschied",
-    "differenz_aufgabenerfolg": 0.06486200000000002,
+    "urteil": "schlechter",
+    "differenz_aufgabenerfolg": -0.06908880000000002,
     "differenz_ki95": [
-     -0.12120999999999997,
-     0.30780500000000005
+     -0.12039999999999995,
+     -0.017994999999999935
     ],
     "leitplanken_verletzt": [
-     "Unruhe: 2.03 > 0.962"
+     "Unruhe: 2.03 > 1.49"
     ],
-    "gegen": "EXP-013"
+    "gegen": "Referenz zylinder_seitlich"
    }
   },
   "saftpackung_seitlich": {
@@ -1836,7 +1832,8 @@
     "kraft_ueber_15n_anteil": 0.9975903236610605,
     "stall_anteil": 0.9996196956852521,
     "absinken_mm": 0.19532361056335995,
-    "unruhe": 0.7708385785770591
+    "unruhe": 0.7708385785770591,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0538,
@@ -1845,14 +1842,14 @@
     "anforderung_verletzt": 0.013800000000000002
    },
    "vergleich": {
-    "urteil": "kein messbarer Unterschied",
-    "differenz_aufgabenerfolg": 0.12446169999999998,
+    "urteil": "schlechter",
+    "differenz_aufgabenerfolg": -0.10536110000000004,
     "differenz_ki95": [
-     -0.03181500000000005,
-     0.352605
+     -0.17100499999999993,
+     -0.043195000000000046
     ],
     "leitplanken_verletzt": [],
-    "gegen": "EXP-013"
+    "gegen": "Referenz zylinder_seitlich"
    }
   }
  },
@@ -1930,22 +1927,15 @@
     0.7143033333333333
    ]
   },
-  "vergleich": {
-   "eltern": "EXP-013",
-   "leistung_p": 0.40277777777777785,
-   "leistung_ki95": [
-    0.16666666666666666,
-    0.6666666666666666
-   ],
-   "fisher_p": 1.0,
-   "zuverlaessigkeit_schlechter": false,
-   "zuverlaessigkeit_besser": false
-  },
+  "vergleich": null,
   "testobjekte": {
    "flasche_seitlich": 0.6859999999999999,
-   "saftpackung_seitlich": 0.6525
+   "saftpackung_seitlich": 0.6525,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
-  "urteil": "kein Unterschied, Leitplanke verletzt"
+  "urteil": "kein Vergleich (Eltern unter eval-v2)"
  },
  "benchmark": {
   "zylinder_seitlich": {
@@ -2295,7 +2285,8 @@
     "kraft_ueber_15n_anteil": 0.9992339434451206,
     "stall_anteil": 0.999568014860471,
     "absinken_mm": 0.013542903024096822,
-    "unruhe": 1.2446028766289432
+    "unruhe": 1.2446028766289432,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.007200000000000001,
@@ -2651,7 +2642,8 @@
     "kraft_ueber_15n_anteil": 0.9984486512994504,
     "stall_anteil": 0.9996485693534443,
     "absinken_mm": 0.03684560608508112,
-    "unruhe": 1.9472579225057802
+    "unruhe": 1.9472579225057802,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0062,
@@ -3007,7 +2999,8 @@
     "kraft_ueber_15n_anteil": 0.9977467683793522,
     "stall_anteil": 0.9995247803316438,
     "absinken_mm": 0.22033110470065626,
-    "unruhe": 1.1079339423731271
+    "unruhe": 1.1079339423731271,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0718,

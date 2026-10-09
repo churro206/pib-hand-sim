@@ -49,6 +49,8 @@ parser.add_argument("--out", type=str, default=None, help="Ausgabeordner (<proto
 parser.add_argument("--video", type=int, default=0, help="Schritte Video am Anfang (0 = aus)")
 parser.add_argument("--real_time", action="store_true", help="Auf Echtzeit bremsen (zum Zuschauen)")
 parser.add_argument("--verlauf", action="store_true", help="Verlauf über die Episode messen")
+parser.add_argument("--action_clip", type=float, default=0.0,
+                    help="Policy-Ausgabe auf ±Wert begrenzen wie im Training (agent clip_actions, EXP-020 ff.); 0 = aus")
 parser.add_argument("--nur-medien", dest="nur_medien", action="store_true",
                     help="keine eval-Dateien schreiben (nur Video/Verlauf)")
 AppLauncher.add_app_launcher_args(parser)
@@ -183,6 +185,7 @@ def zeros():
 # laufende Größen je Umgebung (aktuelle Episode)
 steps, max_tilt, early_tilt, max_forearm = zeros(), zeros(), zeros(), zeros()
 hold_steps, hold_force, hold_over, stall, act_rate, sink = zeros(), zeros(), zeros(), zeros(), zeros(), zeros()
+act_rate_eff = zeros()      # Unruhe wirksam: Änderung der auf ±1 begrenzten Aktion (Überziehen jenseits zählt nicht)
 hold_touch = torch.zeros(N, 5, device=dev)       # Fingernutzung: Schritte mit Objektkontakt > 1 N je Finger
 hold_fobj = torch.zeros(N, 5, device=dev)        # … und Objektkraft je Finger (Reihenfolge Daumen … klein)
 forearm0 = robot.data.joint_pos[:, forearm].clone()
@@ -216,6 +219,7 @@ def finish(i, reason):
         "stall_anteil": stall[i].item() / n,
         "absinken_mm": 1000 * sink[i].item(),
         "unruhe": act_rate[i].item() / n,
+        "unruhe_wirksam": act_rate_eff[i].item() / n,
         "finger_kontakt": (hold_touch[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
         "finger_kraft_n": (hold_fobj[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
     })
@@ -228,13 +232,16 @@ with torch.inference_mode():
     while (len(episodes) < args_cli.episodes or total_steps < args_cli.video) and simulation_app.is_running():
         t0 = time.time()
         total_steps += 1
-        obs, _, terminated, truncated, _ = env.step(policy(obs["policy"]))
+        act = policy(obs["policy"])
+        if args_cli.action_clip > 0 and not args_cli.regel:       # wie rsl_rl clip_actions im Training
+            act = act.clamp(-args_cli.action_clip, args_cli.action_clip)
+        obs, _, terminated, truncated, _ = env.step(act)
         done = terminated | truncated
         for i in done.nonzero().flatten().tolist():
             if len(episodes) < args_cli.episodes:
                 finish(i, next((n for n in term_names if uenv.termination_manager.get_term(n)[i]), "?"))
         # neue Episoden zurücksetzen, laufende fortschreiben (Werte nach dem Schritt)
-        for buf in (steps, max_tilt, early_tilt, max_forearm, hold_steps, hold_force, hold_over, stall, act_rate, sink,
+        for buf in (steps, max_tilt, early_tilt, max_forearm, hold_steps, hold_force, hold_over, stall, act_rate, act_rate_eff, sink,
                     hold_touch, hold_fobj):
             buf[done] = 0.0
         forearm0[done] = robot.data.joint_pos[done, forearm]
@@ -257,6 +264,7 @@ with torch.inference_mode():
         stall[live] += (robot.data.applied_torque[live][:, stall_ids].abs() >= STALL_FRACTION * stall_limit[live]).any(-1).float()
         am = uenv.action_manager
         act_rate[live] += ((am.action - am.prev_action) ** 2).sum(-1)[live]
+        act_rate_eff[live] += ((am.action.clamp(-1, 1) - am.prev_action.clamp(-1, 1)) ** 2).sum(-1)[live]
         sink[live] = (z0 - obj.data.root_pos_w[:, 2]).clamp(min=0.0)[live]   # Hand fest → ggü. Startlage
         if args_cli.verlauf:
             idx = (steps - 1).long().clamp(0, T - 1)
@@ -299,6 +307,7 @@ summary = {
         "stall_anteil": mean([e["stall_anteil"] for e in held]),
         "absinken_mm": mean([e["absinken_mm"] for e in held]),
         "unruhe": mean([e["unruhe"] for e in held]),
+        "unruhe_wirksam": mean([e["unruhe_wirksam"] for e in held]),
     },
     # beschreibend (keine Leitplanke): Kontaktanteil/Kraft je Finger in der Haltephase, gehaltene Episoden
     "fingernutzung": {
@@ -345,6 +354,7 @@ lines = [
     f"  Stall-Anteil         {pct(L['stall_anteil'])}",
     f"  Absinken             {num(L['absinken_mm'], ' mm')}",
     f"  Unruhe               {num(L['unruhe'], digits=3)}",
+    f"  Unruhe wirksam       {num(L['unruhe_wirksam'], digits=3)}",
     "Fingernutzung (Haltephase, Kontakt > 1 N / Kraft an der Dose), Daumen … klein:",
     "  Kontakt  " + "  ".join(pct(x) for x in summary["fingernutzung"]["kontakt_anteil"]),
     "  Kraft    " + "  ".join(num(x, " N") for x in summary["fingernutzung"]["kraft_n"]),

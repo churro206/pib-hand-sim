@@ -121,7 +121,8 @@
   "kraft_ueber_15n_anteil": 0.9293062714776638,
   "stall_anteil": 4.790556854328747e-06,
   "absinken_mm": 0.003328604489257655,
-  "unruhe": 0.005725899146597014
+  "unruhe": 0.005725899146597014,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.0,
@@ -1010,7 +1011,8 @@
     "kraft_ueber_15n_anteil": 0.9641859344894026,
     "stall_anteil": 0.0,
     "absinken_mm": 0.0,
-    "unruhe": 0.00570491167950848
+    "unruhe": 0.00570491167950848,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1152,7 +1154,8 @@
     "kraft_ueber_15n_anteil": 0.864366837024418,
     "stall_anteil": 1.899900571870072e-05,
     "absinken_mm": 0.0,
-    "unruhe": 0.005724117578936542
+    "unruhe": 0.005724117578936542,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1294,7 +1297,8 @@
     "kraft_ueber_15n_anteil": 0.9031278855032319,
     "stall_anteil": 5.148853350358875e-06,
     "absinken_mm": 0.0,
-    "unruhe": 0.00577417973781396
+    "unruhe": 0.00577417973781396,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1436,7 +1440,8 @@
     "kraft_ueber_15n_anteil": 0.8624941397093296,
     "stall_anteil": 0.0,
     "absinken_mm": 0.005729087797398305,
-    "unruhe": 0.005797238413901218
+    "unruhe": 0.005797238413901218,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1654,7 +1659,8 @@
     "kraft_ueber_15n_anteil": 0.9293062714776638,
     "stall_anteil": 4.790556854328747e-06,
     "absinken_mm": 0.003328604489257655,
-    "unruhe": 0.005725899146597014
+    "unruhe": 0.005725899146597014,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1786,7 +1792,8 @@
     "kraft_ueber_15n_anteil": 0.9641859344894026,
     "stall_anteil": 0.0,
     "absinken_mm": 0.0,
-    "unruhe": 0.00570491167950848
+    "unruhe": 0.00570491167950848,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1918,7 +1925,8 @@
     "kraft_ueber_15n_anteil": 0.864366837024418,
     "stall_anteil": 1.899900571870072e-05,
     "absinken_mm": 0.0,
-    "unruhe": 0.005724117578936542
+    "unruhe": 0.005724117578936542,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0,

@@ -345,7 +345,8 @@
   "kraft_ueber_15n_anteil": 0.9968147451392356,
   "stall_anteil": 0.9999529284798397,
   "absinken_mm": 0.1812675459291087,
-  "unruhe": 1.1975801722386312
+  "unruhe": 1.1975801722386312,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.0044,
@@ -716,7 +717,8 @@
     "kraft_ueber_15n_anteil": 0.9630290706799689,
     "stall_anteil": 0.9988703606721533,
     "absinken_mm": 1.112983504596035,
-    "unruhe": 1.7643027295198188
+    "unruhe": 1.7643027295198188,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0058,
@@ -1084,7 +1086,8 @@
     "kraft_ueber_15n_anteil": 0.9924840295478736,
     "stall_anteil": 0.9974766914618108,
     "absinken_mm": 2.6034724492446575,
-    "unruhe": 1.9133660003966475
+    "unruhe": 1.9133660003966475,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0538,
@@ -1193,7 +1196,10 @@
   },
   "testobjekte": {
    "flasche_seitlich": 0.715,
-   "saftpackung_seitlich": 0.579
+   "saftpackung_seitlich": 0.579,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
   "urteil": "schlechter, Leitplanke verletzt"
  },
@@ -1545,7 +1551,8 @@
     "kraft_ueber_15n_anteil": 0.9968147451392356,
     "stall_anteil": 0.9999529284798397,
     "absinken_mm": 0.1812675459291087,
-    "unruhe": 1.1975801722386312
+    "unruhe": 1.1975801722386312,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0044,
@@ -1901,7 +1908,8 @@
     "kraft_ueber_15n_anteil": 0.9630290706799689,
     "stall_anteil": 0.9988703606721533,
     "absinken_mm": 1.112983504596035,
-    "unruhe": 1.7643027295198188
+    "unruhe": 1.7643027295198188,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0058,
@@ -2257,7 +2265,8 @@
     "kraft_ueber_15n_anteil": 0.9924840295478736,
     "stall_anteil": 0.9974766914618108,
     "absinken_mm": 2.6034724492446575,
-    "unruhe": 1.9133660003966475
+    "unruhe": 1.9133660003966475,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0538,

@@ -82,3 +82,15 @@ schluss: 'Entwurf: Das Curriculum hebt die Leistung und erstmals den Quader deut
   wenn es in Gang kommt; nächste Schritte: Unruhe (EXP-018/019, Eltern EXP-017) und
   Start des Curriculums zuverlässiger machen.'
 protokoll_vorher: eval-v1
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Nachbewertet unter eval-v2 (Leistung 86 %, Quader 80 %, YCB 57–70 %). 3/5
+    Seeds kommen nie in Gang — fehlendes Signal fürs Zugreifen. Der Annäherungsterm
+    maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre
+    auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte,
+    Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Unruhe 2,66 großteils Überziehen bei wachsendem Rauschen (σ 1,0 → 1,5). Aktionen
+    unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und Leitplanke Unruhe
+    messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung, nicht Bewegung
+    (ADR-022).'

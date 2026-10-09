@@ -345,7 +345,8 @@
   "kraft_ueber_15n_anteil": 0.9989660632557993,
   "stall_anteil": 0.9982481633627532,
   "absinken_mm": 0.020594471379330286,
-  "unruhe": 0.3115468446956017
+  "unruhe": 0.3115468446956017,
+  "unruhe_wirksam": null
  },
  "fehler": {
   "startfehler": 0.0052,
@@ -455,7 +456,10 @@
   },
   "testobjekte": {
    "flasche_seitlich": 0.7505,
-   "saftpackung_seitlich": 0.645
+   "saftpackung_seitlich": 0.645,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
   "urteil": "kein Unterschied, Leitplanke verletzt"
  },
@@ -807,7 +811,8 @@
     "kraft_ueber_15n_anteil": 0.9989660632557993,
     "stall_anteil": 0.9982481633627532,
     "absinken_mm": 0.020594471379330286,
-    "unruhe": 0.3115468446956017
+    "unruhe": 0.3115468446956017,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.0052,
@@ -1163,7 +1168,8 @@
     "kraft_ueber_15n_anteil": 0.998500340907078,
     "stall_anteil": 0.9979562386659294,
     "absinken_mm": 0.00525567266676161,
-    "unruhe": 0.3545862127071618
+    "unruhe": 0.3545862127071618,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.006,
@@ -1519,7 +1525,8 @@
     "kraft_ueber_15n_anteil": 0.9985936663115416,
     "stall_anteil": 0.9977593555516003,
     "absinken_mm": 0.001011117857102065,
-    "unruhe": 0.5022839404772478
+    "unruhe": 0.5022839404772478,
+    "unruhe_wirksam": null
    },
    "fehler": {
     "startfehler": 0.06100000000000001,

@@ -1,5 +1,11 @@
 # EXP-010: Objekttransfer ohne Nachtraining (EXP-007-Policy, 1500 Iterationen)
 
+> **Nachtrag 2026-10-09 (ADR-021/022):** Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines sind verzerrt.
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).
+
+> **Nachtrag 2026-10-09 (ADR-021/022):** Der Schluss „länger trainieren macht unruhiger“ ist nicht belastbar: mit unbegrenzten Aktionen wachsen im langen Training Rauschen und Überziehen, die die Unruhe-Metrik misst — nach EXP-020/022 neu prüfen.
+
 **Transfer** (Läufe von EXP-007, erfolgreiche Seeds, Median): Ø 6 cm 93 % · Ø 8 cm 72 % (-21 PP) · Quader 54 % (-39 PP)
 **Zuverlässigkeit** 4/5 Seeds erfolgreich [28–99 %] — ohne Erfolg: Seed 43 (hält, aber gekippt)
 
@@ -24,6 +30,7 @@ Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 85.9 % | | | | – |
 | Absinken [mm] | 0.47 | | | | – |
 | Unruhe | 1.58 | | | | – |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.5 %, gefallen 7.4 %, instabil 0.0 %, anforderung_verletzt 14.0 %
 
@@ -48,6 +55,7 @@ Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Pr
 | Stall-Anteil [Anteil] | 86.2 % | | | | 85.9 % |
 | Absinken [mm] | 1.35 | | | | 0.47 |
 | Unruhe | 5.48 | | | | 1.58 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 0.6 %, gefallen 32.6 %, instabil 0.0 %, anforderung_verletzt 5.2 %
 
@@ -74,6 +82,7 @@ Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Proto
 | Stall-Anteil [Anteil] | 85.9 % | | | | 85.9 % |
 | Absinken [mm] | 2.81 | | | | 0.47 |
 | Unruhe | 7.17 | | | | 1.58 |
+| Unruhe wirksam (Aktion auf ±1 begrenzt) | – | | | | – |
 
 Fehlerarten: startfehler 5.9 %, gefallen 52.1 %, instabil 0.0 %, anforderung_verletzt 2.0 %
 

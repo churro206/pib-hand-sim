@@ -60,3 +60,17 @@ urteil: besser als EXP-000, aber instabil (2/5 Seeds scheitern) — bestätigt (
 schluss: 'Die Dexsuite-Belohnung war der Durchbruch (ADR-017), aber als Baseline zu
   instabil: mit 3 Seeds sah EXP-004 robust aus. Neue Baseline ist EXP-006.'
 commit_nachtrag: 73b412a
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Bewertet unter eval-v1: beim Reset steckte die Hand in bis zu 81 % der Starts
+    im Objekt (ADR-021) — besonders Quader-Werte und der Abstand zu den Regel-Baselines
+    sind verzerrt.'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Die Instabilität (2/5 Seeds scheitern) ist das fehlende Signal fürs Zugreifen.
+    Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt der
+    Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein Signal
+    fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und
+    Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung,
+    nicht Bewegung (ADR-022).'

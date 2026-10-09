@@ -79,3 +79,17 @@ urteil: ""                      # bestätigtes Urteil (besser | schlechter | kei
 schluss: 'Entwurf: Objektvielfalt löst den Quader-Engpass nicht, verbessert aber Ø
   8 cm und die Testobjekte; als Setup für die Kategorie übernommen (Eltern für EXP-014–017).'
 protokoll_vorher: eval-v1
+nachtrag:
+- datum: 2026-10-09 (ADR-021/022)
+  text: Nachbewertet unter eval-v2 (Leistung 83 %, Quader 78 %, YCB 80–86 %); das
+    Training lief noch mit Resten der Reset-Überlappung (Daumen-MCP 0–15°, Handgelenk
+    −3–0°).
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Der Annäherungsterm maß bis EXP-018 alle Handkörper (Unterarmansatz) statt
+    der Fingerspitzen und wäre auch korrigiert für 3–4 cm Fingerweg zu flach: ein
+    Signal fürs Zugreifen fehlte, Seeds scheiterten deshalb am Entdecken des Griffs
+    (ADR-022).'
+- datum: 2026-10-09 (ADR-021/022)
+  text: 'Aktionen unbegrenzt (rsl_rl ohne NVIDIAs bounds_loss): Aktionsstrafen und
+    Leitplanke Unruhe messen großteils Rauschen und Überziehen jenseits der Servo-Sättigung,
+    nicht Bewegung (ADR-022).'
