@@ -45,7 +45,7 @@ bedingungen:
   startpose: seitlich, Daumen oben
   anforderung:
     max_kipp_deg: 45
-protokoll: eval-v1
+protokoll: eval-v2
 entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
 
 # --- Training ---
@@ -72,3 +72,4 @@ raster_ergebnis:
   schliessen=0.4,nachdruck_deg=2: 0.669
   schliessen=0.4,nachdruck_deg=4: 0.388
   schliessen=0.4,nachdruck_deg=5.7: 0.186
+protokoll_vorher: eval-v1

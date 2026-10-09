@@ -1,16 +1,16 @@
 # EXP-013: Objektvielfalt im Training (18 Formen der Kategorie seitlich)
 
-**Leistung** 77 % [74–81 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 83 % · Ø 8 cm 83 % · Quader 57 %) — ggü. EXP-006: P(besser) = 0.44 [0.19–0.69] → kein Unterschied
+**Leistung** 83 % [80–87 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 84 % · Ø 8 cm 87 % · Quader 78 %)
 
-**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 84 % · Saftpackung 67 % · Cracker (YCB) – · Zucker (YCB) – · Senf (YCB) –
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 85 % · Saftpackung 88 % · Cracker (YCB) 83 % · Zucker (YCB) 86 % · Senf (YCB) 80 %
 
-**Zuverlässigkeit** 3/5 Seeds erfolgreich [15–95 %] — EXP-006: 4/5, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
+**Zuverlässigkeit** 3/5 Seeds erfolgreich [15–95 %]
 
-**Leitplanken** Unruhe: 0.705 > 0.374 ✗
+**Leitplanken** – (keine Eltern)
 
-**Befund** ohne Erfolg: Seed 43 (lernt nicht zu greifen), Seed 44 (lernt nicht zu greifen); Engpass Quader (57 %); Unruhe 0.70 (EXP-006: 0.31)
+**Befund** ohne Erfolg: Seed 43 (lernt nicht zu greifen), Seed 44 (lernt nicht zu greifen); Engpass Quader (78 %)
 
-**Urteilsvorschlag** (auswertung-v2): **kein Unterschied, Leitplanke verletzt**
+**Urteilsvorschlag** (auswertung-v2): **kein Vergleich (Eltern unter eval-v1)**
 
 **Beste Videos** (Seed 42, 3 Episoden): [Ø 6 cm](beste_videos/EXP-013_zylinder_d6_s42.mp4) · [Ø 8 cm](beste_videos/EXP-013_zylinder_d8_s42.mp4) · [Quader](beste_videos/EXP-013_quader_7x7x20_s42.mp4)
 
@@ -19,138 +19,133 @@
 ![Verlauf über die Episode](diagramme/EXP-013_verlauf.svg)
 
 <details>
-<summary>Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)</summary>
+<summary>Ergebnisse je Bedingung (eval-v2, Leitplanken, Fehlerarten, Fingernutzung)</summary>
 
 
 #### Bedingung `zylinder_seitlich`
 
-Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
+Bedingung `zylinder_seitlich` (Objekt `zylinder_d6`, Kippwinkel ≤ 45°), Protokoll eval-v2, 5 Seed(s); Spalte Eltern unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-006 (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Eltern (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 50.3 % | 16.0 % – 84.8 % | 56.6 % | 40.0 % | 77.5 % / 89.0 % |
-| haltequote | 55.6 % | 18.1 % – 93.1 % | 64.1 % | 40.0 % | 92.3 % / 94.3 % |
-| Kippwinkel Median [°] | 27.1 | | | | 30 |
-| Unterarm Median [°] | 32 | | | | 40 |
-| Griffkraft Mittel [N] | 93.5 | | | | 85.7 |
-| Kraft > 15 N [Anteil] | 99.9 % | | | | 99.9 % |
-| Stall-Anteil [Anteil] | 100.0 % | | | | 99.8 % |
-| Absinken [mm] | 0.000794 | | | | 0.0206 |
-| Unruhe | 0.705 | | | | 0.312 |
+| aufgabenerfolg | 51.0 % | 15.7 % – 86.7 % | 56.4 % | 40.0 % | – |
+| haltequote | 58.1 % | 19.1 % – 97.2 % | 67.2 % | 40.0 % | – |
+| Kippwinkel Median [°] | 28 | | | | – |
+| Unterarm Median [°] | 33 | | | | – |
+| Griffkraft Mittel [N] | 93.6 | | | | – |
+| Kraft > 15 N [Anteil] | 100.0 % | | | | – |
+| Stall-Anteil [Anteil] | 100.0 % | | | | – |
+| Absinken [mm] | 0 | | | | – |
+| Unruhe | 0.762 | | | | – |
 
-Fehlerarten: startfehler 0.7 %, gefallen 43.8 %, instabil 0.0 %, anforderung_verletzt 5.3 %
+Fehlerarten: startfehler 0.0 %, gefallen 41.9 %, instabil 0.0 %, anforderung_verletzt 7.2 %
 
-**Urteilsvorschlag: schlechter** (gegenüber EXP-006)
-Unterschied Aufgabenerfolg -27.2 Prozentpunkte (95-%-KI -60.8 … -3.7)
-- Leitplanke: Unruhe: 0.705 > 0.374
+**Urteilsvorschlag: kein Vergleich (keine Eltern-Bewertung mit gleichem Protokoll)**
 
-Je Seed: 89.0 %, 0.0 %, 0.0 %, 83.1 %, 79.3 %
+Je Seed: 92.8 %, 0.0 %, 0.0 %, 84.2 %, 77.7 %
 
-Fingernutzung (Haltephase): im Mittel 2.88 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/89/100/0/6 · –/–/–/–/– · –/–/–/–/– · 96/15/99/1/87 · 100/69/0/100/0
+Fingernutzung (Haltephase): im Mittel 2.89 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/90/100/0/6 · –/–/–/–/– · –/–/–/–/– · 96/15/100/0/89 · 100/70/0/100/0
 
 #### Bedingung `zylinder_d8_seitlich`
 
-Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
+Bedingung `zylinder_d8_seitlich` (Objekt `zylinder_d8`, Kippwinkel ≤ 45°), Protokoll eval-v2, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-006 (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 49.4 % | 16.1 % – 83.2 % | 55.6 % | 40.0 % | 70.7 % / 74.1 % |
-| haltequote | 51.1 % | 16.4 % – 86.1 % | 57.7 % | 40.0 % | 79.4 % / 82.1 % |
-| Kippwinkel Median [°] | 21.6 | | | | 23.3 |
-| Unterarm Median [°] | 30.6 | | | | 33 |
-| Griffkraft Mittel [N] | 90 | | | | 80.6 |
-| Kraft > 15 N [Anteil] | 100.0 % | | | | 99.9 % |
-| Stall-Anteil [Anteil] | 100.0 % | | | | 99.8 % |
-| Absinken [mm] | 0 | | | | 0.00526 |
-| Unruhe | 0.845 | | | | 0.355 |
+| aufgabenerfolg | 53.0 % | 17.3 % – 88.9 % | 60.7 % | 40.0 % | 51.0 % / 56.4 % |
+| haltequote | 55.6 % | 18.3 % – 93.1 % | 64.2 % | 40.0 % | 58.1 % / 67.2 % |
+| Kippwinkel Median [°] | 22.5 | | | | 28 |
+| Unterarm Median [°] | 32 | | | | 33 |
+| Griffkraft Mittel [N] | 88.3 | | | | 93.6 |
+| Kraft > 15 N [Anteil] | 100.0 % | | | | 100.0 % |
+| Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
+| Absinken [mm] | 0 | | | | 0 |
+| Unruhe | 0.889 | | | | 0.762 |
 
-Fehlerarten: startfehler 0.5 %, gefallen 48.3 %, instabil 0.0 %, anforderung_verletzt 1.8 %
+Fehlerarten: startfehler 0.0 %, gefallen 44.3 %, instabil 0.0 %, anforderung_verletzt 2.6 %
 
-**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-006)
-Unterschied Aufgabenerfolg -21.2 Prozentpunkte (95-%-KI -53.7 … +9.9)
-- Leitplanke: Unruhe: 0.845 > 0.426
+**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber Referenz zylinder_seitlich)
+Unterschied Aufgabenerfolg +2.1 Prozentpunkte (95-%-KI -0.7 … +5.8)
 
-Je Seed: 83.0 %, 0.0 %, 0.0 %, 76.8 %, 87.0 %
+Je Seed: 91.6 %, 0.0 %, 0.0 %, 86.8 %, 86.7 %
 
-Fingernutzung (Haltephase): im Mittel 2.95 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/100/100/0/0 · –/–/–/–/– · –/–/–/–/– · 99/22/100/0/88 · 99/77/0/100/0
+Fingernutzung (Haltephase): im Mittel 2.90 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/99/100/0/0 · –/–/–/–/– · –/–/–/–/– · 99/22/100/0/88 · 99/62/0/100/0
 
 #### Bedingung `quader_seitlich`
 
-Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
+Bedingung `quader_seitlich` (Objekt `quader_7x7x20`, Kippwinkel ≤ 45°), Protokoll eval-v2, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-006 (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 33.6 % | 10.2 % – 57.6 % | 37.0 % | 60.0 % | 44.0 % / 52.6 % |
-| haltequote | 36.4 % | 11.6 % – 61.3 % | 41.5 % | 40.0 % | 57.0 % / 57.5 % |
-| Kippwinkel Median [°] | 22.6 | | | | 30.7 |
-| Unterarm Median [°] | 31.5 | | | | 35.4 |
-| Griffkraft Mittel [N] | 80.9 | | | | 74.4 |
-| Kraft > 15 N [Anteil] | 99.9 % | | | | 99.9 % |
-| Stall-Anteil [Anteil] | 100.0 % | | | | 99.8 % |
-| Absinken [mm] | 0.00647 | | | | 0.00101 |
-| Unruhe | 0.931 | | | | 0.502 |
+| aufgabenerfolg | 44.0 % | 12.3 % – 75.7 % | 48.0 % | 40.0 % | 51.0 % / 56.4 % |
+| haltequote | 48.3 % | 15.8 % – 80.9 % | 55.6 % | 40.0 % | 58.1 % / 67.2 % |
+| Kippwinkel Median [°] | 23.4 | | | | 28 |
+| Unterarm Median [°] | 32.5 | | | | 33 |
+| Griffkraft Mittel [N] | 82.5 | | | | 93.6 |
+| Kraft > 15 N [Anteil] | 100.0 % | | | | 100.0 % |
+| Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
+| Absinken [mm] | 0.0174 | | | | 0 |
+| Unruhe | 0.953 | | | | 0.762 |
 
-Fehlerarten: startfehler 6.8 %, gefallen 56.9 %, instabil 0.0 %, anforderung_verletzt 2.8 %
+Fehlerarten: startfehler 0.0 %, gefallen 51.7 %, instabil 0.0 %, anforderung_verletzt 4.3 %
 
-**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-006)
-Unterschied Aufgabenerfolg -10.5 Prozentpunkte (95-%-KI -35.6 … +5.2)
-- Leitplanke: Unruhe: 0.931 > 0.603
+**Urteilsvorschlag: schlechter** (gegenüber Referenz zylinder_seitlich)
+Unterschied Aufgabenerfolg -7.1 Prozentpunkte (95-%-KI -13.3 … -1.7)
+- Leitplanke: Unruhe: 0.953 > 0.914
 
-Je Seed: 61.2 %, 0.0 %, 0.0 %, 57.3 %, 49.5 %
+Je Seed: 80.5 %, 0.0 %, 0.0 %, 78.3 %, 61.1 %
 
-Fingernutzung (Haltephase): im Mittel 2.81 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/92/98/0/4 · –/–/–/–/– · –/–/–/–/– · 96/17/99/7/91 · 100/39/0/100/0
+Fingernutzung (Haltephase): im Mittel 2.78 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/93/100/0/2 · –/–/–/–/– · –/–/–/–/– · 97/18/100/4/93 · 100/28/0/100/0
 
 #### Bedingung `flasche_seitlich`
 
-Bedingung `flasche_seitlich` (Objekt `flasche_d7x25`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
+Bedingung `flasche_seitlich` (Objekt `flasche_d7x25`, Kippwinkel ≤ 45°), Protokoll eval-v2, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-006 (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 49.1 % | 16.4 % – 83.1 % | 55.4 % | 40.0 % | 57.1 % / 64.7 % |
-| haltequote | 51.7 % | 16.8 % – 86.7 % | 59.1 % | 40.0 % | 83.1 % / 85.3 % |
-| Kippwinkel Median [°] | 23.7 | | | | 34.1 |
-| Unterarm Median [°] | 30.1 | | | | 36.8 |
-| Griffkraft Mittel [N] | 91.9 | | | | 85 |
+| aufgabenerfolg | 52.7 % | 16.9 % – 88.7 % | 59.3 % | 40.0 % | 51.0 % / 56.4 % |
+| haltequote | 56.3 % | 18.5 % – 94.1 % | 65.1 % | 40.0 % | 58.1 % / 67.2 % |
+| Kippwinkel Median [°] | 24.6 | | | | 28 |
+| Unterarm Median [°] | 31.4 | | | | 33 |
+| Griffkraft Mittel [N] | 90.8 | | | | 93.6 |
 | Kraft > 15 N [Anteil] | 99.9 % | | | | 100.0 % |
-| Stall-Anteil [Anteil] | 100.0 % | | | | 99.8 % |
-| Absinken [mm] | 0.0287 | | | | 0.0131 |
-| Unruhe | 0.802 | | | | 0.378 |
+| Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
+| Absinken [mm] | 0.0161 | | | | 0 |
+| Unruhe | 0.834 | | | | 0.762 |
 
-Fehlerarten: startfehler 0.5 %, gefallen 47.8 %, instabil 0.0 %, anforderung_verletzt 2.6 %
+Fehlerarten: startfehler 0.0 %, gefallen 43.7 %, instabil 0.0 %, anforderung_verletzt 3.5 %
 
-**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-006)
-Unterschied Aufgabenerfolg -8.2 Prozentpunkte (95-%-KI -39.1 … +17.2)
-- Leitplanke: Unruhe: 0.802 > 0.454
+**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber Referenz zylinder_seitlich)
+Unterschied Aufgabenerfolg +1.8 Prozentpunkte (95-%-KI -0.0 … +4.7)
 
-Je Seed: 84.3 %, 0.0 %, 0.0 %, 75.2 %, 85.8 %
+Je Seed: 94.1 %, 0.0 %, 0.0 %, 85.1 %, 84.5 %
 
-Fingernutzung (Haltephase): im Mittel 2.96 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/99/100/0/1 · –/–/–/–/– · –/–/–/–/– · 96/19/99/0/92 · 100/83/0/100/0
+Fingernutzung (Haltephase): im Mittel 2.92 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/99/100/0/1 · –/–/–/–/– · –/–/–/–/– · 96/19/99/0/93 · 100/68/0/100/0
 
 #### Bedingung `saftpackung_seitlich`
 
-Bedingung `saftpackung_seitlich` (Objekt `saftpackung_9x6x19`, Kippwinkel ≤ 45°), Protokoll eval-v1, 5 Seed(s); Spalte EXP-006 unter derselben Anforderung
+Bedingung `saftpackung_seitlich` (Objekt `saftpackung_9x6x19`, Kippwinkel ≤ 45°), Protokoll eval-v2, 5 Seed(s); Spalte Referenz zylinder_seitlich unter derselben Anforderung
 
-| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | EXP-006 (Mittel / IQM) |
+| Metrik | Mittel | 95-%-KI | IQM | Fehlschlag-Seeds (< 50 %) | Referenz zylinder_seitlich (Mittel / IQM) |
 |---|---|---|---|---|---|
-| aufgabenerfolg | 39.6 % | 12.7 % – 66.7 % | 45.4 % | 40.0 % | 55.0 % / 63.0 % |
-| haltequote | 41.7 % | 13.4 % – 69.9 % | 47.5 % | 40.0 % | 67.9 % / 67.9 % |
-| Kippwinkel Median [°] | 23.2 | | | | 30.6 |
-| Unterarm Median [°] | 33.9 | | | | 38.1 |
-| Griffkraft Mittel [N] | 81.7 | | | | 73.7 |
-| Kraft > 15 N [Anteil] | 99.9 % | | | | 99.8 % |
-| Stall-Anteil [Anteil] | 100.0 % | | | | 99.8 % |
-| Absinken [mm] | 0 | | | | 0 |
-| Unruhe | 0.83 | | | | 0.391 |
+| aufgabenerfolg | 51.0 % | 15.6 % – 86.6 % | 57.3 % | 40.0 % | 51.0 % / 56.4 % |
+| haltequote | 53.9 % | 17.7 % – 90.3 % | 62.2 % | 40.0 % | 58.1 % / 67.2 % |
+| Kippwinkel Median [°] | 24.1 | | | | 28 |
+| Unterarm Median [°] | 34.8 | | | | 33 |
+| Griffkraft Mittel [N] | 82.4 | | | | 93.6 |
+| Kraft > 15 N [Anteil] | 99.9 % | | | | 100.0 % |
+| Stall-Anteil [Anteil] | 100.0 % | | | | 100.0 % |
+| Absinken [mm] | 0.0045 | | | | 0 |
+| Unruhe | 0.856 | | | | 0.762 |
 
-Fehlerarten: startfehler 5.3 %, gefallen 53.1 %, instabil 0.0 %, anforderung_verletzt 2.0 %
+Fehlerarten: startfehler 0.0 %, gefallen 46.0 %, instabil 0.1 %, anforderung_verletzt 3.0 %
 
-**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber EXP-006)
-Unterschied Aufgabenerfolg -15.4 Prozentpunkte (95-%-KI -42.3 … +2.7)
-- Leitplanke: Unruhe: 0.83 > 0.469
+**Urteilsvorschlag: kein messbarer Unterschied** (gegenüber Referenz zylinder_seitlich)
+Unterschied Aufgabenerfolg -0.0 Prozentpunkte (95-%-KI -2.1 … +2.2)
 
-Je Seed: 67.0 %, 0.0 %, 0.0 %, 68.0 %, 63.2 %
+Je Seed: 89.7 %, 0.0 %, 0.0 %, 87.9 %, 77.3 %
 
-Fingernutzung (Haltephase): im Mittel 2.76 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/100/100/0/2 · –/–/–/–/– · –/–/–/–/– · 94/15/100/4/85 · 100/31/0/100/0
+Fingernutzung (Haltephase): im Mittel 2.72 Finger am Objekt; Kontaktanteil je Seed (Daumen, Zeige, Mittel, Ring, klein): 100/100/100/0/2 · –/–/–/–/– · –/–/–/–/– · 94/15/100/3/85 · 100/19/0/100/0
 
 </details>
 

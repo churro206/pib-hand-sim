@@ -48,7 +48,7 @@ bedingungen:
   startpose: seitlich, Daumen oben
   anforderung:
     max_kipp_deg: 45
-protokoll: eval-v1
+protokoll: eval-v2
 entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
 
 # --- Training ---
@@ -81,3 +81,4 @@ urteil: ""                      # bestätigtes Urteil (besser | schlechter | kei
 schluss: 'Entwurf: Das Curriculum hebt die Leistung und erstmals den Quader deutlich,
   wenn es in Gang kommt; nächste Schritte: Unruhe (EXP-018/019, Eltern EXP-017) und
   Start des Curriculums zuverlässiger machen.'
+protokoll_vorher: eval-v1

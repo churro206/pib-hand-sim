@@ -46,7 +46,7 @@ bedingungen:
   startpose: seitlich, Daumen oben
   anforderung:
     max_kipp_deg: 45
-protokoll: eval-v1
+protokoll: eval-v2
 entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
 
 # --- Training ---
@@ -78,3 +78,4 @@ ergebnis: Leistung 77 % (Ø 6 83 · Ø 8 83 · Quader 57), Testobjekte Flasche 8
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
 schluss: 'Entwurf: Objektvielfalt löst den Quader-Engpass nicht, verbessert aber Ø
   8 cm und die Testobjekte; als Setup für die Kategorie übernommen (Eltern für EXP-014–017).'
+protokoll_vorher: eval-v1
