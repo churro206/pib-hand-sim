@@ -1958,7 +1958,10 @@
   },
   "testobjekte": {
    "flasche_seitlich": 0.843,
-   "saftpackung_seitlich": 0.67
+   "saftpackung_seitlich": 0.67,
+   "ycb_cracker_seitlich": null,
+   "ycb_zucker_seitlich": null,
+   "ycb_senf_seitlich": null
   },
   "urteil": "kein Unterschied, Leitplanke verletzt"
  },

@@ -274,14 +274,10 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 - Entschieden (Leon, 2026-10-07): Reibung bleibt (Fingerinnenseiten **und** Handfläche real aus
   TPU, Sim mit 0,5–1,0 eher konservativ); FSR real ebenfalls bis 20 N → Beobachtung passt;
   Handgelenkwinkel nicht in die Bewertung
-- [ ] **Reset-Überlappung beheben** (Leon, 2026-10-09; analysiert mit `tools/analyse_reset.py`, Kontaktsensor am
-      Objekt über alle Handkörper, beide Physik-Unterschritte): (1) die Hand steckt beim Reset im Objekt — Startpose
-      eval (Finger 0–15°, Handgelenk −10–0°): Zylinder Ø6 34 %, Ø8 44 %, **Quader 81 % (bis 1000 N)**, YCB-Cracker 63 %
-      der Starts; Mittelglieder/Spitzen der Finger, v. a. Handgelenkbeugung; mit `nearly_open_start()` 0 %.
-      (2) Zufallsgröße ±10 % bei der Starthöhe ignoriert → Objekt fällt bis 7,5 mm oder startet im Tisch.
-      eval-v1-Startfehler sieht das kaum; der Quader-Engpass ist vermutlich großteils dieser Szenenfehler.
-      Vorschlag: eval-v2 (fast offene Startpose + Platzierung nach skalierter Bounding Box) + Nachbewertung aller
-      Policies, ein Experiment „nur Reset“ fürs Training
+- [x] **Reset-Überlappung behoben** (2026-10-09, ADR-021, `tools/analyse_reset.py`): die Hand steckte beim Reset in
+      34–81 % der Starts im Objekt (Quader 81 %, bis 1000 N), Starthöhe ignorierte die Zufallsgröße. Jetzt Startpose
+      fast offen (Finger/Daumen-MCP 0–4°, Handgelenk −1–0°), Platzierung nach Größe und Gierdrehung, YCB in Ruhelage →
+      0/256 Starts mit Kontakt auf 8 Objekten. Neues Protokoll **eval-v2**, eval-v1 bleibt als Historie
 
 **Stufe 2 — Rezept der Lift-Aufgabe vollständig**
 - [ ] Langer Lauf EXP-002: 1500 It. × 1024 Umgebungen (wie Lift), 3 Seeds — nur die Iterationen ändern
@@ -341,16 +337,27 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 - [ ] M2-Kette: int8 QDQ mit Sim-Kalibrierdaten, int8 vs. float in der Sim
 
 **Plan ab 2026-10-09** (Leon: nichts überstürzen; Prio 1 und 2, RoboCup@Home als Ziel)
-- [ ] **Prio 1 — YCB-Testobjekte** ins Benchmark (nicht ins Training — YCB ist als Bewertungsdatensatz gedacht,
-      Training auf vielen Formen, Test auf unbekannten): Isaac Sim 5.1 hat nur 4 YCB-Objekte mit Physik;
-      seitlich passen 003 Cracker-Schachtel (21 cm, 411 g), 004 Zuckerschachtel (17,5 cm, 514 g), 006 Senfflasche
-      (19 cm, 603 g), **mit echter Masse** (Entscheidung Leon offen; Vorschlag: echt); 005 Suppendose (10 cm) für
-      „von oben“. Umsetzung: `apply_object` mit UsdFileCfg, Lage aus der Bounding Box, Ausrichtung je Objekt,
-      Szenenprüfung mit Bildern, Nachbewertung aller Policies mit ≥ 3 erfolgreichen Seeds + Regeln
-- [ ] **Prio 2 — Unruhe** (Eltern EXP-017): **EXP-018 Strafen-Curriculum wie Isaac Lab Lift** (Aktionsstrafen −0,005
-      bis ~It. 400, dann Kandidat −0,05; Endwert per Größenordnungsprüfung) und **EXP-019 Aktionsfilter wie
-      DeXtreme/IsaacGymEnvs** (actionsMovingAverage, α ≈ 0,5; muss auch in der Firmware laufen). Hinweis:
-      Dexsuite selbst hat **kein** Strafen-Curriculum (nur Lift)
+- [x] **Prio 1 — YCB-Testobjekte** (2026-10-09): 003 Cracker 411 g, 004 Zucker 514 g, 006 Senf 603 g mit echter
+      Masse als Testobjekte (Wrapper-USD aufrecht, schmale Seite zur Hand, Ruhelage gemessen, Reibung wie alle);
+      Fenstertest EXP-013 s42 (eval-v2, 48 Episoden): Cracker 88 %, Zucker 98 %, Senf 90 % — hält trotz Masse über dem
+      Training, weil sie immer voll zudrückt (80–90 N, Stall 100 %). Videos `videos/isaac_lab_ycb_*`
+- [x] Reset-Überlappung → eval-v2 (oben, ADR-021)
+
+**Ablauf ab 2026-10-09 abends** (Leon: Nachbewertung nur, was Entscheidungen trägt)
+1. [ ] **Nachbewertung eval-v2** (~1,7 h GPU): `experiments.py umstellen EXP-013 EXP-014 EXP-015 EXP-017`, dann
+       `leaderboard --bewerten` (Benchmark + Testobjekte inkl. YCB) und `bericht` — Quader ohne Stöße? RL vs. Regel auf
+       YCB? Übrige Experimente bleiben eval-v1-Historie
+2. [ ] **Entscheidung A (Leon)**: Eltern EXP-013 oder EXP-017 — nach Leistung unter eval-v2; ohne gesicherten Unterschied
+       EXP-013 (300 statt 1500 Iterationen, Unruhe 0,7 statt 2,55)
+3. [ ] **EXP-018 „neue Basis“**: die Eltern mit dem neuen Reset neu trainiert (einzige Änderung) — EXP-013: ~1 h + 40 min
+       Bewertung; EXP-017: ~3,5 h (Nacht)
+4. [ ] **Unruhe** (Eltern EXP-018, je 5 Seeds, eine Nacht): **EXP-019 Strafen-Curriculum wie Isaac Lab Lift**
+       (Aktionsstrafen −0,005 → ~−0,05 nach ~½ des Trainings; Ausgangswert gemessen: `action_l2` −0,23/s gegen Halten/
+       Aufrecht/Erfolg 1,6/3,2/5,6 je s; Endwert per `tools/reward_diag.py`) und **EXP-020 Aktionsfilter wie DeXtreme**
+       (gleitender Mittelwert, α ≈ 0,5; muss auch in die Firmware). Dexsuite selbst hat **kein** Strafen-Curriculum
+5. [ ] danach: Bedingung **„rutschig“** (Senf mit Reibung 0,3–0,5, nur Bewertung), **M2-Kette** (int8 QDQ mit
+       Sim-Kalibrierdaten, int8 vs. float in der Sim, `stedgeai`)
+6. [ ] später: **Kraft dosieren** (Strafe auf Stall/FSR > 15 N per Curriculum; Leon: hinten angestellt), Griff „von oben“
 - später (Prio 3–6, Leon 2026-10-09): Servo-Messung/Systemidentifikation mit LeRobot-Werkzeugen (Feetech STS3215),
   Regelrate und Verzögerung wie real; Greif-Ablauf (Romano 2011: schließen → halten mit Rutscherkennung → ablegen,
   „Griff steht“, Ablegen als Fähigkeit); Lehrer–Schüler/RMA (HORA) für den blinden Actor; int8 im Sim-Loop;

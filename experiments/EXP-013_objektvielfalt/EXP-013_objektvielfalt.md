@@ -2,7 +2,7 @@
 
 **Leistung** 77 % [74–81 %] (erfolgreiche Seeds, IQM über die Objekte; je Objekt Ø 6 cm 83 % · Ø 8 cm 83 % · Quader 57 %) — ggü. EXP-006: P(besser) = 0.44 [0.19–0.69] → kein Unterschied
 
-**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 84 % · Saftpackung 67 %
+**Testobjekte** (nie trainiert, erfolgreiche Seeds, Median): Flasche 84 % · Saftpackung 67 % · Cracker (YCB) – · Zucker (YCB) – · Senf (YCB) –
 
 **Zuverlässigkeit** 3/5 Seeds erfolgreich [15–95 %] — EXP-006: 4/5, exakter Fisher-Test p = 1.00 → nicht unterscheidbar (für eine Aussage ≥ 10 Seeds je Experiment)
 
@@ -202,7 +202,7 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 
 Actor [256, 128, 64] (elu), 68808 Parameter, 105 Eingänge (Verlauf 5) · Critic [512, 256, 128] · PPO: Lernrate 0.001, Entropie 0.005, 5 Epochen × 4 Mini-Batches, 32 Schritte/Umgebung · 1024 Umgebungen × 300 Iterationen
 
-Geplante Änderung: Objektvielfalt wie Dexsuite (MultiAssetSpawnerCfg), Task HeavyMulti-v0: je Umgebung eine von 18 Formen (10 Zylinder Ø 5–9 cm × 15/20 cm, 8 Quader 6–8 cm × 16/20 cm), Startlage je Umgebung aus der Bounding Box (Oberfläche 3,5 cm vor der Handfläche), Drehung ±15° für alle. Notwendig dazu (sonst ~1/3 der Starts mit Überlappung, _check_multi.py): Startbeugung der Finger 0–4° statt 0–15°, Handgelenk −3–0° statt −10–0°; Daumen unverändert. Belohnung unverändert (inkl. des Annäherungsfehlers, wie EXP-006). Szenenprüfung statt Fenstertest (Leon remote): isaac_sim/tools/_check_multi.txt + Bilder.
+Geplante Änderung: Objektvielfalt wie Dexsuite (MultiAssetSpawnerCfg), Task HeavyMulti-v0: je Umgebung eine von 18 Formen (10 Zylinder Ø 5–9 cm × 15/20 cm, 8 Quader 6–8 cm × 16/20 cm), Startlage je Umgebung aus der Bounding Box (Oberfläche 3,5 cm vor der Handfläche), Drehung ±15° für alle. Notwendig dazu (sonst ~1/3 der Starts mit Überlappung, tools/check_multi.py): Startbeugung der Finger 0–4° statt 0–15°, Handgelenk −3–0° statt −10–0°; Daumen unverändert. Belohnung unverändert (inkl. des Annäherungsfehlers, wie EXP-006). Szenenprüfung statt Fenstertest (Leon remote): isaac_sim/tools/_check_multi.txt + Bilder.
 
 Konfiguration gegenüber EXP-006 (30 Unterschiede):
 

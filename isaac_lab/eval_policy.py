@@ -1,5 +1,8 @@
 """
-eval_policy.py — Policy nach dem Bewertungsprotokoll eval-v1 bewerten (experiments/README.md).
+eval_policy.py — Policy nach dem Bewertungsprotokoll eval-v2 bewerten (experiments/README.md, ADR-021).
+
+eval-v2 (seit 2026-10-09) = eval-v1 mit Reset ohne Überlappung und Fall (Startpose fast offen, Platzierung nach
+tatsächlicher Größe und Gierdrehung, YCB in Ruhelage — env_cfg/mdp); eval-v1-Dateien bleiben als Historie.
 
 Exportierter Actor (TorchScript, deterministisch) in der Greifaufgabe; nur die Abbrüche
 „Dose gefallen“ und „Physik instabil“ sind aktiv, der Kippwinkel wird gemessen. Je Episode:
@@ -25,7 +28,7 @@ from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
-PROTOCOL = "eval-v1"
+PROTOCOL = "eval-v2"                                        # experiments.PROTOKOLL
 
 parser = argparse.ArgumentParser()
 src = parser.add_mutually_exclusive_group(required=True)

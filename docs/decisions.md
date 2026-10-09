@@ -770,6 +770,43 @@ der Mehrwert von RL nicht beurteilen.
 
 ---
 
+## ADR-021: Reset ohne Überlappung und Fall — Bewertungsprotokoll eval-v2
+
+**Problem**: Beim Reset wird die Hand mit zufälliger Startstellung teleportiert und das Objekt gesetzt, ohne zu
+prüfen, ob beide sich berühren. Gemessen (`isaac_lab/tools/analyse_reset.py`, Kontaktsensor am Objekt mit Filter auf
+alle 18 Handkörper + Tisch, über beide Physik-Unterschritte, Aktionen 0): Unter eval-v1 steckte die Hand in 34 %
+(Zylinder Ø 6), 44 % (Ø 8), **81 %** (Quader, bis 1000 N) und 63 % (YCB-Cracker) der Starts im Objekt — Mittelglieder
+und Spitzen der Finger, vor allem bei Handgelenkbeugung. Zusätzlich ignorierte die Starthöhe die Zufallsgröße ±10 %
+(Objekt fiel bis 7,5 mm oder startete im Tisch), gedrehte Quader kamen mit der Ecke näher als 3,5 cm an die Hand, und
+die gescannten YCB-Objekte setzten/kippten nach dem Spawn. Der Startfehler von eval-v1 (fällt in 0,1 s) sah davon fast
+nichts. Der „Quader-Engpass“ von RL und Regel (52–64 %) ist vermutlich zu einem guten Teil dieser Szenenfehler.
+
+**Entscheidung** (Leon, 2026-10-09): sauberer Start als Standard in Training und Bewertung:
+- Startpose fast offen: Finger und Daumen-MCP 0–4°, Handgelenk −1–0° (Rotator weiter 0–90°, Starts in Opposition
+  bleiben) — wie eine Vorgreifpose; schrittweise gefunden (Handgelenk −3° und Daumen-MCP 15° berührten noch).
+- Platzierung je Umgebung aus der tatsächlichen (skalierten) Bounding Box (`mdp.place_objects_by_size`, Standard).
+- `mdp.reset_object_gap_aware`: bei gedrehten eckigen Objekten liegt die nächste Ecke 3,5 cm vor der Handfläche.
+- YCB in der gemessenen Ruhelage (`tools/ruhelage_objekt.py`: Höhe, Neigung je Objekt in `OBJECTS`).
+- Neues Protokoll **eval-v2** (= eval-v1 mit diesem Reset). Experimente tragen ihr Protokoll, bewertet wird nur unter
+  dem aktuellen, verglichen nur innerhalb eines Protokolls; `experiments.py umstellen` hebt ältere Experimente an.
+  Leaderboard je Protokoll eine Tabelle (eval-v1 als Historie).
+- Nachbewertet werden nur die Experimente, die Entscheidungen tragen (Leon: alles nachzubewerten wäre zu viel):
+  EXP-013, EXP-017 (Eltern-Kandidaten), EXP-014/015 (Regel-Baselines).
+
+**Begründung**: Eine Bewertung, bei der das Objekt in einem Großteil der Starts weggestoßen wird, misst die Szene,
+nicht die Policy — und ungleich je Objekt. Eine Vorgreifpose (ADR-018) bringt die Hand ohnehin fast offen an.
+
+**Konsequenzen**:
+- Geprüft über 8 Objekte: 0/256 Starts mit Handkontakt, kein Objekt > 5 mm verschoben oder > 5° gedreht bis zum
+  Absenken; Tischkraft im ersten Schritt ≈ Gewicht (Senf ~1,3×, kriecht ≤ 3 mm).
+- EXP-013/017 trainierten schon mit Platzierung nach Bounding Box und Fingern 0–4° (`HeavyMulti`), neu für sie nur
+  Daumen-MCP, Handgelenk und Gierabstand — der Fehler traf vor allem die Bewertung. Neue Experimente bauen auf
+  EXP-018 auf (die Eltern mit dem neuen Reset neu trainiert), damit „genau eine Änderung“ gilt.
+- Neue Objekte/Szenen vor einem Lauf mit `analyse_reset.py` (≥ 256 Starts) prüfen.
+- Die passive Hand driftet bei Aktion 0 über 2 s bis 4° (relative Aktion hält die Pose nicht) — kein Reset-Problem.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

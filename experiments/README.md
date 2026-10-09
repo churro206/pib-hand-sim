@@ -31,7 +31,7 @@ logs/rsl_rl/pib_grasp_hand_left/<zeit>_EXP-NNN_s<seed>/   (gitignored)
     meta.json                     Commit, Versionen, GPU, Befehl, Zeiten
     pib_hand_sim.diff             nicht committete Änderungen zum Zeitpunkt des Starts
     model_*.pt, exported/         Checkpoints, Export (JIT + ONNX)
-    eval-v1.json, eval-v1.txt     Bewertung je Protokollversion (nichts wird überschrieben)
+    eval-v2*.json/.txt            Bewertung je Protokollversion und Bedingung (eval-v1*: Historie)
     video_eval/videos/            Video der ersten Episoden (erster Seed)
 ```
 
@@ -91,7 +91,16 @@ Regeln:
 - PhysX (GPU) ist nicht bitgenau reproduzierbar — reproduzierbar heißt: gleicher Commit,
   gleiche Konfiguration, gleiche Seeds → statistisch gleiches Ergebnis.
 
-## Bewertungsprotokoll `eval-v1`
+## Bewertungsprotokoll `eval-v2` (seit 2026-10-09, ADR-021)
+
+**eval-v2 = eval-v1 mit sauberem Start**: Hand und Objekt berühren sich beim Reset nicht, das Objekt steht in
+Ruhe auf dem Tisch (Startpose fast offen: Finger und Daumen-MCP 0–4°, Handgelenk −1–0°, Rotator 0–90°;
+Platzierung nach tatsächlicher Größe und Gierdrehung; YCB in gemessener Ruhelage). Unter eval-v1 steckte die Hand
+in 34–81 % der Starts im Objekt (`isaac_lab/tools/analyse_reset.py`). eval-v1 ist mit dem heutigen Code nicht mehr
+reproduzierbar: Experimente tragen ihr Protokoll im YAML (`protokoll`), bewertet wird nur unter dem aktuellen,
+**verglichen nur innerhalb eines Protokolls** (Bericht: „kein Vergleich (Eltern unter eval-v1)“). Ältere Experimente
+hebt `experiments.py umstellen EXP-NNN` auf das aktuelle Protokoll (`protokoll_vorher` bleibt), danach
+`leaderboard --bewerten`. Das Leaderboard hat je Protokoll eine Tabelle — eval-v1 als Historie.
 
 - Je Lauf **1000 Episoden**, 256 Umgebungen, Bewertungs-Seed **1000** (≠ Trainings-Seeds),
   Policy **deterministisch** (exportierter Actor, Mittelwert ohne Rauschen).
@@ -103,8 +112,9 @@ Regeln:
   immer je Bedingung, nie über Bedingungen gemittelt. Ein Experiment kann mehrere Bedingungen
   haben; jeder Lauf wird unter allen bewertet. `objekt_id` wählt das Objekt aus
   `pib_grasp/env_cfg.py` → `OBJECTS` (fehlt es: `zylinder_d6`); die Objektoberfläche liegt immer
-  3,5 cm vor der Handfläche (`PALM_GAP`). Dateien je Lauf: `eval-v1_<bedingung>.json/.txt`, nur die
-  Standardbedingung `zylinder_seitlich` heißt `eval-v1.json`. Vorhandene Bewertungen werden nicht
+  3,5 cm vor der Handfläche (`PALM_GAP`; bei gedrehten eckigen Objekten die nächste Ecke). Dateien je Lauf:
+  `<protokoll>_<bedingung>.json/.txt` (z. B. `eval-v2_quader_seitlich.json`), nur die Standardbedingung
+  `zylinder_seitlich` heißt `<protokoll>.json`. Vorhandene Bewertungen werden nicht
   neu gerechnet (`eval --neu` erzwingt es).
   ```yaml
   bedingungen:
@@ -114,7 +124,7 @@ Regeln:
       startpose: "seitlich, Daumen oben"
       anforderung: {max_kipp_deg: 45}
   ```
-- **Auswertung v2** (`auswertung-v2`, seit 2026-10-08; die Bewertungsdaten eval-v1 bleiben): ein Experiment
+- **Auswertung v2** (`auswertung-v2`, seit 2026-10-08; gilt für eval-v1 und eval-v2): ein Experiment
   bewertet ein **Rezept** — zwei getrennte Fragen (Chan et al. 2020), über die Benchmark-Objekte:
   - **Leistung** = IQM des Aufgabenerfolgs der **erfolgreichen** Seeds über Seeds × Objekte (KI per
     stratifiziertem Bootstrap), je Objekt als Median; Vergleich mit den Eltern über P(besser) (rliable).
@@ -141,7 +151,7 @@ Regeln:
   bewertet sind), sonst gegen die erste Bedingung des Experiments (Referenz).
 - **Regel-Experimente** (ADR-020): `regel: {name: alle_schliessen | bis_kontakt, raster: [...]}` und
   `training: null` — `run` wählt die Einstellung aus dem Raster mit Bewertungs-Seed 2000 (256 Episoden je
-  Benchmark-Objekt) und bewertet sie dann nach eval-v1; Lauf unter `logs/regel/EXP-NNN`, ein „Seed“ (s0).
+  Benchmark-Objekt) und bewertet sie dann nach dem aktuellen Protokoll; Lauf unter `logs/regel/EXP-NNN`, ein „Seed“ (s0).
 - **Testobjekte** (`experiments.py` → `TESTOBJEKTE`, nie trainiert): eigene Zeile im Bericht und Spalten im
   Leaderboard, nicht in Leistung/Gesamt; `leaderboard --bewerten` bewertet sie für Policies mit erfolgreichen Seeds.
 - **Experimente ohne Training** (`new --ohne-training`, `training: null`, `laeufe_von: EXP-…`)

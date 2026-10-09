@@ -35,7 +35,7 @@ Privates Archiv der in Isaac Lab trainierten Greif-Policies der realen linken pi
 
 - `runs/<lauf>/` — je Trainingslauf: letzter Checkpoint (`model_*.pt`, rsl_rl), `exported/policy.pt`
   (TorchScript) und `exported/policy.onnx` (Actor inkl. Beobachtungsnormierung), `params/` (vollständige
-  Isaac-Lab-Konfiguration), `meta.json` (Commit, Versionen), `eval-v1.*` (Bewertung), TensorBoard-Log, Video
+  Isaac-Lab-Konfiguration), `meta.json` (Commit, Versionen), `eval-v*.*` (Bewertung je Protokoll), TensorBoard-Log, Video
 - `experiments/` — Hypothesen, Berichte und Übersicht (`index.md`), Ablauf und Metriken (`README.md`)
 
 **Actor-Eingang** (105 = 5 Schritte × 21): 8 Servo-Winkel [rad] (forearm, wrist, thumb_rotator,

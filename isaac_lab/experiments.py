@@ -48,6 +48,10 @@ SMOKE = {"iterationen": 3, "umgebungen": 256, "seed": 0}
 EVAL = {"umgebungen": 256, "episoden": 1000, "video_umgebungen": 16, "video_schritte": 300,
         "beste_video_schritte": 3 * 270}     # beste Videos: 3 Episoden (je 4,5 s × 60 Hz), ~14 s
 BOOT = 2000
+# Aktuelles Bewertungsprotokoll (eval_policy.PROTOCOL). eval-v2 (2026-10-09, ADR-021) = eval-v1 mit Reset ohne
+# Überlappung/Fall; eval-v1 ist mit dem heutigen Code nicht mehr reproduzierbar → bewertet wird nur unter PROTOKOLL,
+# ältere Experimente bleiben mit ihren Zahlen als Historie (umstellen: Experiment auf PROTOKOLL heben).
+PROTOKOLL = "eval-v2"
 # Leitplanken: (Schlüssel, Bezeichnung, Toleranz, Art) — Art "abs" = Einheit der Größe, "rel" = Anteil
 GUARDRAILS = [
     ("kipp_median_deg", "Kippwinkel Median [°]", 5.0, "abs"),
@@ -200,7 +204,7 @@ def cmd_new(a):
         training, extra = dict(parent["training"]), {}
         training["seeds"] = sorted(set(training.get("seeds") or []) | {42, 43, 44, 45, 46})   # README: 5 Seeds
     save_fields(d, id=new_id, titel=a.titel, datum=f"{dt.date.today()}", eltern=a.eltern,
-                bedingungen=parent["bedingungen"], training=training, protokoll=parent["protokoll"], **extra)
+                bedingungen=parent["bedingungen"], training=training, protokoll=PROTOKOLL, **extra)
     log(f"{new_id} angelegt: {d.relative_to(REPO)} (Eltern {a.eltern})")
     if parent.get("commit"):
         base = str(parent["commit"]).split("+")[0]
@@ -287,9 +291,24 @@ def stem(exp: dict, cond: dict) -> str:
     return exp["protokoll"] if cond["name"] == DEFAULT_CONDITION else f"{exp['protokoll']}_{cond['name']}"
 
 
+def under(exp: dict, protokoll: str) -> dict:
+    """Dasselbe Experiment unter einem anderen Protokoll lesen (z. B. eval-v1-Historie umgestellter Experimente)."""
+    return {**exp, "protokoll": protokoll}
+
+
+def require_current(exp: dict) -> bool:
+    if exp.get("protokoll") == PROTOKOLL:
+        return True
+    log(f"  {exp['id']}: Protokoll {exp.get('protokoll')} ≠ {PROTOKOLL} — nicht bewertet "
+        f"(eval-v1 nicht reproduzierbar; `experiments.py umstellen {exp['id']}`)")
+    return False
+
+
 def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path, neu: bool = False) -> bool:
     """Lauf unter allen Bedingungen bewerten. Vorhandene Bewertungen bleiben (neu=True: neu bewerten) —
     Experimente ohne Training teilen sich die Läufe mit ihrer Quelle, deren Zahlen sollen stehen bleiben."""
+    if not require_current(exp):
+        return False
     ok = True
     with open(log_file, "a", encoding="utf-8") as out:
         for cond in exp["bedingungen"]:
@@ -522,7 +541,7 @@ def condition_result(exp: dict, cond: dict, pexp: dict | None, first: dict | Non
         return {}, {}, ""
     ref, label = {}, ""
     same_runs = pexp is not None and set(pexp.get("laeufe") or []) == set(exp.get("laeufe") or [])
-    if pexp is not None and not same_runs:          # Eltern-Läufe unter dieser Bedingung (falls bewertet)
+    if pexp is not None and not same_runs and pexp.get("protokoll") == exp.get("protokoll"):   # Eltern, gleiches Protokoll
         ref, label = aggregate(pexp, cond, req=requirement(cond)), exp["eltern"]
     if not ref and first is not None and first["name"] != cond["name"]:
         ref, label = aggregate(exp, first), f"Referenz {first['name']}"
@@ -630,7 +649,9 @@ def head_lines(d: Path, exp: dict, pexp: dict | None, rec: dict, prec: dict | No
                 finds.append(f"{label} {f.format(c)} ({exp['eltern']}: {f.format(q)})")
     l4 = "**Befund** " + ("; ".join(finds) if finds else "–")
     u = (verdict_v2(cmp, violated) if cmp else
-         "Ausgangswert" if not pexp else "kein Vergleich (Eltern ohne Benchmark-Bewertung)")
+         "Ausgangswert" if not pexp else
+         f"kein Vergleich (Eltern unter {pexp.get('protokoll')})" if pexp.get("protokoll") != exp.get("protokoll") else
+         "kein Vergleich (Eltern ohne Benchmark-Bewertung)")
     rez["urteil"] = u
     l5 = f"**Urteilsvorschlag** ({AUSWERTUNG}): **{u}**"
     return [l1, "", l2, "", l3, "", l4, "", l5], rez
@@ -647,11 +668,13 @@ def report(exp_id: str):
         return
     res, ref, _ = results[0]
     own_training = exp.get("training") is not None or bool(exp.get("regel"))
-    parent_main = aggregate(pexp, pexp["bedingungen"][0]) if pexp and own_training else {}
-    res["konfig_unterschiede"] = config_diff(res["_params"], parent_main["_params"]) if parent_main else []
+    same = pexp is not None and pexp.get("protokoll") == exp.get("protokoll")   # sonst kein Vergleich (ADR-021)
+    parent_main = aggregate(pexp, pexp["bedingungen"][0]) if same and own_training else {}
+    pparams = load_params(REPO / pexp["laeufe"][0]) if pexp and own_training and pexp.get("laeufe") else {}
+    res["konfig_unterschiede"] = config_diff(res["_params"], pparams) if pparams else []
     used = BENCHMARK if recipe(exp) else conds
     rec = recipe(exp, used)
-    prec = recipe(pexp, used) if (pexp and own_training) else None
+    prec = recipe(pexp, used) if (same and own_training) else None
     out = _clean(res)
     if len(results) > 1:
         out["weitere_bedingungen"] = {r["bedingung"]: _clean(r) for r, _, _ in results[1:]}
@@ -682,7 +705,7 @@ def report(exp_id: str):
             body += ["", f"#### Bedingung `{r['bedingung']}`", ""] + condition_lines(r, rf, label)
     else:
         body += condition_lines(*results[0])
-    lines += _details("Ergebnisse je Bedingung (eval-v1, Leitplanken, Fehlerarten, Fingernutzung)", body)
+    lines += _details(f"Ergebnisse je Bedingung ({exp.get('protokoll')}, Leitplanken, Fehlerarten, Fingernutzung)", body)
     if tr:
         lines += _details("Trainingsverlauf", training_section(tr, exp_prefix(d))[2:])
     elif not own_training:
@@ -720,7 +743,7 @@ def report(exp_id: str):
           f"(Verlauf {n['verlauf']}) · Critic {n['critic']} · PPO: Lernrate {n['lernrate']}, Entropie {n['entropie']}, "
           f"{n['epochen']} Epochen × {n['mini_batches']} Mini-Batches, {n['schritte_je_umgebung']} Schritte/Umgebung · "
           f"{n['umgebungen']} Umgebungen × {n['iterationen']} Iterationen"]
-    if parent_main:
+    if pparams:
         diffs = res["konfig_unterschiede"]
         nb += ["", f"Geplante Änderung: {exp.get('aenderung', '')}", "",
                f"Konfiguration gegenüber {exp['eltern']} ({len(diffs)} Unterschiede):", ""]
@@ -825,7 +848,7 @@ def cmd_run(a):
 
 def run_rule(d: Path, exp: dict):
     """Regel-Baseline (kein RL): Parameterraster mit eigenem Bewertungs-Seed (2000, 256 Episoden je Benchmark-
-    Objekt) auswählen, dann die gewählte Einstellung nach eval-v1 (Seed 1000) bewerten — Auswahl und finale
+    Objekt) auswählen, dann die gewählte Einstellung nach PROTOKOLL (Seed 1000) bewerten — Auswahl und finale
     Bewertung getrennt (Patterson et al. 2024)."""
     r = exp["regel"]
     run_dir = REPO / "logs" / "regel" / exp["id"]
@@ -843,7 +866,7 @@ def run_rule(d: Path, exp: dict):
                    "--num_envs", "256", "--episodes", "256", "--seed", "2000", "--out", str(tmp)]
             with open(LOGS / f"{exp['id']}_raster.log", "a", encoding="utf-8") as f:
                 subprocess.run(cmd, cwd=REPO, stdout=f, stderr=subprocess.STDOUT, timeout=1800)
-            js = list(tmp.glob("eval-v1*.json"))
+            js = list(tmp.glob(f"{PROTOKOLL}*.json"))
             vals.append(json.loads(js[0].read_text())["zusammenfassung"]["aufgabenerfolg"] if js else 0.0)
         scores[ps] = float(np.mean(vals))
         log(f"  Raster {ps or '(Standard)'}: Aufgabenerfolg {100 * scores[ps]:.1f} % (Seed 2000, Mittel über die Objekte)")
@@ -853,7 +876,7 @@ def run_rule(d: Path, exp: dict):
     save_fields(d, regel=r, raster_ergebnis={k: round(v, 3) for k, v in scores.items()},
                 laeufe=[str(run_dir.relative_to(REPO))])
     exp["laeufe"] = [str(run_dir.relative_to(REPO))]
-    log(f"  gewählt: {best} → Bewertung eval-v1")
+    log(f"  gewählt: {best} → Bewertung {PROTOKOLL}")
     evaluate(run_dir, exp, video=True, log_file=LOGS / f"{exp['id']}_eval.log")
     save_fields(d, status="bewertet")
     report(exp["id"])
@@ -885,6 +908,18 @@ def cmd_eval(a):
             evaluate(REPO / r, exp, video=a.video, log_file=LOGS / f"{exp_id}_{Path(r).name}_eval.log", neu=a.neu)
         report(exp_id)
     cmd_done(a)
+
+
+def cmd_umstellen(a):
+    """Experiment auf das aktuelle Protokoll heben (ADR-021): protokoll = PROTOKOLL, das alte bleibt als
+    protokoll_vorher (Leaderboard-Historie); danach `leaderboard --bewerten` (Benchmark + Testobjekte) und `eval`."""
+    for exp_id in a.ids:
+        d, exp = load(exp_id)
+        if exp.get("protokoll") == PROTOKOLL:
+            log(f"{exp_id}: schon {PROTOKOLL}")
+            continue
+        save_fields(d, protokoll=PROTOKOLL, protokoll_vorher=exp.get("protokoll"))
+        log(f"{exp_id}: {exp.get('protokoll')} → {PROTOKOLL}")
 
 
 def cmd_bericht(a):
@@ -925,7 +960,7 @@ def _index_row(d: Path, exp: dict, cond: dict, r: dict, first: bool) -> str:
     if first and (r.get("rezept") or {}).get("urteil"):
         vs["urteil"] = r["rezept"]["urteil"] + f" ({AUSWERTUNG})"
     gegen = f" (ggü. {vs['gegen']})" if vs.get("gegen") and not first else ""
-    return (head + f"{cond['name']} ≤{requirement(cond)}° | {r.get('seeds', '–')} | "
+    return (head + f"{cond['name']} ≤{requirement(cond)}° ({exp.get('protokoll')}) | {r.get('seeds', '–')} | "
             f"{_net_cell(r.get('netz'))} | {(r.get('netz') or {}).get('actor_parameter') or '–'} | "
             f"{_budget_cell(r.get('netz'))} | {f(ae)} | {pct((ae or {}).get('iqm'))} | {pct((ae or {}).get('fehlschlag_seeds'))} | {f(hq)} | "
             f"{g(lp.get('kipp_median_deg'))} | {g(lp.get('unterarm_median_deg'))} | {pct(lp.get('stall_anteil'))} | "
@@ -1148,15 +1183,18 @@ def cmd_leaderboard(a):
     if a.bewerten:
         check_env()
         for d, exp in trained_experiments():
-            for r in dict.fromkeys(exp["laeufe"]):
+            if exp.get("protokoll") != PROTOKOLL:          # Historie (eval-v1) wird nicht nachbewertet
+                continue
+            for phase in ("benchmark", "test"):           # Testobjekte erst, wenn der Benchmark steht (k > 0)
                 rec = recipe(exp)
-                todo = BENCHMARK + (TESTOBJEKTE if rec and rec["k"] else [])
-                missing = [c for c in todo if not (REPO / r / f"{stem(exp, c)}.json").exists()]
-                if missing:
-                    log(f"  Benchmark {exp['id']} {Path(r).name}: {[c['name'] for c in missing]}")
-                    with open(LOGS / f"benchmark_{Path(r).name}.log", "a", encoding="utf-8") as out:
-                        for c in missing:
-                            evaluate_condition(REPO / r, exp, c, False, out)
+                todo = BENCHMARK if phase == "benchmark" else (TESTOBJEKTE if rec and rec["k"] else [])
+                for r in dict.fromkeys(exp["laeufe"]):
+                    missing = [c for c in todo if not (REPO / r / f"{stem(exp, c)}.json").exists()]
+                    if missing:
+                        log(f"  {PROTOKOLL} {exp['id']} {Path(r).name}: {[c['name'] for c in missing]}")
+                        with open(LOGS / f"benchmark_{Path(r).name}.log", "a", encoding="utf-8") as out:
+                            for c in missing:
+                                evaluate_condition(REPO / r, exp, c, False, out)
     write_leaderboard()
     if not a.kein_backup:
         backup()
@@ -1265,18 +1303,14 @@ def vorschlag(d: Path, exp: dict, rec: dict) -> str:
 def write_leaderboard():
     """Rangliste aller Policies (Auswertung v2): sortiert nach **Leistung** (IQM der erfolgreichen Seeds über die
     Benchmark-Objekte) — Ziel ist eine brauchbare Policy je Greifart, die Zuverlässigkeit ist zweitrangig (Leon,
-    2026-10-08). Daneben Gesamt (alle Seeds, rliable) und Zuverlässigkeit."""
+    2026-10-08). Daneben Gesamt (alle Seeds, rliable) und Zuverlässigkeit. Je Protokoll eine eigene Tabelle
+    (ADR-021): oben das aktuelle (zählt), darunter ältere als Historie — nie über Protokolle hinweg verglichen."""
     pct = lambda x: "–" if x is None else f"{100 * x:.0f}"  # noqa: E731
-    ci = lambda m: f"[{pct(m['iqm_ki95'][0])}–{pct(m['iqm_ki95'][1])}]" if m else ""  # noqa: E731
-    rows = []
-    for d, exp in trained_experiments():
-        rec = recipe(exp)
-        rows.append((d, exp, rec))
-    rows.sort(key=lambda r: -(r[2]["leistung"]["iqm"] if r[2] and r[2]["leistung"] else -1))
-    lead = rows[0][2] if rows and rows[0][2] else None
-    rng = np.random.default_rng(0)
+    exps = trained_experiments()
+    versions = [PROTOKOLL] + sorted({v for _, e in exps for v in (e.get("protokoll"), e.get("protokoll_vorher"))
+                                     if v and v != PROTOKOLL}, reverse=True)
     L = ["# Leaderboard — Greif-Policies", "",
-         f"Automatisch erzeugt ({AUSWERTUNG}). Benchmark: Protokoll eval-v1, Kippwinkel ≤ 45°, "
+         f"Automatisch erzeugt ({AUSWERTUNG}). Benchmark: Kippwinkel ≤ 45°, "
          + ", ".join(c["kurz"] for c in BENCHMARK) + ". Sortiert nach **Leistung** = IQM des Aufgabenerfolgs der "
          "erfolgreichen Seeds (Mittel über die Objekte ≥ 50 %) über Seeds × Objekte — Ziel ist eine brauchbare Policy je "
          "Greifart; je Objekt als Median; Testobjekte (nie trainiert) ebenso, nicht in der Leistung. **Gesamt** = IQM über "
@@ -1284,14 +1318,56 @@ def write_leaderboard():
          "dass ein erfolgreicher Lauf von Platz 1 besser ist (gesichert, wenn die untere KI-Grenze > 0,5). ⚠: unter 5 "
          "Seeds oder unter 3 erfolgreichen — Leistung vorläufig. Werte in %, KI 95 %. "
          "Vorschlag = Urteilsregel v2 gegenüber den Eltern (✓: Leon hat das Experiment bewertet, Urteil im Bericht). "
-         "Quellen: Agarwal et al. 2021 (rliable), Chan et al. 2020 (Zuverlässigkeit).", "",
-         "| Rang | Experiment | Titel | Leistung [KI] | Gesamt [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
+         "Je Bewertungsprotokoll eine Tabelle; verglichen wird nur innerhalb eines Protokolls (ADR-021). "
+         "Quellen: Agarwal et al. 2021 (rliable), Chan et al. 2020 (Zuverlässigkeit)."]
+    current_rows, n_rows = [], 0
+    for v in versions:
+        members = [(d, e) for d, e in exps if v in (e.get("protokoll"), e.get("protokoll_vorher"))]
+        if not members:
+            if v == PROTOKOLL:
+                L += ["", f"## {PROTOKOLL} — aktuell (Reset ohne Überlappung, ADR-021)", "",
+                      "Noch keine Policy unter diesem Protokoll bewertet (`experiments.py umstellen` + `leaderboard --bewerten`)."]
+            continue
+        rows = sorted(((d, e, recipe(under(e, v))) for d, e in members),
+                      key=lambda r: -(r[2]["leistung"]["iqm"] if r[2] and r[2]["leistung"] else -1))
+        if v == PROTOKOLL:
+            current_rows = rows
+        n_rows += len(rows)
+        title = (f"## {v} — aktuell (Reset ohne Überlappung, ADR-021)" if v == PROTOKOLL else
+                 f"## {v} — Historie (bis 2026-10-09; Reset mit Überlappung, nicht mit {PROTOKOLL} vergleichbar)")
+        L += ["", title, ""] + leaderboard_table(rows, v)
+    eins = ["| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
+            "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
+    for d, exp, rec in current_rows:
+        if not rec:
+            continue
+        best, per = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
+        if best is None:
+            continue
+        run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), exp["laeufe"][0])
+        n = rec["_res"][0].get("netz") or {}
+        eins.append(f"| {exp['id']} | {best} | " + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
+                    + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
+    L += [""] + _details(f"Einsatz-Kandidaten ({PROTOKOLL}; bester Seed je Policy — nach der Bewertung ausgewählt, "
+                         "daher optimistisch)", eins)
+    (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    log(f"leaderboard.md aktualisiert ({len(current_rows)} Policies unter {PROTOKOLL}, {n_rows} Zeilen gesamt)")
+
+
+def leaderboard_table(rows: list, version: str) -> list[str]:
+    """Eine Tabelle des Leaderboards: alle Zeilen unter demselben Protokoll, Rang und P(1 > X) innerhalb."""
+    pct = lambda x: "–" if x is None else f"{100 * x:.0f}"  # noqa: E731
+    ci = lambda m: f"[{pct(m['iqm_ki95'][0])}–{pct(m['iqm_ki95'][1])}]" if m else ""  # noqa: E731
+    lead = rows[0][2] if rows and rows[0][2] else None
+    rng = np.random.default_rng(0)
+    L = ["| Rang | Experiment | Titel | Leistung [KI] | Gesamt [KI] | " + " | ".join(c["kurz"] for c in BENCHMARK)
          + " | " + " | ".join(c["kurz"] for c in TESTOBJEKTE)
          + " | erfolgreiche Seeds | Unruhe | P(1 > X) | Vorschlag (v2) | beste Videos |",
          "|---|---|---|---|---|" + "---|" * (len(BENCHMARK) + len(TESTOBJEKTE)) + "---|---|---|---|---|"]
     for i, (d, exp, rec) in enumerate(rows, 1):
+        link = f"[{exp['id']}]({d.name}/{d.name}.md)"
         if not rec:
-            L.append(f"| {i} | [{exp['id']}]({d.name}/{d.name}.md) | {exp.get('titel', '')} | nicht vollständig bewertet |"
+            L.append(f"| {i} | {link} | {exp.get('titel', '')} | nicht vollständig bewertet |"
                      + " |" * (len(BENCHMARK) + len(TESTOBJEKTE) + 7))
             continue
         tie = "–"
@@ -1306,28 +1382,15 @@ def write_leaderboard():
         vids = " ".join(f"[▶]({d.name}/beste_videos/{f.name})" for f in bv if f.exists()) or "–"
         unruhe = rec["_res"][0]["leitplanken"].get("unruhe")
         warn = "" if rec["n"] >= 5 and rec["k"] >= 3 else " ⚠"
-        L.append(f"| {i} | [{exp['id']}]({d.name}/{d.name}.md) | {exp.get('titel', '')} | "
+        current = exp.get("protokoll") == version
+        L.append(f"| {i} | {link} | {exp.get('titel', '')} | "
                  + (f"**{pct(rec['leistung']['iqm'])}** {ci(rec['leistung'])}" if rec["leistung"] else "–") + " | "
                  f"{pct(rec['gesamt']['iqm'])} {ci(rec['gesamt'])} | "
                  + " | ".join(pct(v) for v in rec["leistung_je_objekt"]) + " | "
-                 + " | ".join(pct(v) for v in test_performance(exp, rec)) + f" | {rec['k']}/{rec['n']}{warn} | "
-                 f"{'–' if unruhe is None else f'{unruhe:.2f}'} | {tie} | {vorschlag(d, exp, rec)} | {vids} |")
-    eins = ["| Experiment | bester Seed | " + " | ".join(c["kurz"] for c in BENCHMARK) + " | Actor-Parameter | Policy (ONNX) |",
-            "|---|---|" + "---|" * len(BENCHMARK) + "---|---|"]
-    for d, exp, rec in rows:
-        if not rec:
-            continue
-        best, per = best_seed({c["name"]: r for c, r in zip(BENCHMARK, rec["_res"])})
-        if best is None:
-            continue
-        run = next((r for r in exp["laeufe"] if r.endswith(f"_s{best}")), exp["laeufe"][0])
-        n = rec["_res"][0].get("netz") or {}
-        eins.append(f"| {exp['id']} | {best} | " + " | ".join(pct(per[c["name"]].get(best)) for c in BENCHMARK)
-                    + f" | {n.get('actor_parameter') or '–'} | `{run}/exported/policy.onnx` |")
-    L += [""] + _details(
-        "Einsatz-Kandidaten (bester Seed je Policy — nach der Bewertung ausgewählt, daher optimistisch)", eins)
-    (EXP_DIR / "leaderboard.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    log(f"leaderboard.md aktualisiert ({len(rows)} Policies)")
+                 + " | ".join(pct(v) for v in test_performance(under(exp, version), rec)) + f" | {rec['k']}/{rec['n']}{warn} | "
+                 f"{'–' if unruhe is None else f'{unruhe:.2f}'} | {tie} | "
+                 f"{vorschlag(d, exp, rec) if current else '→ ' + str(exp.get('protokoll'))} | {vids if current else '–'} |")
+    return L
 
 
 def _net_cell(n):
@@ -1359,6 +1422,8 @@ def main():
     e.add_argument("ids", nargs="+")
     e.add_argument("--video", action="store_true")
     e.add_argument("--neu", action="store_true", help="vorhandene Bewertungen neu rechnen (sonst nur fehlende)")
+    um = sub.add_parser("umstellen", help="Experiment auf das aktuelle Protokoll heben (ADR-021)")
+    um.add_argument("ids", nargs="+")
     bt = sub.add_parser("bericht")
     bt.add_argument("ids", nargs="+")
     md = sub.add_parser("medien")
@@ -1373,7 +1438,7 @@ def main():
     for s in (r, e, bt, md, lb, d):
         s.add_argument("--kein-backup", action="store_true", help="nicht nach Hugging Face sichern")
     a = p.parse_args()
-    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "bericht": cmd_bericht, "leaderboard": cmd_leaderboard, "medien": cmd_medien, "done": cmd_done}[a.cmd](a)
+    {"new": cmd_new, "bench": cmd_bench, "run": cmd_run, "eval": cmd_eval, "umstellen": cmd_umstellen, "bericht": cmd_bericht, "leaderboard": cmd_leaderboard, "medien": cmd_medien, "done": cmd_done}[a.cmd](a)
 
 
 if __name__ == "__main__":

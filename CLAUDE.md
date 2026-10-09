@@ -65,9 +65,9 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
   Änderungen an `setup_stage.py`/Config erneut ausführen und speichern
 - Kontaktsensor mit Objekt-Filter: **ein** `ContactSensorCfg` pro Fingerspitze
 - Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
-- Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, 5 Seeds, Bewertung nach eval-v1/Auswertung v2 — nicht über die Trainings-Belohnung vergleichen; Trainingsvarianten als Task-IDs in `pib_grasp/__init__.py`
+- Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, 5 Seeds, Bewertung nach eval-v2/Auswertung v2 (nur innerhalb eines Protokolls vergleichen, ADR-021) — nicht über die Trainings-Belohnung vergleichen; Trainingsvarianten als Task-IDs in `pib_grasp/__init__.py`
 - `SceneEntityCfg` mit Körper-/Gelenknamen **nie** als Standardargument einer mdp-Funktion — Isaac Lab löst sie nur in den `params` eines Terms auf (ADR-017, Korrektur)
-- Neue Szenen/Varianten vor einem Lauf prüfen: Szenenprüfung (`tools/check_multi.py`), Belohnungsdiagnose (`tools/reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
+- Neue Szenen/Varianten/Objekte vor einem Lauf prüfen: Start ohne Überlappung (`tools/analyse_reset.py`, Kontaktsensor über beide Physik-Unterschritte, ≥ 256 Starts), Szenenprüfung (`tools/check_objekt.py`/`check_multi.py`), Belohnungsdiagnose (`tools/reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -85,7 +85,7 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
   Mimic Joints (ADR-011), Servo-Modell (ADR-012), Kontaktsensoren (ADR-013),
   Handgelenk-Pleuel [−60°, 0°] (ADR-014)
 - **RL-Greifen, Proof of Concept** ← aktuell (ADR-015, Plan in `docs/current-sprint.md`):
-  - M1 Policy greift in der Sim — Leaderboard `experiments/leaderboard.md` (nach Leistung): EXP-017 (Curriculum,
+  - M1 Policy greift in der Sim — Leaderboard `experiments/leaderboard.md` (nach Leistung; Stand eval-v1, Nachbewertung eval-v2 läuft): EXP-017 (Curriculum,
     80 %, aber 2/5 Seeds, unruhig), EXP-013 (Objektvielfalt, 77 %, Eltern für Neues); Regel-Baseline 71 %;
     offen: Unruhe, Quader-Engpass, YCB-Testobjekte mit echter Masse
   - M2 Policy int8-quantisiert auf dem STM32N657 (`stedgeai validate`)
@@ -119,12 +119,14 @@ isaac_lab/train.py, play.py              Isaac Labs rsl_rl-Skripte mit den pib-T
 isaac_lab/check_hand_asset.py            Prüfung Hand-USD in Isaac Lab (Mimic, Sensoren)
 isaac_lab/scripted_grasp_test.py         Machbarkeitstest ohne Policy (Fenster, Echtzeit)
 isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eval/done (ADR-016)
-isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
+isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v2 (Aufgabenerfolg, Leitplanken; ADR-021)
 experiments/leaderboard.md               Rangliste aller Policies (Benchmark-Objekte, rliable)
 isaac_lab/plot_training.py               Trainingsdiagramme (TensorBoard → SVG) für die Experiment-Berichte
 isaac_lab/tools/check_multi.py           Szenenprüfung Objektvielfalt (Lage, Startfehler, Bilder) statt Fenstertest
 isaac_lab/tools/reward_diag.py           Größenordnung der Belohnungsterme je Phase (vor jedem Lauf, ADR-017)
 isaac_lab/tools/diag_anheben.py          Diagnose Anheben vor dem Absenken (2026-10-08)
+isaac_lab/tools/analyse_reset.py         Start ohne Überlappung/Fall prüfen (Kontakte Hand↔Objekt, Tisch, ADR-021)
+isaac_lab/tools/ruhelage_objekt.py       Ruhelage eines Objekts messen (YCB: Höhe/Neigung in OBJECTS)
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
 experiments/                             Experimente (je Ordner EXP-NNN_*-Dateien: experiment.yaml, Bericht, Diagramme, Videos), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
@@ -140,5 +142,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–020) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–021) | Sprint: @docs/current-sprint.md
 → RL-Ursprungs-Prompt/Bewertung: `docs/archiv/rl-grasping-notes.md` (Archiv: alte Pläne/Prompts in `docs/archiv/`)

@@ -171,7 +171,7 @@ Isaac Lab (conda env_isaaclab)                         reale Hand (Ziel)
 - **Trainingsvarianten** (`pib_grasp/env_cfg.py`, Task-IDs in `__init__.py`): `Heavy` (Masse 0,04–0,4 kg),
   `HeavyMulti` (18 Formen, Startlage aus der Bounding Box), `HeavyMultiADR` (Curriculum wie Dexsuite),
   `HeavyMultiRand`, `HeavyDexsuite`; bewertet wird immer in der Basisaufgabe je Objekt (`OBJECTS`, `apply_object`).
-- **Bewertung**: `eval_policy.py` (eval-v1, auch `--regel` für Regel-Baselines, `--verlauf`, Videos),
+- **Bewertung**: `eval_policy.py` (eval-v2, Reset ohne Überlappung — ADR-021, auch `--regel` für Regel-Baselines, `--verlauf`, Videos),
   `experiments.py` (Experimente, Auswertung v2, Leaderboard, Medien).
 - **Werkzeuge**: `check_hand_asset.py` (Mimic, Sensoren, Antriebe), `scripted_grasp_test.py`
   (Machbarkeit ohne Policy), `tools/probe_geometry.py`/`tools/debug_scene.py` (Diagnose).
