@@ -58,9 +58,13 @@ commit: 047cedf
 laeufe:
 - logs/regel/EXP-014
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: 'Regel „alle schließen“ (schliessen 0,2 aus Raster 0,2/0,4/0,8): Leistung
+  71 % (Ø 6 78 · Ø 8 74 · Quader 52), Flasche 72 · Saft 62 %, Kippwinkel 15°, 4,9
+  Finger, Unruhe 0,01; RL (EXP-013) gesichert besser (P = 0,89).'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Eine einfache Regel kommt bis auf 6 PP an RL heran und ist deutlich
+  ruhiger; RL muss sich bei schwereren Bedingungen beweisen (YCB, Masse, Störung,
+  Kraftgrenze).'
 regel:
   name: alle_schliessen
   raster:

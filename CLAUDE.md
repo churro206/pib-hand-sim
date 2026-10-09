@@ -65,7 +65,9 @@ ADR-007. Bei einem künftigen Neuimport aus Onshape muss das Skript erneut laufe
   Änderungen an `setup_stage.py`/Config erneut ausführen und speichern
 - Kontaktsensor mit Objekt-Filter: **ein** `ContactSensorCfg` pro Fingerspitze
 - Skripte enden mit Bericht-Datei + `os._exit(0)` (`simulation_app.close()` hängt)
-- Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, ≥ 3 Seeds, Bewertung nach eval-v1 — nicht über die Trainings-Belohnung vergleichen
+- Training/Bewertung als **Experiment** über `isaac_lab/experiments.py` (ADR-016, `experiments/README.md`): Hypothese + genau eine Änderung vorher, 5 Seeds, Bewertung nach eval-v1/Auswertung v2 — nicht über die Trainings-Belohnung vergleichen; Trainingsvarianten als Task-IDs in `pib_grasp/__init__.py`
+- `SceneEntityCfg` mit Körper-/Gelenknamen **nie** als Standardargument einer mdp-Funktion — Isaac Lab löst sie nur in den `params` eines Terms auf (ADR-017, Korrektur)
+- Neue Szenen/Varianten vor einem Lauf prüfen: Szenenprüfung (`_check_multi.py`), Belohnungsdiagnose (`_reward_diag.py`), Kurztraining lang genug für alle Codepfade (Curriculum erst ab Schwierigkeit 0,1 aktiv)
 
 ## Team (alle nutzen ROS2)
 - **IK-Team**: Inverse Kinematik → gibt Gelenkwinkel-Trajektorien aus
@@ -83,8 +85,9 @@ Details: @docs/architecture.md (Abschnitt "Action Graph")
   Mimic Joints (ADR-011), Servo-Modell (ADR-012), Kontaktsensoren (ADR-013),
   Handgelenk-Pleuel [−60°, 0°] (ADR-014)
 - **RL-Greifen, Proof of Concept** ← aktuell (ADR-015, Plan in `docs/current-sprint.md`):
-  - M1 Policy greift in der Sim — Baseline EXP-006 (Leaderboard `experiments/leaderboard.md`): IQM 68 % über
-    Zylinder Ø 6/8 cm und Quader (≤ 45°), Kraftgriff mit ~3 Fingern; offen: Anheben, Objektvielfalt, Kraft
+  - M1 Policy greift in der Sim — Leaderboard `experiments/leaderboard.md` (nach Leistung): EXP-017 (Curriculum,
+    80 %, aber 2/5 Seeds, unruhig), EXP-013 (Objektvielfalt, 77 %, Eltern für Neues); Regel-Baseline 71 %;
+    offen: Unruhe, Quader-Engpass, YCB-Testobjekte mit echter Masse
   - M2 Policy int8-quantisiert auf dem STM32N657 (`stedgeai validate`)
   - M3 echte Hand (optional, Sim-to-Real-Kalibrierung nötig)
 - Policy sieht nur reale Sensoren (8 Servo-Winkel, 5 FSR); Aktionsraum = 8 Servos
@@ -119,6 +122,9 @@ isaac_lab/experiments.py                 Experiment-Framework: new/bench/run/eva
 isaac_lab/eval_policy.py                 Bewertungsprotokoll eval-v1 (Aufgabenerfolg, Leitplanken)
 experiments/leaderboard.md               Rangliste aller Policies (Benchmark-Objekte, rliable)
 isaac_lab/plot_training.py               Trainingsdiagramme (TensorBoard → SVG) für die Experiment-Berichte
+isaac_lab/_check_multi.py                Szenenprüfung Objektvielfalt (Lage, Startfehler, Bilder) statt Fenstertest
+isaac_lab/_reward_diag.py                Größenordnung der Belohnungsterme je Phase (vor jedem Lauf, ADR-017)
+isaac_lab/_diag_anheben.py               Diagnose Anheben vor dem Absenken (2026-10-08)
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
 experiments/                             Experimente (experiment.yaml, Berichte), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
@@ -134,5 +140,5 @@ v4 und v5 laufen bewusst redundant/parallel nebeneinander (nicht: v5 löst v4 ab
 im Repo gilt das `_v4`/`_v5`-Namensschema, siehe `docs/current-sprint.md` für den Stand.
 
 → Architektur: @docs/architecture.md | Konventionen: @docs/conventions.md
-→ Entscheidungen: @docs/decisions.md (ADR-011–019) | Sprint: @docs/current-sprint.md
+→ Entscheidungen: @docs/decisions.md (ADR-011–020) | Sprint: @docs/current-sprint.md
 → RL-Ursprungs-Prompt/Bewertung: `docs/rl-grasping-notes.md`

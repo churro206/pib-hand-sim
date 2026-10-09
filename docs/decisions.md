@@ -746,6 +746,30 @@ Objekt bleibt sichtbar (YCB-Protokolle). Einzige Stelle, an der über Bedingunge
 
 ---
 
+## ADR-020: Regel-Baselines als Vergleich für RL
+
+**Problem**: Ob RL überhaupt mehr leistet als ein programmierter Griff, war offen; der Machbarkeitstest
+(2026-10-04: Daumen auf 90°, dann zu → 14–15/16) deutete an, dass eine einfache Regel stark ist.
+
+**Entscheidung** (Leon, 2026-10-08): Regelbasierte Griffe als eigene Experimente im selben Aktionsraum, mit
+denselben Sensoren und demselben Protokoll wie die Policies (`eval_policy.py --regel`, `experiments.py` →
+`run_rule`): „alle schließen“ (Heuristik, wie Chen et al. 2022) und „schließen bis Kontakt“ (taktiler Reflex,
+Hsiao et al. 2010). Parameter per kleinem Raster mit eigenem Bewertungs-Seed (2000) gewählt, final eval-v1 —
+Auswahl und Bewertung getrennt (Patterson et al. 2024). Eine Zeile im Leaderboard je Regel.
+
+**Begründung**: Gelernte Policies gegen eine faire Heuristik zu stellen ist übliche Praxis; ohne sie lässt sich
+der Mehrwert von RL nicht beurteilen.
+
+**Konsequenzen**:
+- EXP-014 „alle schließen“ 71 %, EXP-015 „bis Kontakt“ 68 % Leistung; RL (EXP-013) gesichert besser (+6 PP),
+  aber die Regel ist ruhiger, kippt weniger, nutzt ~5 Finger; Quader bei beiden gleich schwach.
+- Folgerung: das Benchmark misst noch vor allem „festhalten“ — RL soll sich bei Dingen beweisen, die eine Regel
+  nicht kann (Kraft dosieren, schwere/rutschige Objekte, Störungen, ungenaue Vorgreifpose); YCB mit echter Masse
+  ist der erste Schritt dahin.
+- Für jede weitere Greifart gehört eine eigene Regel-Baseline dazu.
+
+---
+
 ## Template für neue Entscheidungen
 
 **Problem**: [Was ist das konkrete Problem oder der Trade-off?]

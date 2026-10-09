@@ -168,6 +168,11 @@ Isaac Lab (conda env_isaaclab)                         reale Hand (Ziel)
   ab 2 s sinkt der Tisch; Policy sieht 8 Gelenkwinkel + 5 FSR + letzte Aktion (Verlauf 5),
   Critic zusätzlich privilegierte Größen; PPO über Isaac Labs `rsl_rl`-Skripte
   (`isaac_lab/train.py`/`play.py` registrieren nur die Tasks und starten diese).
+- **Trainingsvarianten** (`pib_grasp/env_cfg.py`, Task-IDs in `__init__.py`): `Heavy` (Masse 0,04–0,4 kg),
+  `HeavyMulti` (18 Formen, Startlage aus der Bounding Box), `HeavyMultiADR` (Curriculum wie Dexsuite),
+  `HeavyMultiRand`, `HeavyDexsuite`; bewertet wird immer in der Basisaufgabe je Objekt (`OBJECTS`, `apply_object`).
+- **Bewertung**: `eval_policy.py` (eval-v1, auch `--regel` für Regel-Baselines, `--verlauf`, Videos),
+  `experiments.py` (Experimente, Auswertung v2, Leaderboard, Medien).
 - **Werkzeuge**: `check_hand_asset.py` (Mimic, Sensoren, Antriebe), `scripted_grasp_test.py`
   (Machbarkeit ohne Policy), `_probe_geometry.py`/`_debug_scene.py` (Diagnose).
 - Schnittstelle Policy ↔ Firmware: `docs/conventions.md` → „Isaac Lab“.

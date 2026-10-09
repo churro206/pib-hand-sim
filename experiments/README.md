@@ -136,6 +136,11 @@ Regeln:
   Board). Fehlende Benchmark-Bewertungen holt `leaderboard --bewerten` nach.
 - **Vergleich** je Bedingung gegen die Eltern unter derselben Bedingung (wenn deren Läufe dafür
   bewertet sind), sonst gegen die erste Bedingung des Experiments (Referenz).
+- **Regel-Experimente** (ADR-020): `regel: {name: alle_schliessen | bis_kontakt, raster: [...]}` und
+  `training: null` — `run` wählt die Einstellung aus dem Raster mit Bewertungs-Seed 2000 (256 Episoden je
+  Benchmark-Objekt) und bewertet sie dann nach eval-v1; Lauf unter `logs/regel/EXP-NNN`, ein „Seed“ (s0).
+- **Testobjekte** (`experiments.py` → `TESTOBJEKTE`, nie trainiert): eigene Zeile im Bericht und Spalten im
+  Leaderboard, nicht in Leistung/Gesamt; `leaderboard --bewerten` bewertet sie für Policies mit erfolgreichen Seeds.
 - **Experimente ohne Training** (`new --ohne-training`, `training: null`, `laeufe_von: EXP-…`)
   bewerten die Läufe eines anderen Experiments unter eigenen Bedingungen, z. B. Objekttransfer;
   Vergleich gegen die Referenzbedingung, keine Trainingsdiagramme.

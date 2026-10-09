@@ -73,6 +73,11 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_02-52-01_EXP-017_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_03-47-23_EXP-017_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: 'Leistung 80 % (Ø 6 90 · Ø 8 81 · Quader 64), Flasche 83 · Saft 70 %, aber
+  2/5 Seeds (42/44/46: Curriculum bleibt bei 0, lernen nicht zu greifen); Unruhe 2,55,
+  Griffkraft 119 N. Erster Lauf an Tensor-Fehler abgebrochen, Neustart 2026-10-09
+  00:27.'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Das Curriculum hebt die Leistung und erstmals den Quader deutlich,
+  wenn es in Gang kommt; nächste Schritte: Unruhe (EXP-018/019, Eltern EXP-017) und
+  Start des Curriculums zuverlässiger machen.'

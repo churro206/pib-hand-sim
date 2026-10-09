@@ -310,21 +310,46 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
       ~100 % gehalten, nicht angehobene zu 0–78 %; der kleine Finger liegt unter dem Dosenboden (Schaufel).
       Die Höhe selbst ist frei, weil der Halte-Term nur Absinken bestraft (Abweichung von Dexsuite).
 
-**Experimentplan ab 2026-10-08** (Eltern EXP-006, je genau eine Änderung, 5 Seeds, Benchmark-Objekte)
-- [ ] Bewertung: Anheben als beschreibende Metrik (Höhe vor dem Absenken, Höhe in der Haltephase)
-- [x] Eigenbau-Prüfung der Belohnung gegen Dexsuite (2026-10-08): nötig bleiben Gegengriff mit kleinem
-      Finger, Kippwinkel statt Gierziel, Aktivierung ab dem Absenken; nicht nötig: Annäherung nur über
-      Spitzen, Positions-/Erfolgsterm (z, einseitig, std 0,02). **Fehler gefunden**: unsere Annäherung maß
-      alle Handkörper inkl. Unterarm (Standardargument-SceneEntityCfg nicht aufgelöst) → fast konstant (ADR-017)
-- [ ] **EXP-012 Belohnung wie Dexsuite** (`RewardsDexsuiteCfg`, Task `HeavyDexsuite-v0`, angelegt): Annäherung
-      Handfläche + Spitzen, Position 3D zur Startposition (std 0,2 / Erfolg 0,1). Frage: hört das Anheben auf,
-      ohne den tragenden Griff zu verlieren? Größenordnung geprüft; offen: Fenstertest, Lauf
-- [ ] **EXP-013 Objektvielfalt** im Training (Ø 6/8 cm, Quader gemischt, Dexsuite `MultiAssetSpawnerCfg`,
-      Startlage je Objekt), Eltern = Sieger aus EXP-006/012; Fenstertest (Szene geändert)
-- [ ] danach ein **Testobjekt**, das nie trainiert wird (z. B. Flasche), als Benchmark-Bedingung
-- [ ] Machbarkeit mit realistischer Masse (1-l-Milch ≈ 1 kg)
-- [ ] M2-Kette mit EXP-006 (bester Seed): int8 QDQ mit Sim-Kalibrierdaten, int8 vs. float in der Sim
-- nur bei Bedarf: Zappeln über Strafen-Curriculum (Lift), Griffkraft (86 N) — Kraftstrafe vorerst nicht (Leon)
+**Experimente 2026-10-08/09** (5 Seeds, Benchmark Ø 6 / Ø 8 / Quader + Testobjekte Flasche, Saftpackung)
+- [x] Eigenbau-Prüfung der Belohnung gegen Dexsuite: nötig bleiben Gegengriff mit kleinem Finger, Kippwinkel
+      statt Gierziel, Aktivierung ab dem Absenken. **Fehler gefunden**: unsere Annäherung maß alle Handkörper inkl.
+      Unterarm (Standardargument-SceneEntityCfg nicht aufgelöst) → fast konstant in EXP-004–011 (ADR-017)
+- [x] **EXP-012 Belohnung wie Dexsuite** (Annäherung Handfläche + Spitzen, Position 3D zur Startposition): Anheben
+      weg, Kippen halbiert, aber Unruhe 2,8 und 2/5 Seeds greifen nicht — kein Unterschied in der Leistung
+- [x] **Auswertung v2** (ADR-019): Leistung (erfolgreiche Seeds) und Zuverlässigkeit getrennt; Leaderboard nach
+      **Leistung** sortiert (Leon: eine brauchbare Policy je Greifart genügt)
+- [x] **EXP-013 Objektvielfalt** (18 Formen, `HeavyMulti-v0`; Startbeugung Finger/Handgelenk verkleinert, sonst
+      1/3 Überlappungen — `_check_multi.py`): Leistung 77 %, beste Testobjekte (Flasche 84, Saft 67 %);
+      Quader 57 % (kaum besser), 3/5 Seeds
+- [x] **EXP-014/015 Regel-Baselines** (kein RL, ADR-020): „alle schließen“ 71 %, „bis Kontakt“ 68 % — RL (EXP-013)
+      gesichert besser (+6 PP), aber die Regel ist viel ruhiger (Unruhe 0,01), kippt weniger, greift mit ~5 Fingern;
+      Quader bei Regel und RL gleich schwach (~52–57 %)
+- [x] **EXP-016 Randomisierung wie Dexsuite** (Gains 0,5–2, Gelenkreibung): Leistung 65 % (kein gesicherter
+      Unterschied), unruhiger; Robustheit gegen Servo-Streuung misst das Benchmark nicht
+- [x] **EXP-017 Curriculum wie Dexsuite** (Schwerkraft 0 → 9,81, Gelenkwinkelrauschen 0 → ±0,1 rad, 1500 It.):
+      **Leistung 80 % (Platz 1)**, Quader 64 % (bisher max. 57), aber nur 2/5 Seeds (die übrigen 3 kommen
+      ohne Schwerkraft nie in Gang) und Unruhe 2,55, Griffkraft 119 N. Curriculum bei erfolgreichen Seeds nach
+      ~316 It. durch (≥ 0,9)
+- [ ] Machbarkeit mit realistischer Masse — kommt über YCB (unten)
+- [ ] M2-Kette: int8 QDQ mit Sim-Kalibrierdaten, int8 vs. float in der Sim
+
+**Plan ab 2026-10-09** (Leon: nichts überstürzen; Prio 1 und 2, RoboCup@Home als Ziel)
+- [ ] **Prio 1 — YCB-Testobjekte** ins Benchmark (nicht ins Training — YCB ist als Bewertungsdatensatz gedacht,
+      Training auf vielen Formen, Test auf unbekannten): Isaac Sim 5.1 hat nur 4 YCB-Objekte mit Physik;
+      seitlich passen 003 Cracker-Schachtel (21 cm, 411 g), 004 Zuckerschachtel (17,5 cm, 514 g), 006 Senfflasche
+      (19 cm, 603 g), **mit echter Masse** (Entscheidung Leon offen; Vorschlag: echt); 005 Suppendose (10 cm) für
+      „von oben“. Umsetzung: `apply_object` mit UsdFileCfg, Lage aus der Bounding Box, Ausrichtung je Objekt,
+      Szenenprüfung mit Bildern, Nachbewertung aller Policies mit ≥ 3 erfolgreichen Seeds + Regeln
+- [ ] **Prio 2 — Unruhe** (Eltern EXP-017): **EXP-018 Strafen-Curriculum wie Isaac Lab Lift** (Aktionsstrafen −0,005
+      bis ~It. 400, dann Kandidat −0,05; Endwert per Größenordnungsprüfung) und **EXP-019 Aktionsfilter wie
+      DeXtreme/IsaacGymEnvs** (actionsMovingAverage, α ≈ 0,5; muss auch in der Firmware laufen). Hinweis:
+      Dexsuite selbst hat **kein** Strafen-Curriculum (nur Lift)
+- später (Prio 3–6, Leon 2026-10-09): Servo-Messung/Systemidentifikation mit LeRobot-Werkzeugen (Feetech STS3215),
+  Regelrate und Verzögerung wie real; Greif-Ablauf (Romano 2011: schließen → halten mit Rutscherkennung → ablegen,
+  „Griff steht“, Ablegen als Fähigkeit); Lehrer–Schüler/RMA (HORA) für den blinden Actor; int8 im Sim-Loop;
+  Curriculum zuverlässiger (Start mit Teil-Schwerkraft oder 4096 Umgebungen)
+- Andere Greifarten: eigene Szene, eigenes Objekt-Benchmark (YCB-Testobjekte), eigene Regel-Baseline, eigene
+  Leaderboard-Tabelle; das beste seitliche Rezept ist der Startpunkt für „von oben“
 
 **Stufe 4b — Startpose „von oben“** — danach (Leon, 2026-10-07): runde/kleine Objekte (Obst) von oben
 greifen statt seitlich — Anfahrrichtung je Objektkategorie (wie Greifplaner, z. B. GraspGen).

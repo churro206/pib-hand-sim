@@ -60,6 +60,10 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_16-58-33_EXP-012_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_17-09-22_EXP-012_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: 'Leistung 73 % (Ø 6 93 · Ø 8 71 · Quader 50), 3/5 Seeds; Anheben vor dem
+  Absenken weg (4 statt 59 mm), Kippwinkel 17° (EXP-006: 30°), Unruhe 2,80 (0,31);
+  Seeds 43/45 lernen nicht zu greifen.'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Die Dexsuite-Belohnung beseitigt das Anheben und halbiert das Kippen,
+  ohne Leistungsgewinn; die Unruhe steigt stark. Nicht als Baseline übernommen; Anteil
+  von Annäherungs-Fix vs. milderer Haltebelohnung ungeklärt.'

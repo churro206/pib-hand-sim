@@ -72,6 +72,9 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_19-45-13_EXP-013_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-08_20-03-02_EXP-013_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: Leistung 77 % (Ø 6 83 · Ø 8 83 · Quader 57), Testobjekte Flasche 84 · Saftpackung
+  67 %, 3/5 Seeds (43/44 lernen nicht zu greifen), Unruhe 0,70; ggü. EXP-006 kein
+  gesicherter Unterschied (P = 0,44).
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Objektvielfalt löst den Quader-Engpass nicht, verbessert aber Ø
+  8 cm und die Testobjekte; als Setup für die Kategorie übernommen (Eltern für EXP-014–017).'
