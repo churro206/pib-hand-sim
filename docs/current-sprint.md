@@ -352,9 +352,13 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
        Budget 0,5 % von Dexsuite, Critic ohne Objekteigenschaften; Nachträge in den alten Berichten
 5. [ ] **Nachtlauf 2026-10-09/10** (~9–10 h): EXP-019 Annäherung als Fortschritt (DexPBT, 10 Seeds) → EXP-018 Seeds 47–51
        → EXP-022 (019 + Aktionen ±1) → EXP-020 Aktionen ±1 → EXP-021 Critic mit Objekteigenschaften
-6. [ ] danach: Trainingsdauer neu prüfen (300 vs. 1500 It. auf der besten Basis), dann Unruhe (Strafen-Curriculum wie
+6. [ ] **GPU besser nutzen** (2026-10-09, GPU im Training 83 %): (a) Bewertung in einem Isaac-Prozess je Seed statt je
+       Bedingung (~35 s je Bedingung, großteils Start/Szenenaufbau ≈ ¼ der Laufzeit) — Zahlen vorher/nachher gleich prüfen;
+       (b) `experiments.py bench` 2048 Umgebungen messen, bei deutlichem Gewinn eigenes Experiment „2048 statt 1024“
+       (ändert die PPO-Batchgröße). Nicht parallel trainieren (8 GB VRAM)
+7. [ ] danach: Trainingsdauer neu prüfen (300 vs. 1500 It. auf der besten Basis), dann Unruhe (Strafen-Curriculum wie
        Lift, Aktionsfilter wie DeXtreme) auf echter Aufwandsstrafe; Bedingung **„rutschig“**; **M2-Kette**
-7. [ ] später: **Kraft dosieren** (Leon: hinten angestellt), Griff „von oben“, längerer Beobachtungsverlauf (HORA)
+8. [ ] später: **Kraft dosieren** (Leon: hinten angestellt), Griff „von oben“, längerer Beobachtungsverlauf (HORA)
 - später (Prio 3–6, Leon 2026-10-09): Servo-Messung/Systemidentifikation mit LeRobot-Werkzeugen (Feetech STS3215),
   Regelrate und Verzögerung wie real; Greif-Ablauf (Romano 2011: schließen → halten mit Rutscherkennung → ablegen,
   „Griff steht“, Ablegen als Fähigkeit); Lehrer–Schüler/RMA (HORA) für den blinden Actor; int8 im Sim-Loop;
