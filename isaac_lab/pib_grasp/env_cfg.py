@@ -16,6 +16,7 @@ Gelenkwinkel, 5 FSR, letzte Aktion; 5 Schritte Verlauf). Der Critic sieht zusät
 Objektlage/-orientierung/-geschwindigkeit, Folgegelenke, Objekt-Kontaktkräfte und die Phase.
 """
 import math
+from pathlib import Path
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
@@ -32,6 +33,7 @@ from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg
 from isaaclab.utils import configclass
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 from pib_hand_left_v5_cfg import PIB_HAND_LEFT_V5_CFG, SERVO_JOINTS
 
@@ -91,7 +93,65 @@ OBJECTS = {
     # schmale Seite (6 cm) zur Hand, im Training liegt immer die breite oder eine quadratische Seite vorn
     "flasche_d7x25": {"form": "zylinder", "masse": (0.035, 0.25), "gier": (-math.pi, math.pi)},
     "saftpackung_9x6x19": {"form": "quader", "masse": (0.09, 0.06, 0.19), "gier": (-math.radians(15), math.radians(15))},
+    # YCB-Testobjekte (Isaac Sim 5.1 Props/YCB/Axis_Aligned_Physics, tools/inspect_ycb.py, 2026-10-09): echte Masse und
+    # Größe aus dem Asset (Zufallsmasse/-größe aus); die Assets liegen (Höhe entlang y) → aufrecht über eine Wrapper-USD,
+    # die nur das Mesh dreht (drehung = rotateXYZ [°]), der Starrkörper bleibt z-oben wie bei allen Objekten (Kippwinkel,
+    # Gier). masse = Bounding Box aufrecht (Tiefe zur Hand, Breite, Höhe); Reibung wie alle Objekte (Zufall 0,5–1,0).
+    # Oberseite des Assets zeigt nach −y → −90° um x (+90° stellte sie auf den Kopf, Fenstertest 2026-10-09).
+    # ruhelage = gemessene Ruhelage auf dem Tisch (tools/ruhelage_objekt.py, typische von 64 Umgebungen): Höhe des
+    # Ursprungs über der Tischplatte [m], Neigung (Körperrahmen, w x y z) — die gescannten Unterseiten sind uneben,
+    # die Collider ragen unter die sichtbare Box; so steht das Objekt bei t = 0 still, statt zu fallen/kippen.
+    "ycb_003_cracker": {"form": "usd", "ycb": "003_cracker_box", "drehung": (-90, 0, 0),          # 411 g, schmale
+                        "masse": (0.164, 0.072, 0.213), "gier": (-math.radians(15), math.radians(15)),   # Seite zur Hand
+                        "ruhelage": {"hoehe": 0.10635, "quat": (0.99965, 0.02641, -0.00166, 0.00023)}},  # 3,1°
+    "ycb_004_zucker": {"form": "usd", "ycb": "004_sugar_box", "drehung": (-90, 0, 0),             # 514 g, schmale
+                       "masse": (0.093, 0.045, 0.176), "gier": (-math.radians(15), math.radians(15)),    # Seite zur Hand
+                       "ruhelage": {"hoehe": 0.08735, "quat": (0.99979, 0.01307, -0.01552, 0.00069)}},   # 2,3°
+    "ycb_006_senf": {"form": "usd", "ycb": "006_mustard_bottle", "drehung": (-90, 0, 0),           # 603 g, schmale
+                     "masse": (0.096, 0.058, 0.191), "gier": (-math.radians(15), math.radians(15)),      # Seite zur Hand
+                     "ruhelage": {"hoehe": 0.09736, "quat": (1.0, 0.0, 0.0, 0.0)}},                      # (Leon), gerade
 }
+# Startstellung der Hand beim Reset fast offen (seit 2026-10-09 Standard, eval-v2): Fingerbeugung 0–15° und Handgelenk
+# −10–0° (bis eval-v1) ließen die Hand beim Reset im Objekt stecken (tools/analyse_reset.py: Zylinder Ø6 34 %, Ø8 44 %,
+# Quader 81 %, YCB-Cracker 63 % der Starts, v. a. Mittelglieder/Spitzen und Handgelenkbeugung); so 0 %. Daumen unkritisch,
+# behält 0–90° Rotator / 0–15° Beugung. Die Hand kommt wie in der Vorgreifpose fast offen an.
+FINGER_START_MAX_DEG = 4.0
+WRIST_START_MAX_DEG = 1.0
+
+
+# Collider der gescannten YCB-Meshes (Konvex-Zerlegung) ragen bis ~2 mm unter die sichtbare Bounding Box → bündig
+# gespawnt startet das Objekt im Tisch und wird herausgestoßen (Senf: +2 mm, bis 1 cm seitlich, tools/check_objekt.py);
+# 3 mm höher fällt es stattdessen kurz auf den Tisch.
+YCB_SPAWN_LIFT = 0.003
+YCB_WRAPPER_DIR = Path(__file__).resolve().parents[2] / "logs" / "ycb_aufrecht"     # erzeugt, gitignored
+
+
+def ycb_upright_usd(name: str, rot_deg: tuple[float, float, float]) -> str:
+    """Wrapper-USD für ein YCB-Asset: referenziert es und dreht nur das Mesh-Kind (rotateXYZ, Skalierung bleibt);
+    Starrkörper, Masse und Collider kommen unverändert aus dem Asset."""
+    src = f"{ISAAC_NUCLEUS_DIR}/Props/YCB/Axis_Aligned_Physics/{name}.usd"
+    child = "_" + name[1:]                                     # 003_cracker_box → _03_cracker_box (Prim im Asset)
+    YCB_WRAPPER_DIR.mkdir(parents=True, exist_ok=True)
+    path = YCB_WRAPPER_DIR / f"{name}_aufrecht.usda"
+    path.write_text(f"""#usda 1.0
+(
+    defaultPrim = "Object"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Object" (
+    prepend references = @{src}@
+)
+{{
+    over "{child}"
+    {{
+        float3 xformOp:rotateXYZ = ({rot_deg[0]}, {rot_deg[1]}, {rot_deg[2]})
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ", "xformOp:scale"]
+    }}
+}}
+""", encoding="utf-8")
+    return str(path)
 DEFAULT_OBJECT = "zylinder_d6"
 
 
@@ -236,6 +296,13 @@ class EventCfg:
         mode="startup",
         params={"asset_cfg": SceneEntityCfg("object"), "mass_distribution_params": (0.05, 0.2), "operation": "abs"},
     )
+    # Startlage je Umgebung aus der Bounding Box des gespawnten Objekts inkl. Zufallsgröße (seit 2026-10-09 Standard,
+    # eval-v2; bis eval-v1 nur EXP-013 ff.): Oberfläche PALM_GAP vor der Handfläche, Boden auf der Tischplatte (+ lift).
+    # Vorher aus der Nenngröße → bei ±10 % fiel das Objekt bis 7,5 mm oder startete im Tisch (tools/analyse_reset.py).
+    place_objects = EventTerm(
+        func=mdp.place_objects_by_size, mode="startup",
+        params={"hand_x": HAND_POS[0], "palm_gap": PALM_GAP, "table_top_z": TABLE_TOP_Z, "lift": 0.0,
+                "root_height": None})
     servo_gains = EventTerm(
         func=base_mdp.randomize_actuator_gains,
         mode="startup",
@@ -258,16 +325,16 @@ class EventCfg:
         mode="reset",
         params={"ranges_deg": {
             "thumb_left_rotator": (0.0, 90.0),
-            "thumb_left_proximal": (0.0, 15.0),
-            "index_left_proximal": (0.0, 15.0),
-            "middle_left_proximal": (0.0, 15.0),
-            "ring_left_proximal": (0.0, 15.0),
-            "pinky_left_proximal": (0.0, 15.0),
-            "wrist_left": (-10.0, 0.0),
+            "thumb_left_proximal": (0.0, FINGER_START_MAX_DEG),
+            "index_left_proximal": (0.0, FINGER_START_MAX_DEG),
+            "middle_left_proximal": (0.0, FINGER_START_MAX_DEG),
+            "ring_left_proximal": (0.0, FINGER_START_MAX_DEG),
+            "pinky_left_proximal": (0.0, FINGER_START_MAX_DEG),
+            "wrist_left": (-WRIST_START_MAX_DEG, 0.0),
         }},
     )
     reset_object = EventTerm(
-        func=base_mdp.reset_root_state_uniform,
+        func=mdp.reset_object_gap_aware,            # Abstand zur Handfläche nach der Gierdrehung (eval-v2)
         mode="reset",
         params={
             "pose_range": {**OBJECT_POS_RANGE, "yaw": (-math.pi, math.pi)},
@@ -361,7 +428,9 @@ class PibGraspEnvCfg_Heavy(PibGraspEnvCfg):
 
 def apply_object(cfg: PibGraspEnvCfg, key: str) -> PibGraspEnvCfg:
     """Objekt aus OBJECTS einsetzen: Form/Maße, Startlage (Oberfläche PALM_GAP vor der Handfläche,
-    steht auf dem Tisch) und Drehung beim Reset. Physik, Masse, Material bleiben wie konfiguriert."""
+    steht auf dem Tisch) und Drehung beim Reset. Physik, Masse, Material bleiben wie konfiguriert — außer bei
+    YCB (form usd): echte Masse und Größe aus dem Asset, keine Zufallsmasse/-größe. Die Startlage setzt danach
+    das Startup-Event place_objects aus der tatsächlichen Bounding Box (init_state ist nur der Ausgangswert)."""
     spec = OBJECTS[key]
     old = cfg.scene.object.spawn
     common = {k: getattr(old, k) for k in ("rigid_props", "collision_props", "mass_props", "physics_material",
@@ -370,6 +439,17 @@ def apply_object(cfg: PibGraspEnvCfg, key: str) -> PibGraspEnvCfg:
         radius, height = spec["masse"]
         cfg.scene.object.spawn = sim_utils.CylinderCfg(radius=radius, height=height, **common)
         depth = radius
+    elif spec["form"] == "usd":                 # YCB: Masse/Größe echt aus dem Asset, Aussehen aus dem Asset
+        cfg.scene.object.spawn = sim_utils.UsdFileCfg(usd_path=ycb_upright_usd(spec["ycb"], spec["drehung"]),
+                                                      rigid_props=old.rigid_props, collision_props=old.collision_props)
+        cfg.events.object_mass = None
+        cfg.events.object_scale = None
+        if "ruhelage" in spec:                  # gemessene Ruhelage: steht bei t = 0 so, wie es von selbst steht
+            cfg.events.place_objects.params["root_height"] = spec["ruhelage"]["hoehe"]
+            cfg.scene.object.init_state.rot = spec["ruhelage"]["quat"]
+        else:
+            cfg.events.place_objects.params["lift"] = YCB_SPAWN_LIFT
+        depth, height = spec["masse"][0] / 2, spec["masse"][2] + 2 * YCB_SPAWN_LIFT
     else:
         size = spec["masse"]
         cfg.scene.object.spawn = sim_utils.CuboidCfg(size=size, **common)
@@ -400,21 +480,8 @@ class PibGraspEnvCfg_HeavyMulti(PibGraspEnvCfg_Heavy):
         shapes = [sim_utils.CylinderCfg(radius=r, height=h, **mat) for r, h in TRAIN_CYLINDERS] + \
                  [sim_utils.CuboidCfg(size=s, **mat) for s in TRAIN_CUBOIDS]
         self.scene.object.spawn = sim_utils.MultiAssetSpawnerCfg(assets_cfg=shapes, random_choice=False, **common)
-        self.events.place_objects = EventTerm(
-            func=mdp.place_objects_by_size, mode="startup",
-            params={"hand_x": HAND_POS[0], "palm_gap": PALM_GAP, "table_top_z": TABLE_TOP_Z})
         self.events.reset_object.params["pose_range"]["yaw"] = (-math.radians(15), math.radians(15))
-        # Startstellung ohne Überlappung (tools/check_multi.py, 2026-10-08): Fingerbeugung 0–15° und Handgelenk −10–0°
-        # ragten bei breiten/hohen Formen ins Objekt (~1/3 der Starts verschoben das Objekt > 5 mm); Daumen
-        # unkritisch, behält 0–90° Rotator / 0–15° Beugung. Hand kommt wie in der Vorgreifpose fast offen an.
-        r = self.events.reset_hand.params["ranges_deg"]
-        for j in ("index_left_proximal", "middle_left_proximal", "ring_left_proximal", "pinky_left_proximal"):
-            r[j] = (0.0, FINGER_START_MAX_DEG)
-        r["wrist_left"] = (-WRIST_START_MAX_DEG, 0.0)
 
-
-FINGER_START_MAX_DEG = 4.0
-WRIST_START_MAX_DEG = 3.0
 
 
 @configclass

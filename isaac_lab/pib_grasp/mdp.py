@@ -126,20 +126,58 @@ def reset_hand_joints(env: ManagerBasedRLEnv, env_ids: torch.Tensor, ranges_deg:
 
 
 def place_objects_by_size(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, hand_x: float, palm_gap: float,
-                          table_top_z: float, object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> None:
-    """Startup (Objektvielfalt, EXP-013): Startlage je Umgebung aus der Bounding Box des gespawnten Objekts
-    (USD, inkl. zufälliger Größe) — Oberfläche palm_gap vor der Handfläche, Boden auf der Tischplatte."""
+                          table_top_z: float, lift: float = 0.0, root_height: float | None = None,
+                          object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> None:
+    """Startup: Startlage je Umgebung aus der Bounding Box des gespawnten Objekts (USD, inkl. zufälliger Größe) —
+    Oberfläche palm_gap vor der Handfläche, Boden lift über der Tischplatte. root_height: gemessene Ruhelage
+    (Höhe des Ursprungs über der Tischplatte, tools/ruhelage_objekt.py) statt Bounding Box + lift."""
     import re
     import isaaclab.sim as sim_utils
     from pxr import Usd, UsdGeom
     obj: RigidObject = env.scene[object_cfg.name]
     cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
     stage = env.scene.stage
+    # Grundriss je Umgebung für reset_object_gap_aware: halbe Tiefe/Breite, eckig (1) oder rund (0)
+    env.pib_object_footprint = torch.zeros(env.num_envs, 3, device=env.device)
     for path in sim_utils.find_matching_prim_paths(obj.cfg.prim_path):
         idx = int(re.search(r"env_(\d+)", path).group(1))
-        size = cache.ComputeWorldBound(stage.GetPrimAtPath(path)).ComputeAlignedRange().GetSize()
+        prim = stage.GetPrimAtPath(path)
+        size = cache.ComputeWorldBound(prim).ComputeAlignedRange().GetSize()
+        round_ = any(p.GetTypeName() == "Cylinder" for p in Usd.PrimRange(prim))
+        env.pib_object_footprint[idx] = torch.tensor([size[0] / 2, size[1] / 2, 0.0 if round_ else 1.0])
         obj.data.default_root_state[idx, 0] = hand_x - palm_gap - size[0] / 2
-        obj.data.default_root_state[idx, 2] = table_top_z + size[2] / 2
+        obj.data.default_root_state[idx, 2] = table_top_z + (root_height if root_height is not None
+                                                             else lift + size[2] / 2)
+
+
+def reset_object_gap_aware(env: ManagerBasedRLEnv, env_ids: torch.Tensor, pose_range: dict[str, tuple[float, float]],
+                           velocity_range: dict[str, tuple[float, float]],
+                           asset_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> None:
+    """Wie Isaac Labs reset_root_state_uniform, aber der Abstand zur Handfläche gilt nach der Gierdrehung: ein eckiges
+    Objekt wird um a·|cos θ| + b·|sin θ| − a von der Hand weggerückt (a, b = halbe Tiefe/Breite), damit seine nächste
+    Ecke so weit vor der Handfläche liegt wie die Vorderfläche ohne Drehung — wie ein Greifplaner die Vorgreifpose
+    setzen würde. Runde Objekte unverändert. Ohne Grundriss (place_objects_by_size) wie das Original.
+    Vorher berührte die Ecke eines um 10–15° gedrehten Quaders beim Reset die Finger (tools/analyse_reset.py)."""
+    from isaaclab.utils import math as math_utils
+    asset: RigidObject = env.scene[asset_cfg.name]
+    root_states = asset.data.default_root_state[env_ids].clone()
+    ranges = torch.tensor([pose_range.get(k, (0.0, 0.0)) for k in ("x", "y", "z", "roll", "pitch", "yaw")],
+                          device=asset.device)
+    rand = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=asset.device)
+    positions = root_states[:, 0:3] + env.scene.env_origins[env_ids] + rand[:, 0:3]
+    footprint = getattr(env, "pib_object_footprint", None)
+    if footprint is not None:
+        a, b, square = footprint[env_ids].unbind(-1)
+        yaw = rand[:, 5]
+        positions[:, 0] -= square * (a * yaw.cos().abs() + b * yaw.sin().abs() - a)   # Objekt liegt bei −x der Hand
+    orientations = math_utils.quat_mul(root_states[:, 3:7],
+                                       math_utils.quat_from_euler_xyz(rand[:, 3], rand[:, 4], rand[:, 5]))
+    vranges = torch.tensor([velocity_range.get(k, (0.0, 0.0)) for k in ("x", "y", "z", "roll", "pitch", "yaw")],
+                           device=asset.device)
+    velocities = root_states[:, 7:13] + math_utils.sample_uniform(vranges[:, 0], vranges[:, 1], (len(env_ids), 6),
+                                                                  device=asset.device)
+    asset.write_root_pose_to_sim(torch.cat([positions, orientations], dim=-1), env_ids=env_ids)
+    asset.write_root_velocity_to_sim(velocities, env_ids=env_ids)
 
 
 class GraspDifficultyScheduler(ManagerTermBase):

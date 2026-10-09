@@ -968,6 +968,10 @@ TESTOBJEKTE = [
     {"name": "flasche_seitlich", "objekt_id": "flasche_d7x25", "kurz": "Flasche (Test)", "anforderung": {"max_kipp_deg": 45}},
     {"name": "saftpackung_seitlich", "objekt_id": "saftpackung_9x6x19", "kurz": "Saftpackung (Test)",
      "anforderung": {"max_kipp_deg": 45}},
+    # YCB (echte Masse 0,41–0,60 kg, über dem Trainingsbereich; Hand startet fast offen — env_cfg.OBJECTS)
+    {"name": "ycb_cracker_seitlich", "objekt_id": "ycb_003_cracker", "kurz": "Cracker (YCB)", "anforderung": {"max_kipp_deg": 45}},
+    {"name": "ycb_zucker_seitlich", "objekt_id": "ycb_004_zucker", "kurz": "Zucker (YCB)", "anforderung": {"max_kipp_deg": 45}},
+    {"name": "ycb_senf_seitlich", "objekt_id": "ycb_006_senf", "kurz": "Senf (YCB)", "anforderung": {"max_kipp_deg": 45}},
 ]
 
 

@@ -274,7 +274,14 @@ Unterarm 90°, Stall-Anteil 99,6 %).
 - Entschieden (Leon, 2026-10-07): Reibung bleibt (Fingerinnenseiten **und** Handfläche real aus
   TPU, Sim mit 0,5–1,0 eher konservativ); FSR real ebenfalls bis 20 N → Beobachtung passt;
   Handgelenkwinkel nicht in die Bewertung
-- [ ] Reset-Überlappung Daumen ↔ Dose (~6 %) beheben — reiner Bugfix, separat geprüft
+- [ ] **Reset-Überlappung beheben** (Leon, 2026-10-09; analysiert mit `tools/analyse_reset.py`, Kontaktsensor am
+      Objekt über alle Handkörper, beide Physik-Unterschritte): (1) die Hand steckt beim Reset im Objekt — Startpose
+      eval (Finger 0–15°, Handgelenk −10–0°): Zylinder Ø6 34 %, Ø8 44 %, **Quader 81 % (bis 1000 N)**, YCB-Cracker 63 %
+      der Starts; Mittelglieder/Spitzen der Finger, v. a. Handgelenkbeugung; mit `nearly_open_start()` 0 %.
+      (2) Zufallsgröße ±10 % bei der Starthöhe ignoriert → Objekt fällt bis 7,5 mm oder startet im Tisch.
+      eval-v1-Startfehler sieht das kaum; der Quader-Engpass ist vermutlich großteils dieser Szenenfehler.
+      Vorschlag: eval-v2 (fast offene Startpose + Platzierung nach skalierter Bounding Box) + Nachbewertung aller
+      Policies, ein Experiment „nur Reset“ fürs Training
 
 **Stufe 2 — Rezept der Lift-Aufgabe vollständig**
 - [ ] Langer Lauf EXP-002: 1500 It. × 1024 Umgebungen (wie Lift), 3 Seeds — nur die Iterationen ändern
