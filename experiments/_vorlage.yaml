@@ -15,7 +15,7 @@ bedingungen:                    # Objekt × Startpose × Anforderung
     startpose: "seitlich, Daumen oben"
     anforderung:
       max_kipp_deg: 20          # null = keine Kippanforderung
-protokoll: eval-v1
+protokoll: eval-v2                # aktuelles Protokoll (experiments.PROTOKOLL, ADR-021)
 entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
 
 # --- Training ---

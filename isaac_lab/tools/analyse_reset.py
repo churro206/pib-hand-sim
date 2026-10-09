@@ -17,7 +17,7 @@ from pathlib import Path
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--objekt", required=True)
+parser.add_argument("--objekt", required=True, help="Objekt aus env_cfg.OBJECTS oder multi (Trainingsszene HeavyMulti)")
 parser.add_argument("--num_envs", type=int, default=64)
 parser.add_argument("--dauer", type=float, default=0.1, help="Beobachtungsdauer [s] (≤ 2 s: vor dem Absenken)")
 parser.add_argument("--offen", action="store_true", help="Reset mit ganz geöffneter Hand (Gegenprobe)")
@@ -34,7 +34,7 @@ import torch  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # isaac_lab/
 import pib_grasp  # noqa: E402,F401
 from pib_grasp import mdp  # noqa: E402
-from pib_grasp.env_cfg import PibGraspEnvCfg, apply_object  # noqa: E402
+from pib_grasp.env_cfg import PibGraspEnvCfg, PibGraspEnvCfg_HeavyMulti, apply_object  # noqa: E402
 from isaaclab.sensors import ContactSensorCfg  # noqa: E402
 
 BODIES = ["urdf_elbow_lower", "urdf_forearm_left", "urdf_palm_left", "urdf_thumb_rotator_left", "urdf_thumb_proximal",
@@ -47,7 +47,8 @@ for sfx, f in (("", "Zeige"), ("_2", "Mittel"), ("_3", "Ring"), ("_4", "Klein"))
         LABEL[f"urdf_finger_{seg}{sfx}"] = f"{f}-{s}"
 FILTERS = BODIES + ["Tisch"]
 
-cfg = apply_object(PibGraspEnvCfg(), args.objekt)
+TASK = "Pib-Grasp-Hand-Left-HeavyMulti-v0" if args.objekt == "multi" else "Pib-Grasp-Hand-Left-v0"
+cfg = PibGraspEnvCfg_HeavyMulti() if args.objekt == "multi" else apply_object(PibGraspEnvCfg(), args.objekt)
 cfg.scene.num_envs = args.num_envs
 cfg.seed = 1000
 stem = f"_analyse_reset_{args.objekt}" + (f"_{args.dauer:g}s" if args.dauer != 0.1 else "")
@@ -67,7 +68,7 @@ cfg.scene.object_contact = ContactSensorCfg(
     prim_path="{ENV_REGEX_NS}/Object",
     filter_prim_paths_expr=[f"{{ENV_REGEX_NS}}/Robot/{b}" for b in BODIES] + ["{ENV_REGEX_NS}/Table"],
     history_length=cfg.decimation)          # alle Physik-Unterschritte eines Policy-Schritts, nicht nur den letzten
-env = gym.make("Pib-Grasp-Hand-Left-v0", cfg=cfg)
+env = gym.make(TASK, cfg=cfg)
 u = env.unwrapped
 obj, robot, sensor = u.scene["object"], u.scene["robot"], u.scene["object_contact"]
 org = u.scene.env_origins
