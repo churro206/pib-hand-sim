@@ -142,6 +142,19 @@ Training plus Bewertung.
 - **Kleine und flache Objekte** (Kugel Ø 5, Schachtel 9×6×4) mit dieser Pose nicht machbar: bei 35 mm ≤ 3/24 gehalten,
   bei 15–25 mm steckt der nach unten zeigende Daumen im Objekt (bis 2900 N). → Frage 1/3.
 
+## Stand 2026-10-11: gekippte Hand und Suche nach der Startpose
+
+- Leon (Fenstertest): waagrecht stößt der eingedrehte Daumen an den Tisch, die Handfläche berührt die Kugel nie → Hand so
+  kippen, dass bei Rotator 90° alle Fingerspitzen gleich hoch stehen: 36,5° um x, 4° um y (`tools/probe_neigung_oben.py`).
+  Höhe je Objekt (`mdp.tip_height_for_object`). Machbarkeit damit schlecht (3–5/24): die gekippten Finger tauchen beim
+  Schließen bis 30 mm unter ihre Startebene und streifen den Tisch; beim Start sitzt das Mittelfinger-Grundglied teils auf
+  der Kugel (Platzprofil ohne den Objektversatz ±10 mm). Der Schließweg war bei der Starthöhe nicht berücksichtigt.
+- Daher Suche wie Greifplaner (GraspIt!, DexGraspNet): `tools/suche_startpose_oben.py` — je Umgebung eine Pose aus
+  Kippung × Rollen × Rotator (60/75/90°) × Höhe × Versatz, Regel schließt, gemessen werden Halten, Start- und Tischkontakt;
+  Auswertung über alle Objekte `tools/auswertung_startpose_oben.py` → `docs/startpose-oben/ergebnis.md` (Nachtlauf
+  2026-10-11). Erster Lauf Kugel Ø 7: beste Posen wenig gekippt (0–10°), Rotator 60°, tiefste Spitze 10–20 mm über dem Tisch.
+  `env_cfg_oben.py` steht noch auf der gekippten Pose (36,5°) — umstellen nach Durchsicht der Suche.
+
 ## Offene Fragen an Leon
 
 1. **Handpose**: Unterarm waagrecht und Handfläche unten (Vorschlag, wie UniDexGrasp) oder gleich geneigt? Was kann der

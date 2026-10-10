@@ -21,6 +21,9 @@ from isaaclab.app import AppLauncher
 
 p = argparse.ArgumentParser()
 p.add_argument("--rotator", type=float, default=90.0, help="Daumen-Rotator [°]")
+p.add_argument("--dump", type=str, default=None,
+               help="nur Geometrie speichern: Mesh-Punkte der fünf Fingerspitzen (Hand-Root-Frame, ungedreht) je "
+                    "Rotator 60/75/90° als .npz (für tools/suche_startpose_oben.py), dann Ende")
 AppLauncher.add_app_launcher_args(p)
 a = p.parse_args()
 app = AppLauncher(a).app
@@ -73,6 +76,21 @@ def link_points(body: str) -> np.ndarray:
     w = quat_apply(q, P) + r.data.body_link_pos_w[0, i] - r.data.root_pos_w[0]
     return w.cpu().numpy()
 
+
+if a.dump:
+    data = {}
+    for rot_deg in (60, 75, 90):
+        t[:, r.joint_names.index("thumb_left_rotator")] = math.radians(rot_deg)
+        for _ in range(240):
+            r.set_joint_position_target(t)
+            r.write_data_to_sim()
+            sim.step()
+            r.update(sim.get_physics_dt())
+        for i, b in enumerate(FINGERTIP_LINKS):
+            data[f"r{rot_deg}_tip{i}"] = link_points(b)
+    np.savez(a.dump, **data)
+    print(f"Geometrie gespeichert: {a.dump}", flush=True)
+    os._exit(0)
 
 tips = [link_points(b) for b in FINGERTIP_LINKS]
 others = np.concatenate([link_points(b) for b in r.body_names if b not in FINGERTIP_LINKS and "elbow" not in b])

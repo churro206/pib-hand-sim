@@ -35,7 +35,11 @@ for _name, _cfg, _agent in (("HeavyMultiProgress", "PibGraspEnvCfg_HeavyMultiPro
                             ("HeavyMultiClip", "PibGraspEnvCfg_HeavyMulti", "PibGraspPPORunnerCfg_Clip"),
                             ("HeavyMultiPriv", "PibGraspEnvCfg_HeavyMultiPriv", "PibGraspPPORunnerCfg"),
                             ("HeavyMultiProgressClip", "PibGraspEnvCfg_HeavyMultiProgress", "PibGraspPPORunnerCfg_Clip"),
-                            ("HeavyMultiProgressClipXY", "PibGraspEnvCfg_HeavyMultiProgressXY", "PibGraspPPORunnerCfg_Clip")):
+                            ("HeavyMultiProgressClipXY", "PibGraspEnvCfg_HeavyMultiProgressXY", "PibGraspPPORunnerCfg_Clip"),
+                            # Nachtlauf 2026-10-11 (EXP-024–026): je eine Änderung ggü. EXP-022
+                            ("HeavyMultiProgressClipFilter", "PibGraspEnvCfg_HeavyMultiProgressFilter", "PibGraspPPORunnerCfg_Clip"),
+                            ("HeavyMultiProgressClipTorque", "PibGraspEnvCfg_HeavyMultiProgressTorque", "PibGraspPPORunnerCfg_Clip"),
+                            ("HeavyMultiProgressClipFingers", "PibGraspEnvCfg_HeavyMultiProgressFingers", "PibGraspPPORunnerCfg_Clip")):
     gym.register(
         id=f"Pib-Grasp-Hand-Left-{_name}-v0",
         entry_point="isaaclab.envs:ManagerBasedRLEnv",

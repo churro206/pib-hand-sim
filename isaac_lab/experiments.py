@@ -323,8 +323,10 @@ def evaluate(run_dir: Path, exp: dict, video: bool, log_file: Path, neu: bool = 
 def clip_args(run_dir: Path) -> list[str]:
     """--action_clip wie im Training (agent.yaml clip_actions, EXP-020 ff.) — sonst sähe die Bewertung ungeclippte
     Ausgaben, die die Policy so nie geschickt hat."""
-    clip = (load_params(run_dir).get("agent") or {}).get("clip_actions")
-    return ["--action_clip", str(clip)] if clip else []
+    params = load_params(run_dir)
+    clip = (params.get("agent") or {}).get("clip_actions")
+    alpha = (((params.get("env") or {}).get("actions") or {}).get("servos") or {}).get("alpha")   # EXP-024 ff.
+    return (["--action_clip", str(clip)] if clip else []) + (["--action_filter", str(alpha)] if alpha else [])
 
 
 def kipp_arg(cond: dict) -> str:

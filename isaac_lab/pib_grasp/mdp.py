@@ -12,8 +12,11 @@ from typing import TYPE_CHECKING
 import torch
 
 from isaaclab.assets import Articulation, RigidObject
+from isaaclab.envs.mdp.actions import RelativeJointPositionActionCfg
+from isaaclab.envs.mdp.actions.joint_actions import RelativeJointPositionAction
 from isaaclab.managers import ManagerTermBase, SceneEntityCfg
 from isaaclab.sensors import ContactSensor
+from isaaclab.utils import configclass
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -33,6 +36,44 @@ def _sensors(env: ManagerBasedRLEnv) -> list[ContactSensor]:
 
 def episode_time(env: ManagerBasedRLEnv) -> torch.Tensor:
     return env.episode_length_buf * env.step_dt
+
+
+# ── Aktion ────────────────────────────────────────────────────────────────────
+
+class FilteredRelativeJointPositionAction(RelativeJointPositionAction):
+    """Relative Gelenkposition wie Dexsuite, die Aktion vorher mit einem gleitenden Mittelwert geglättet (EXP-024):
+    a_f ← α·a + (1 − α)·a_f, Sollwert = q + Skala·a_f. Vorbild Isaac Lab ShadowHand-OpenAI (act_moving_average = 0.3,
+    DeXtreme-Linie) — dort auf den Gelenk-Sollwerten, hier auf der relativen Aktion, weil der Sollwert jeden Schritt aus
+    der aktuellen Stellung neu entsteht. Die Firmware muss denselben Filter (gleiches α, 60 Hz) vor die Servos setzen.
+    filtered_actions = das, was die Servos tatsächlich bekommen (Kennzahl „Unruhe wirksam“)."""
+
+    cfg: FilteredRelativeJointPositionActionCfg
+
+    def __init__(self, cfg: FilteredRelativeJointPositionActionCfg, env):
+        super().__init__(cfg, env)
+        self._filtered = torch.zeros_like(self._raw_actions)
+
+    @property
+    def filtered_actions(self) -> torch.Tensor:
+        return self._filtered
+
+    def process_actions(self, actions: torch.Tensor):
+        self._raw_actions[:] = actions
+        self._filtered[:] = self.cfg.alpha * actions + (1.0 - self.cfg.alpha) * self._filtered
+        self._processed_actions = self._filtered * self._scale + self._offset
+        if self.cfg.clip is not None:
+            self._processed_actions = torch.clamp(self._processed_actions, min=self._clip[:, :, 0], max=self._clip[:, :, 1])
+
+    def reset(self, env_ids=None) -> None:
+        super().reset(env_ids)
+        self._filtered[env_ids] = 0.0
+
+
+@configclass
+class FilteredRelativeJointPositionActionCfg(RelativeJointPositionActionCfg):
+    class_type: type = FilteredRelativeJointPositionAction
+    alpha: float = 0.3
+    """Gewicht der neuen Aktion (1 = kein Filter)."""
 
 
 # ── Beobachtungen ─────────────────────────────────────────────────────────────
@@ -431,6 +472,16 @@ def object_xy_displacement(env: ManagerBasedRLEnv, ref_s: float, max_dist: float
     before = episode_time(env) < ref_s
     env._pib_start_xy[before] = xy[before]
     return torch.norm(xy - env._pib_start_xy, dim=-1).clamp(max=max_dist)
+
+
+def servo_torque_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Σ (Moment / Stall-Moment)² der Servos in asset_cfg (EXP-025): 0 = kraftlos, ≈ Zahl der Servos bei Dauer-Stall.
+    Wie die Moment-Strafe von HORA (Qi et al. 2022) und Isaac Labs joint_torques_l2, aber je Gelenk auf das Stall-Moment
+    normiert (Servos verschieden stark). applied_torque = PD-Moment nach Begrenzung — dieselbe Größe wie die Leitplanke
+    Stall-Anteil (eval_policy). Gelenke nur über params (SceneEntityCfg wird nur dort aufgelöst, ADR-017)."""
+    robot: Articulation = env.scene[asset_cfg.name]
+    tau = robot.data.applied_torque[:, asset_cfg.joint_ids] / robot.data.joint_effort_limits[:, asset_cfg.joint_ids]
+    return torch.sum(torch.square(tau), dim=1)
 
 
 def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float) -> torch.Tensor:

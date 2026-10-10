@@ -36,6 +36,8 @@ parser = argparse.ArgumentParser()
 src = parser.add_mutually_exclusive_group(required=True)
 src.add_argument("--policy", type=str, help="exported/policy.pt (TorchScript)")
 src.add_argument("--checkpoint", type=str, help="model_<n>.pt eines Trainingslaufs (wird exportiert)")
+src.add_argument("--onnx", type=str, help="Policy als ONNX (float oder int8 QDQ) über onnxruntime auf der CPU — M2: "
+                 "int8 gegen float in der Sim (tools/quantisiere_int8.py)")
 src.add_argument("--regel", type=str, choices=["alle_schliessen", "bis_kontakt"],
                  help="regelbasierter Griff statt Policy (Baseline, EXP-014/015)")
 parser.add_argument("--regel-param", dest="regel_param", type=str, default="",
@@ -56,6 +58,8 @@ parser.add_argument("--real_time", action="store_true", help="Auf Echtzeit brems
 parser.add_argument("--verlauf", action="store_true", help="Verlauf über die Episode messen")
 parser.add_argument("--action_clip", type=float, default=0.0,
                     help="Policy-Ausgabe auf ±Wert begrenzen wie im Training (agent clip_actions, EXP-020 ff.); 0 = aus")
+parser.add_argument("--action_filter", type=float, default=0.0,
+                    help="Aktion wie im Training glätten (gleitender Mittelwert, α; EXP-024 ff.); 0 = aus")
 parser.add_argument("--nur-medien", dest="nur_medien", action="store_true",
                     help="keine eval-Dateien schreiben (nur Video/Verlauf)")
 AppLauncher.add_app_launcher_args(parser)
@@ -94,6 +98,9 @@ else:
     cfg, TASK = apply_object(PibGraspEnvCfg(), args_cli.objekt), "Pib-Grasp-Hand-Left-v0"
 cfg.scene.num_envs = args_cli.num_envs
 cfg.seed = args_cli.seed
+if args_cli.action_filter > 0:                                 # wie im Training (env.yaml: actions.servos.alpha)
+    from pib_grasp.env_cfg import filtered_servo_action
+    cfg.actions.servos = filtered_servo_action(args_cli.action_filter)
 if getattr(cfg.terminations, "object_tilted", None) is not None:   # trainingsspezifisch (EXP-001/002)
     cfg.terminations.object_tilted = None
     cfg.rewards.early_termination = None      # verweist auf object_tilted; Belohnung hier unbenutzt
@@ -127,6 +134,8 @@ if args_cli.checkpoint:
 
 if args_cli.regel:
     args_cli.policy = f"regel:{args_cli.regel}:{args_cli.regel_param}"
+if args_cli.onnx:
+    args_cli.policy = args_cli.onnx
 out_dir = Path(args_cli.out) if args_cli.out else (
     Path(args_cli.policy).resolve().parent.parent if "exported" in args_cli.policy
     else Path(__file__).resolve().parent.parent / "isaac_sim" / "tools")
@@ -180,8 +189,28 @@ class RuleGrasp(torch.nn.Module):
         return a
 
 
+class OnnxPolicy(torch.nn.Module):
+    """ONNX-Policy (Normalisierung im Netz) über onnxruntime, CPU; Eingang mit variabler Batchgröße umgeschrieben."""
+
+    def __init__(self, path: str):
+        super().__init__()
+        import onnx
+        import onnxruntime as ort
+        m = onnx.load(path)
+        for v in (*m.graph.input, *m.graph.output):
+            v.type.tensor_type.shape.dim[0].dim_param = "N"
+        self.sess = ort.InferenceSession(m.SerializeToString(), providers=["CPUExecutionProvider"])
+        self.inp = self.sess.get_inputs()[0].name
+
+    def forward(self, obs):
+        out = self.sess.run(None, {self.inp: obs.detach().cpu().numpy().astype("float32")})[0]
+        return torch.from_numpy(out).to(obs.device)
+
+
 if args_cli.regel:
     policy = RuleGrasp(uenv, args_cli.regel, args_cli.regel_param)
+elif args_cli.onnx:
+    policy = OnnxPolicy(args_cli.onnx)
 else:
     policy = torch.jit.load(args_cli.policy, map_location=uenv.device).eval()
 obs, _ = env.reset(seed=args_cli.seed)
@@ -205,7 +234,8 @@ def zeros():
 # laufende Größen je Umgebung (aktuelle Episode)
 steps, max_tilt, early_tilt, max_forearm = zeros(), zeros(), zeros(), zeros()
 hold_steps, hold_force, hold_over, stall, act_rate, sink = zeros(), zeros(), zeros(), zeros(), zeros(), zeros()
-act_rate_eff = zeros()      # Unruhe wirksam: Änderung der auf ±1 begrenzten Aktion (Überziehen jenseits zählt nicht)
+act_rate_eff = zeros()      # Unruhe wirksam: Änderung der Aktion, die die Servos bekommen (auf ±1 begrenzt, ggf. geglättet)
+eff_prev = torch.zeros(N, len(SERVO_JOINTS), device=dev)
 xy_path, xy_path_max = zeros(), zeros()     # Objektweg in der Tischebene ggü. t = EARLY_S (abgesetzt, Größe eingeschwungen)
 xy0 = obj.data.root_pos_w[:, :2].clone()
 hold_touch = torch.zeros(N, 5, device=dev)       # Fingernutzung: Schritte mit Objektkontakt > 1 N je Finger
@@ -288,7 +318,10 @@ with torch.inference_mode():
         stall[live] += (robot.data.applied_torque[live][:, stall_ids].abs() >= STALL_FRACTION * stall_limit[live]).any(-1).float()
         am = uenv.action_manager
         act_rate[live] += ((am.action - am.prev_action) ** 2).sum(-1)[live]
-        act_rate_eff[live] += ((am.action.clamp(-1, 1) - am.prev_action.clamp(-1, 1)) ** 2).sum(-1)[live]
+        servo_term = am.get_term("servos")
+        eff = (servo_term.filtered_actions if hasattr(servo_term, "filtered_actions") else am.action).clamp(-1, 1)
+        act_rate_eff[live] += ((eff - eff_prev) ** 2).sum(-1)[live]
+        eff_prev = torch.where(done[:, None], torch.zeros_like(eff), eff)
         sink[live] = (z0 - obj.data.root_pos_w[:, 2]).clamp(min=0.0)[live]   # Hand fest → ggü. Startlage
         ref = live & (steps <= early_steps)                                   # bis 0,1 s mitführen, dann fest
         xy0[ref] = obj.data.root_pos_w[ref, :2]

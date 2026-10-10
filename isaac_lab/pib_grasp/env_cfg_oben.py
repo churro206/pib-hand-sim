@@ -47,6 +47,7 @@ TABLE_SIZE_OBEN = (0.30, 0.30, 0.04)
 OBJECTS_OBEN = {
     "kugel_d7": {"form": "kugel", "masse": (0.035,), "gier": (-math.pi, math.pi)},          # Apfel-Ersatz (Benchmark)
     "kugel_d5": {"form": "kugel", "masse": (0.025,), "gier": (-math.pi, math.pi)},          # Mandarine/Pflaume
+    "kugel_d9": {"form": "kugel", "masse": (0.045,), "gier": (-math.pi, math.pi)},          # Orange/großer Apfel
     "dose_d68x10": {"form": "zylinder", "masse": (0.034, 0.10), "gier": (-math.pi, math.pi)},   # kurze Dose aufrecht
     "quader_9x6x4": {"form": "quader", "masse": (0.09, 0.06, 0.04),                          # flache Schachtel
                      "gier": (-math.radians(15), math.radians(15))},

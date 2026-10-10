@@ -1,0 +1,45 @@
+{
+ "datum": "2026-10-11 01:11",
+ "ergebnisse": {
+  "1024": {
+   "dauer_min": 1.2,
+   "schritte_pro_s": 19903,
+   "vram_max_mib": 3670,
+   "nan": false,
+   "fehler": false,
+   "abbrueche_letzte": {
+    "object_dropped": 1.0,
+    "abnormal_robot": 0.0,
+    "time_out": 0.0
+   },
+   "ok": true
+  },
+  "2048": {
+   "dauer_min": 1.5,
+   "schritte_pro_s": 26811,
+   "vram_max_mib": 4145,
+   "nan": false,
+   "fehler": false,
+   "abbrueche_letzte": {
+    "object_dropped": 0.8171,
+    "abnormal_robot": 0.001,
+    "time_out": 0.1819
+   },
+   "ok": true
+  },
+  "4096": {
+   "dauer_min": 1.8,
+   "schritte_pro_s": 56389,
+   "vram_max_mib": 5097,
+   "nan": false,
+   "fehler": false,
+   "abbrueche_letzte": {
+    "object_dropped": 1.0,
+    "abnormal_robot": 0.0,
+    "time_out": 0.0
+   },
+   "ok": true
+  }
+ },
+ "beste": 4096
+}

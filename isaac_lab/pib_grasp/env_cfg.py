@@ -596,6 +596,51 @@ class PibGraspEnvCfg_HeavyMultiProgressXY(PibGraspEnvCfg_HeavyMulti):
     rewards: RewardsProgressXYCfg = RewardsProgressXYCfg()
 
 
+# ── Nachtlauf 2026-10-11: je eine Änderung ggü. EXP-022 (HeavyMultiProgress + Aktionen auf ±1) ──────────────────────
+ACTION_FILTER_ALPHA = 0.3       # Isaac Lab ShadowHand-OpenAI act_moving_average (DeXtreme-Linie)
+TORQUE_PENALTY_WEIGHT = -0.1    # Σ(τ/τ_Stall)² der 7 Servos außer Handgelenk; Größenordnung per tools/reward_diag.py
+STALL_JOINTS = [j for j in SERVO_JOINTS if j != "wrist_left"]     # wie die Leitplanke Stall-Anteil (eval_policy)
+
+
+def filtered_servo_action(alpha: float = ACTION_FILTER_ALPHA) -> mdp.FilteredRelativeJointPositionActionCfg:
+    """Servo-Aktion wie ActionsCfg.servos, mit gleitendem Mittelwert (auch für eval_policy --action_filter)."""
+    base = ActionsCfg().servos
+    return mdp.FilteredRelativeJointPositionActionCfg(asset_name=base.asset_name, joint_names=base.joint_names,
+                                                      preserve_order=base.preserve_order, scale=base.scale, alpha=alpha)
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiProgressFilter(PibGraspEnvCfg_HeavyMultiProgress):
+    """EXP-024 (gegen Unruhe): wie EXP-022, Aktion vor den Servos geglättet (gleitender Mittelwert, α = 0,3)."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.actions.servos = filtered_servo_action()
+
+
+@configclass
+class RewardsProgressTorqueCfg(RewardsProgressCfg):
+    """EXP-025 (gegen Servo-Stall): Strafe auf das normierte Servo-Moment wie HORA (Moment-Strafe)."""
+    servo_torque = RewTerm(func=mdp.servo_torque_l2, weight=TORQUE_PENALTY_WEIGHT,
+                           params={"asset_cfg": SceneEntityCfg("robot", joint_names=STALL_JOINTS, preserve_order=True)})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiProgressTorque(PibGraspEnvCfg_HeavyMulti):
+    rewards: RewardsProgressTorqueCfg = RewardsProgressTorqueCfg()
+
+
+@configclass
+class RewardsProgressFingersCfg(RewardsProgressCfg):
+    """EXP-026 (mehr Finger): Belohnung nach Zahl der Finger am Objekt bei Daumenkontakt (Term aus EXP-005)."""
+    finger_count = RewTerm(func=mdp.fingers_in_contact, weight=1.0, params={"threshold": CONTACT_N})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiProgressFingers(PibGraspEnvCfg_HeavyMulti):
+    rewards: RewardsProgressFingersCfg = RewardsProgressFingersCfg()
+
+
 @configclass
 class PibGraspEnvCfg_HeavyMultiPriv(PibGraspEnvCfg_HeavyMulti):
     """EXP-021: wie EXP-018, Critic zusätzlich mit Objektgröße, Masse und Reibung (privilegiert, wie HORA/Dexsuite)."""
