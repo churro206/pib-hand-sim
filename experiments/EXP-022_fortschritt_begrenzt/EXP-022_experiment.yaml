@@ -3,8 +3,7 @@ id: EXP-022
 titel: EXP-019 mit Aktionen auf ±1 begrenzt
 datum: '2026-10-09'
 eltern: EXP-019
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Wie EXP-020, aber auf der Annäherung aus EXP-019: begrenzte Aktionen senken
   Unruhe/Überziehen auch dann, wenn mehr Seeds greifen lernen. Erwartet: Leistung
@@ -82,9 +81,13 @@ training:
   zusatz_args: []
 fenstertest: false              # Szene unverändert ggü. EXP-018; Prüfung: reward_diag + Kurztest
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: ffa1d43
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_01-21-18_EXP-022_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_01-46-08_EXP-022_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_02-05-20_EXP-022_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_02-25-21_EXP-022_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_02-44-47_EXP-022_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

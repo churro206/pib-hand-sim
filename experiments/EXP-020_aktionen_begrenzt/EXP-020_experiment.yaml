@@ -3,8 +3,7 @@ id: EXP-020
 titel: Aktionen auf ±1 begrenzt (clip_actions, Ersatz für NVIDIAs bounds_loss)
 datum: '2026-10-09'
 eltern: EXP-018
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Ohne Begrenzung überzieht die Policy weit über die Servo-Sättigung (|a|
   2–3), Aktionsstrafen und Unruhe messen vor allem Rauschen und Überziehen (ADR-022).
@@ -85,9 +84,13 @@ training:
   zusatz_args: []
 fenstertest: false              # Szene unverändert ggü. EXP-018; Prüfung: reward_diag + Kurztest
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: ffa1d43
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_03-06-28_EXP-020_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_03-30-08_EXP-020_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_03-43-31_EXP-020_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_04-02-44_EXP-020_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_04-22-48_EXP-020_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

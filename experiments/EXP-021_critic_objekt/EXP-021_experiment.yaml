@@ -3,8 +3,7 @@ id: EXP-021
 titel: Critic kennt Objektgröße, Masse und Reibung (privilegiert, wie HORA)
 datum: '2026-10-09'
 eltern: EXP-018
-status: geplant                 # geplant | läuft | ausgewertet | verworfen
-
+status: trainiert
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Im Training mit 18 Formen und Masse 0,04–0,4 kg kennt der Critic das Objekt
   nicht (nur Lage/Geschwindigkeit). Mit Größe, Masse und Reibung (wie HORA, Dexsuite:
@@ -84,9 +83,13 @@ training:
   zusatz_args: []
 fenstertest: false              # Szene unverändert ggü. EXP-018; Prüfung: reward_diag + Kurztest
 # --- automatisch (experiments.py run) ---
-commit: null
-laeufe: []
-
+commit: ffa1d43
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_04-43-43_EXP-021_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_04-57-41_EXP-021_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_05-10-20_EXP-021_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_05-20-19_EXP-021_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_05-32-58_EXP-021_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)

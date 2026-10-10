@@ -101,6 +101,11 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-13-46_EXP-018_s44
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-28-26_EXP-018_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_18-43-08_EXP-018_s46
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-09_23-50-46_EXP-018_s47
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_00-10-12_EXP-018_s48
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_00-29-16_EXP-018_s49
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_00-48-15_EXP-018_s50
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_01-00-33_EXP-018_s51
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
 ergebnis: ""                    # Kurzfassung der Zahlen
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
@@ -120,3 +125,4 @@ nachtrag:
 - datum: 2026-10-09 (ADR-021/022)
   text: Seeds 47–51 im Nachtlauf 2026-10-09 nachtrainiert (Basis für EXP-019–021 mit
     10 Seeds).
+commit_nachtrag: ffa1d43

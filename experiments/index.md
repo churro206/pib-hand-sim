@@ -52,43 +52,43 @@ Automatisch erzeugt (`experiments.py done`). Aufgabenerfolg/Haltequote in %, [95
 | ↳ EXP-017 | | | quader_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 32.2 [0.0–64.7] | 24.1 | 60.0 | 32.2 [0.0–64.7] | 10 | 8 | 100.0 | 3.3 | kein messbarer Unterschied (ggü. EXP-013) |  |
 | ↳ EXP-017 | | | flasche_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 36.0 [0.0–72.3] | 26.6 | 60.0 | 37.6 [0.0–75.7] | 16 | 9 | 100.0 | 3.4 | kein messbarer Unterschied (ggü. EXP-013) |  |
 | ↳ EXP-017 | | | saftpackung_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 1500 × 1024 | 34.2 [0.0–68.8] | 25.4 | 60.0 | 34.7 [0.0–69.7] | 15 | 13 | 100.0 | 3.3 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| [EXP-018](EXP-018_neuer_reset/EXP-018_experiment.yaml) | Neue Basis: EXP-013 mit Reset ohne Überlappung (ADR-021) | EXP-013 | zylinder_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 15.5 [0.0–46.5] | 0.0 | 80.0 | 17.3 [0.0–51.9] | 23 | 49 | 99.8 | 2.8 | schlechter, Leitplanke verletzt (auswertung-v2) | – |
-| ↳ EXP-018 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 11.8 [0.0–35.5] | 0.0 | 80.0 | 13.6 [0.0–40.9] | 26 | 45 | 99.8 | 3.1 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | quader_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 14.4 [0.0–43.4] | 0.0 | 80.0 | 14.5 [0.0–43.8] | 22 | 47 | 99.8 | 3.2 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | flasche_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 12.5 [0.0–37.4] | 0.0 | 80.0 | 15.5 [0.0–46.7] | 21 | 48 | 99.8 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | saftpackung_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 15.6 [0.0–46.8] | 0.0 | 80.0 | 15.7 [0.0–47.1] | 21 | 49 | 99.8 | 3.2 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 15.2 [0.0–45.8] | 0.0 | 80.0 | 15.2 [0.0–45.9] | 17 | 44 | 99.8 | 3.1 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 17.5 [0.0–52.4] | 0.0 | 80.0 | 18.9 [0.0–56.7] | 27 | 13 | 99.8 | 2.8 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| ↳ EXP-018 | | | ycb_senf_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 13.1 [0.0–39.4] | 0.0 | 80.0 | 16.8 [0.0–50.4] | 32 | 47 | 99.8 | 2.7 | kein messbarer Unterschied (ggü. EXP-013) |  |
-| [EXP-019](EXP-019_annaeherung_fortschritt/EXP-019_experiment.yaml) | Annäherung je Fingerspitze als Fortschritt (wie NVIDIA AllegroKuka/DexPBT) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-019 | | | zylinder_d8_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | quader_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | flasche_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | saftpackung_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | ycb_cracker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | ycb_zucker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-019 | | | ycb_senf_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| [EXP-020](EXP-020_aktionen_begrenzt/EXP-020_experiment.yaml) | Aktionen auf ±1 begrenzt (clip_actions, Ersatz für NVIDIAs bounds_loss) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-020 | | | zylinder_d8_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | quader_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | flasche_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | saftpackung_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | ycb_cracker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | ycb_zucker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-020 | | | ycb_senf_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| [EXP-021](EXP-021_critic_objekt/EXP-021_experiment.yaml) | Critic kennt Objektgröße, Masse und Reibung (privilegiert, wie HORA) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-021 | | | zylinder_d8_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | quader_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | flasche_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | saftpackung_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | ycb_cracker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | ycb_zucker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-021 | | | ycb_senf_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| [EXP-022](EXP-022_fortschritt_begrenzt/EXP-022_experiment.yaml) | EXP-019 mit Aktionen auf ±1 begrenzt | EXP-019 | zylinder_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – | – |
-| ↳ EXP-022 | | | zylinder_d8_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | quader_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | flasche_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | saftpackung_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | ycb_cracker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | ycb_zucker_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
-| ↳ EXP-022 | | | ycb_senf_seitlich ≤45° (eval-v2) | – | – | – | – | – | – | – | – | – | – | – | – | – |  |
+| [EXP-018](EXP-018_neuer_reset/EXP-018_experiment.yaml) | Neue Basis: EXP-013 mit Reset ohne Überlappung (ADR-021) | EXP-013 | zylinder_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 45.1 [17.4–72.7] | 42.9 | 50.0 | 47.5 [18.5–76.8] | 18 | 22 | 99.9 | 2.9 | kein Unterschied (auswertung-v2) | – |
+| ↳ EXP-018 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 41.7 [15.4–68.1] | 37.8 | 50.0 | 42.9 [15.9–70.3] | 14 | 20 | 99.9 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | quader_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 39.4 [15.4–63.6] | 37.3 | 50.0 | 39.6 [15.6–64.4] | 15 | 21 | 99.9 | 2.9 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | flasche_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 42.1 [16.0–68.7] | 37.4 | 50.0 | 44.7 [17.2–73.1] | 15 | 21 | 99.9 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | saftpackung_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 44.3 [17.1–71.4] | 42.4 | 50.0 | 44.5 [17.1–72.3] | 15 | 22 | 99.9 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 42.5 [16.2–68.9] | 39.7 | 50.0 | 42.5 [16.2–69.0] | 12 | 20 | 100.0 | 3.0 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 46.8 [18.5–75.4] | 44.9 | 50.0 | 47.6 [18.6–76.8] | 16 | 15 | 99.9 | 2.9 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| ↳ EXP-018 | | | ycb_senf_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 43.7 [16.5–71.2] | 39.1 | 50.0 | 45.9 [17.8–74.6] | 15 | 21 | 99.9 | 2.9 | kein messbarer Unterschied (ggü. EXP-013) |  |
+| [EXP-019](EXP-019_annaeherung_fortschritt/EXP-019_experiment.yaml) | Annäherung je Fingerspitze als Fortschritt (wie NVIDIA AllegroKuka/DexPBT) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 84.0 [79.8–88.4] | 83.7 | 0.0 | 92.2 [89.1–94.6] | 29 | 41 | 99.7 | 3.0 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-019 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 80.9 [76.4–85.1] | 81.8 | 0.0 | 85.0 [82.0–87.9] | 26 | 39 | 99.8 | 3.0 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | quader_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 75.4 [68.0–80.5] | 78.4 | 10.0 | 80.4 [78.9–82.0] | 28 | 39 | 99.7 | 2.9 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | flasche_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 81.5 [77.6–86.1] | 80.2 | 0.0 | 89.0 [87.2–91.1] | 26 | 41 | 99.8 | 3.0 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | saftpackung_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 79.3 [74.5–83.9] | 80.3 | 0.0 | 85.3 [82.3–87.7] | 28 | 42 | 99.7 | 3.0 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 81.4 [79.1–83.8] | 81.7 | 0.0 | 81.5 [79.2–83.7] | 21 | 38 | 99.8 | 3.0 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 82.5 [74.5–89.5] | 83.7 | 0.0 | 84.0 [75.5–90.3] | 24 | 41 | 99.6 | 2.9 | Leitplanke verletzt (ggü. EXP-018) |  |
+| ↳ EXP-019 | | | ycb_senf_seitlich ≤45° (eval-v2) | 10 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 79.4 [70.2–87.6] | 81.7 | 0.0 | 81.7 [73.0–89.1] | 25 | 40 | 99.7 | 2.9 | Leitplanke verletzt (ggü. EXP-018) |  |
+| [EXP-020](EXP-020_aktionen_begrenzt/EXP-020_experiment.yaml) | Aktionen auf ±1 begrenzt (clip_actions, Ersatz für NVIDIAs bounds_loss) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 71.2 [35.2–92.4] | 87.5 | 20.0 | 73.9 [36.8–94.2] | 22 | 28 | 99.2 | 3.1 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-020 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 68.3 [34.0–88.7] | 83.5 | 20.0 | 69.3 [34.3–89.4] | 18 | 22 | 99.4 | 3.4 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | quader_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 61.4 [30.6–79.9] | 75.1 | 20.0 | 61.8 [30.7–80.1] | 18 | 20 | 99.2 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | flasche_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 61.4 [29.7–86.5] | 71.9 | 20.0 | 69.8 [35.7–91.8] | 20 | 23 | 99.4 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | saftpackung_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 66.6 [32.9–88.3] | 80.7 | 20.0 | 67.6 [33.5–88.4] | 19 | 21 | 99.2 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 68.3 [33.9–88.4] | 83.0 | 20.0 | 68.5 [33.6–88.4] | 16 | 19 | 99.4 | 3.4 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 75.5 [37.2–97.3] | 93.3 | 20.0 | 76.2 [37.4–97.4] | 20 | 22 | 99.3 | 3.2 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-020 | | | ycb_senf_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 69.3 [33.9–93.2] | 82.0 | 20.0 | 72.0 [34.3–94.4] | 20 | 19 | 99.4 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| [EXP-021](EXP-021_critic_objekt/EXP-021_experiment.yaml) | Critic kennt Objektgröße, Masse und Reibung (privilegiert, wie HORA) | EXP-018 | zylinder_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 73.1 [36.6–94.1] | 89.4 | 20.0 | 76.1 [37.5–97.7] | 22 | 41 | 99.9 | 3.2 | kein Unterschied, Leitplanke verletzt (auswertung-v2) | – |
+| ↳ EXP-021 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 68.8 [34.6–89.2] | 84.4 | 20.0 | 69.6 [34.0–90.5] | 23 | 39 | 100.0 | 3.4 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | quader_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 62.7 [31.6–80.5] | 77.8 | 20.0 | 62.9 [31.1–80.8] | 23 | 38 | 99.9 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | flasche_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 68.6 [34.3–90.8] | 82.7 | 20.0 | 72.2 [35.2–93.9] | 23 | 41 | 99.9 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | saftpackung_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 66.0 [33.3–85.8] | 81.2 | 20.0 | 66.4 [32.3–86.0] | 23 | 39 | 99.9 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 63.0 [31.6–81.4] | 77.9 | 20.0 | 63.2 [31.0–81.3] | 21 | 37 | 100.0 | 3.3 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 66.8 [34.1–90.7] | 79.8 | 20.0 | 69.2 [34.0–91.6] | 23 | 39 | 99.9 | 3.4 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| ↳ EXP-021 | | | ycb_senf_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 60.5 [30.0–83.6] | 70.1 | 20.0 | 61.4 [29.5–84.3] | 24 | 38 | 99.9 | 3.2 | kein messbarer Unterschied (ggü. EXP-018) |  |
+| [EXP-022](EXP-022_fortschritt_begrenzt/EXP-022_experiment.yaml) | EXP-019 mit Aktionen auf ±1 begrenzt | EXP-019 | zylinder_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 88.6 [82.7–93.4] | 90.7 | 0.0 | 90.0 [84.8–94.1] | 20 | 25 | 97.4 | 3.2 | kein Unterschied (auswertung-v2) | – |
+| ↳ EXP-022 | | | zylinder_d8_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 84.5 [79.2–90.0] | 83.7 | 0.0 | 85.7 [81.4–90.7] | 15 | 19 | 97.7 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | quader_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 78.9 [75.5–82.2] | 79.0 | 0.0 | 79.3 [75.8–82.5] | 15 | 17 | 97.6 | 3.1 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | flasche_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 86.4 [81.9–90.5] | 86.8 | 0.0 | 89.0 [86.4–91.8] | 17 | 21 | 97.6 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | saftpackung_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 84.8 [78.4–91.3] | 84.2 | 0.0 | 85.0 [78.8–91.3] | 16 | 19 | 97.4 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | ycb_cracker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 84.3 [80.8–88.4] | 83.4 | 0.0 | 84.4 [80.8–88.3] | 12 | 16 | 97.6 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | ycb_zucker_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 88.6 [81.7–94.8] | 90.1 | 0.0 | 90.5 [85.3–95.6] | 21 | 24 | 96.8 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
+| ↳ EXP-022 | | | ycb_senf_seitlich ≤45° (eval-v2) | 5 | [256, 128, 64] elu, V5 | 68808 | 300 × 1024 | 81.6 [72.7–88.4] | 83.1 | 0.0 | 84.8 [77.7–90.8] | 23 | 20 | 97.2 | 3.2 | kein messbarer Unterschied (ggü. EXP-019) |  |
