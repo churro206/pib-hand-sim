@@ -12,6 +12,8 @@
 
 **Urteilsvorschlag** (auswertung-v2): **kein Unterschied, Leitplanke verletzt**
 
+**Beste Videos** (Seed 46, 3 Episoden): [Ø 6 cm](beste_videos/EXP-023_zylinder_d6_s46.mp4) · [Ø 8 cm](beste_videos/EXP-023_zylinder_d8_s46.mp4) · [Quader](beste_videos/EXP-023_quader_7x7x20_s46.mp4)
+
 ![Ergebnis je Bedingung — Punkte = Seeds](diagramme/EXP-023_bedingungen.svg)
 
 <details>
@@ -281,6 +283,18 @@ Seeds dünn, Mittel kräftig, Eltern gestrichelt (nur Abbrüche/PPO — Training
 ![Abbrüche](diagramme/EXP-023_abbrueche.svg)
 
 ![PPO-Diagnose](diagramme/EXP-023_ppo.svg)
+
+</details>
+
+<details>
+<summary>Videos aller Seeds</summary>
+
+16 Umgebungen, eine Episode (nicht im Git, Hugging Face).
+
+| Objekt | Seed 43 |
+|---|---|
+| `ycb_006_senf` | [▶](videos/EXP-023_ycb_006_senf_s43.mp4) |
+| `zylinder_d6` | [▶](videos/EXP-023_zylinder_d6_s43.mp4) |
 
 </details>
 
