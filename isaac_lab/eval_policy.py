@@ -98,7 +98,16 @@ if args_cli.checkpoint:
     agent_cfg = PibGraspPPORunnerCfg()
     runner = OnPolicyRunner(RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions), agent_cfg.to_dict(),
                             log_dir=None, device=uenv.device)
-    runner.load(args_cli.checkpoint)
+    # Nur der Actor wird bewertet: Critic-Gewichte mit anderer Form überspringen — Trainingsvarianten mit
+    # privilegierten Zusatz-Beobachtungen (EXP-021: +6 Critic-Eingänge) laden sonst nicht in die Basisaufgabe
+    ckpt = torch.load(args_cli.checkpoint, map_location=uenv.device, weights_only=False)
+    own = runner.alg.policy.state_dict()
+    state = {k: v for k, v in ckpt["model_state_dict"].items() if k in own and own[k].shape == v.shape}
+    skipped = sorted(set(ckpt["model_state_dict"]) - set(state))
+    assert not [k for k in skipped if not k.startswith("critic")], f"Actor passt nicht: {skipped}"
+    runner.alg.policy.load_state_dict(state, strict=False)
+    if skipped:
+        print(f"[eval] Critic-Gewichte übersprungen (andere Form, für die Bewertung unnötig): {skipped}", flush=True)
     export_dir = os.path.join(os.path.dirname(args_cli.checkpoint), "exported")
     normalizer = getattr(runner.alg.policy, "actor_obs_normalizer", None)
     export_policy_as_jit(runner.alg.policy, normalizer=normalizer, path=export_dir, filename="policy.pt")
