@@ -350,8 +350,13 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
 3. [x] **EXP-018 „neue Basis“** (EXP-013 mit neuem Reset): nur 1/5 Seeds greifen → Ursache fehlendes Signal fürs Zugreifen
 4. [x] **Prüfung gegen die Vorbilder** (ADR-022): Annäherung ohne Signal, Aktionen unbegrenzt (bounds_loss fehlt),
        Budget 0,5 % von Dexsuite, Critic ohne Objekteigenschaften; Nachträge in den alten Berichten
-5. [ ] **Nachtlauf 2026-10-09/10** (~9–10 h): EXP-019 Annäherung als Fortschritt (DexPBT, 10 Seeds) → EXP-018 Seeds 47–51
-       → EXP-022 (019 + Aktionen ±1) → EXP-020 Aktionen ±1 → EXP-021 Critic mit Objekteigenschaften
+5. [x] **Nachtlauf 2026-10-09/10**: EXP-018 (10 Seeds) 5/10 greifen; **EXP-019** Fortschritt je Fingerspitze **10/10**
+       (gesichert zuverlässiger), mehr Unterarm/Kippen; EXP-020 ±1 allein unruhiger; EXP-021 Critic kein Unterschied;
+       **EXP-022** (Fortschritt + ±1) **5/5, 83 %, Leitplanken eingehalten, Unruhe 0,36** (ADR-022, Ergebnis)
+5b. [ ] **Entscheidung (Leon)**: EXP-022 als neue Basis, wenn die besten Videos (`EXP-022_*/beste_videos/`) gut aussehen
+5c. [ ] **Griff von oben** (Stufe 4b, Leon 2026-10-10: als Nächstes, wenn EXP-022 passt): Apfel, Kugeln — eigene Szene
+       (Hand gedreht), Objektkatalog „von oben“ (YCB 005 Suppendose, Kugeln), `analyse_reset.py`, Regel-Baseline,
+       Spezialist mit dem EXP-022-Rezept
 6. [ ] **GPU besser nutzen** (2026-10-09, GPU im Training 83 %): (a) Bewertung in einem Isaac-Prozess je Seed statt je
        Bedingung (~35 s je Bedingung, großteils Start/Szenenaufbau ≈ ¼ der Laufzeit) — Zahlen vorher/nachher gleich prüfen;
        (b) `experiments.py bench` 2048 Umgebungen messen, bei deutlichem Gewinn eigenes Experiment „2048 statt 1024“

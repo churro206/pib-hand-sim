@@ -3,7 +3,7 @@ id: EXP-021
 titel: Critic kennt Objektgröße, Masse und Reibung (privilegiert, wie HORA)
 datum: '2026-10-09'
 eltern: EXP-018
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Im Training mit 18 Formen und Masse 0,04–0,4 kg kennt der Critic das Objekt
   nicht (nur Lage/Geschwindigkeit). Mit Größe, Masse und Reibung (wie HORA, Dexsuite:
@@ -91,6 +91,9 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_05-20-19_EXP-021_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_05-32-58_EXP-021_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: 4/5 Seeds, Leistung 85 % [82–88] (kein Unterschied); Unterarm 41° (32°,
+  verletzt). Bewertung nach Export-Fix nachgeholt (Critic mit +6 Eingängen lud nicht
+  in die Basisaufgabe).
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Critic mit Objektgröße/Masse/Reibung bringt bei 5 Seeds nichts
+  Messbares — nicht übernommen, auf neuer Basis ggf. später erneut.'

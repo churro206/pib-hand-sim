@@ -12,6 +12,8 @@
 
 **Urteilsvorschlag** (auswertung-v2): **kein Unterschied, Leitplanke verletzt**
 
+**Beste Videos** (Seed 50, 3 Episoden): [Ø 6 cm](beste_videos/EXP-019_zylinder_d6_s50.mp4) · [Ø 8 cm](beste_videos/EXP-019_zylinder_d8_s50.mp4) · [Quader](beste_videos/EXP-019_quader_7x7x20_s50.mp4)
+
 ![Ergebnis je Bedingung — Punkte = Seeds](diagramme/EXP-019_bedingungen.svg)
 
 <details>

@@ -3,7 +3,7 @@ id: EXP-022
 titel: EXP-019 mit Aktionen auf ±1 begrenzt
 datum: '2026-10-09'
 eltern: EXP-019
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Wie EXP-020, aber auf der Annäherung aus EXP-019: begrenzte Aktionen senken
   Unruhe/Überziehen auch dann, wenn mehr Seeds greifen lernen. Erwartet: Leistung
@@ -89,6 +89,9 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_02-25-21_EXP-022_s45
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_02-44-47_EXP-022_s46
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: '5/5 Seeds greifen, Leistung 83 % [80–87] (ggü. EXP-019 kein Unterschied),
+  alle Leitplanken eingehalten: Kippen 20° (EXP-019: 29°), Unruhe 0,36 (1,19); YCB
+  84/93/83 %. Weiter volle Griffkraft (Stall ~98 %).'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Bestes Gesamtbild — Kandidat für die neue Basis, wenn die Videos
+  passen (Leon). Firmware muss die Netzausgabe auf ±1 begrenzen.'

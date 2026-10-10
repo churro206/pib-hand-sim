@@ -3,7 +3,7 @@ id: EXP-018
 titel: 'Neue Basis: EXP-013 mit Reset ohne Überlappung (ADR-021)'
 datum: '2026-10-09'
 eltern: EXP-013
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'EXP-013 trainierte schon fast ohne Überlappung (Finger 0–4°, Platzierung
   nach Bounding Box); der neue Reset ändert fürs Training nur Daumen-MCP, Handgelenk
@@ -107,9 +107,12 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_00-48-15_EXP-018_s50
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-10_01-00-33_EXP-018_s51
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: '10 Seeds (5 im Nachtlauf nachtrainiert): 5/10 greifen, Leistung 86 % [81–89];
+  die übrigen lernen nie zu greifen.'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf (von Leon zu bestätigen): Mit sauberem Reset hängt das Entdecken
+  des Griffs am Zufall (kein Signal fürs Zugreifen, ADR-022) → EXP-019. Als Basis
+  für EXP-019–021 genutzt.'
 nachtrag:
 - datum: 2026-10-09 (ADR-021/022)
   text: '1/5 Seeds lernen greifen: ohne die zufälligen Kontakte der Reset-Stöße fehlt

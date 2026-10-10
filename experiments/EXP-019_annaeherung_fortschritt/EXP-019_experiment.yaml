@@ -3,7 +3,7 @@ id: EXP-019
 titel: Annäherung je Fingerspitze als Fortschritt (wie NVIDIA AllegroKuka/DexPBT)
 datum: '2026-10-09'
 eltern: EXP-018
-status: trainiert
+status: ausgewertet
 # --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
 hypothese: 'Ohne Signal fürs Zugreifen lernen die meisten Seeds nie zu greifen (EXP-018:
   1/5; der alte Annäherungsterm maß den Unterarmansatz, ADR-022). Ein Fortschrittsterm
@@ -106,6 +106,10 @@ laeufe:
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_23-05-04_EXP-019_s50
 - logs/rsl_rl/pib_grasp_hand_left/2026-10-09_23-29-14_EXP-019_s51
 # --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
-ergebnis: ""                    # Kurzfassung der Zahlen
+ergebnis: '10/10 Seeds greifen (EXP-018: 5/10, Fisher p = 0,03 gesichert besser),
+  Leistung 81 % [78–83] (kein gesicherter Unterschied); Leitplanken verletzt: Kippen
+  29° (23°), Unterarm 41° (32°), Unruhe wirksam 0,56 (0,45).'
 urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
-schluss: ""                     # was folgt daraus, nächstes Experiment
+schluss: 'Entwurf: Die Annäherung als Fortschritt (DexPBT) löst das Entdeckungsproblem;
+  Nebenwirkung mehr Unterarm/Kippen (vermutlich nähert sie die Spitzen auch über den
+  Unterarm an) → mit Aktionsgrenze kombiniert (EXP-022).'

@@ -851,6 +851,10 @@ Vorbildern; die Korrekturen übernehmen jeweils das bewährte Gegenstück (DexPB
   anderer Software (rl_games → rsl_rl), wie groß ist das Budget — bevor einzelne Terme übernommen werden.
 - Belastbar bleiben: Dexsuite-Belohnung statt Eigenbau (ADR-017), Opposition, Objektvielfalt für den Transfer.
   Wackelig: Trainingsdauer, Unruhe, Fingerzahl, kleine Unterschiede zwischen EXP-005/006/012/016.
+- **Ergebnis Nachtlauf 2026-10-09/10** (eval-v2, EXP-018 auf 10 Seeds): EXP-018 5/10 Seeds greifen; EXP-019 (Fortschritt)
+  **10/10** (gesichert zuverlässiger), aber mehr Unterarm/Kippen/Unruhe; EXP-020 (±1 allein) Unruhe wirksam höher;
+  EXP-021 (Critic) kein Unterschied; **EXP-022 (Fortschritt + ±1) 5/5, 83 %, alle Leitplanken eingehalten, Unruhe 0,36**
+  → Kandidat für die neue Basis (Leon prüft die Videos). Griffkraft bleibt überall maximal (Stall ~100 %).
 
 ---
 

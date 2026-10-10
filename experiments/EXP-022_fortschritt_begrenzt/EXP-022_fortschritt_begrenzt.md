@@ -12,6 +12,8 @@
 
 **Urteilsvorschlag** (auswertung-v2): **kein Unterschied**
 
+**Beste Videos** (Seed 42, 3 Episoden): [Ø 6 cm](beste_videos/EXP-022_zylinder_d6_s42.mp4) · [Ø 8 cm](beste_videos/EXP-022_zylinder_d8_s42.mp4) · [Quader](beste_videos/EXP-022_quader_7x7x20_s42.mp4)
+
 ![Ergebnis je Bedingung — Punkte = Seeds](diagramme/EXP-022_bedingungen.svg)
 
 <details>
