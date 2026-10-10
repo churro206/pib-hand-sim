@@ -18,6 +18,8 @@ from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--objekt", required=True, help="Objekt aus env_cfg.OBJECTS oder multi (Trainingsszene HeavyMulti)")
+parser.add_argument("--greifart", choices=["seitlich", "oben"], default="seitlich",
+                    help="oben: Objekte aus env_cfg_oben.OBJECTS_OBEN, multi = Trainingsszene ObenMulti")
 parser.add_argument("--num_envs", type=int, default=64)
 parser.add_argument("--dauer", type=float, default=0.1, help="Beobachtungsdauer [s] (≤ 2 s: vor dem Absenken)")
 parser.add_argument("--offen", action="store_true", help="Reset mit ganz geöffneter Hand (Gegenprobe)")
@@ -47,11 +49,17 @@ for sfx, f in (("", "Zeige"), ("_2", "Mittel"), ("_3", "Ring"), ("_4", "Klein"))
         LABEL[f"urdf_finger_{seg}{sfx}"] = f"{f}-{s}"
 FILTERS = BODIES + ["Tisch"]
 
-TASK = "Pib-Grasp-Hand-Left-HeavyMulti-v0" if args.objekt == "multi" else "Pib-Grasp-Hand-Left-v0"
-cfg = PibGraspEnvCfg_HeavyMulti() if args.objekt == "multi" else apply_object(PibGraspEnvCfg(), args.objekt)
+if args.greifart == "oben":
+    from pib_grasp.env_cfg_oben import PibGraspEnvCfg_Oben, PibGraspEnvCfg_ObenMulti, apply_object_oben
+    TASK = "Pib-Grasp-Hand-Left-ObenMulti-v0" if args.objekt == "multi" else "Pib-Grasp-Hand-Left-Oben-v0"
+    cfg = PibGraspEnvCfg_ObenMulti() if args.objekt == "multi" else apply_object_oben(PibGraspEnvCfg_Oben(), args.objekt)
+else:
+    TASK = "Pib-Grasp-Hand-Left-HeavyMulti-v0" if args.objekt == "multi" else "Pib-Grasp-Hand-Left-v0"
+    cfg = PibGraspEnvCfg_HeavyMulti() if args.objekt == "multi" else apply_object(PibGraspEnvCfg(), args.objekt)
 cfg.scene.num_envs = args.num_envs
 cfg.seed = 1000
-stem = f"_analyse_reset_{args.objekt}" + (f"_{args.dauer:g}s" if args.dauer != 0.1 else "")
+stem = (f"_analyse_reset_{'oben_' if args.greifart == 'oben' else ''}{args.objekt}"
+        + (f"_{args.dauer:g}s" if args.dauer != 0.1 else ""))
 if args.startpose == "eval_v1":
     r = cfg.events.reset_hand.params["ranges_deg"]
     r.update({j: (0.0, 15.0) for j in ("index_left_proximal", "middle_left_proximal", "ring_left_proximal",
@@ -129,7 +137,8 @@ lines += [f"Hand berührt das Objekt im 1. Schritt: {int(touch0.any(1).sum())}/{
           f"(Gewicht {9.81 * obj.root_physx_view.get_masses().reshape(n, -1).sum(1).mean().item():.1f} N)",
           f"Objektgröße s {scale.min().item():.3f}–{scale.max().item():.3f}; Δz gegen (s − 1)·h/2 (Start zu hoch/tief): "
           f"Korrelation {torch.corrcoef(torch.stack([dpos[:, 2].cpu(), scale - 1]))[0, 1].item():.2f}",
-          f"Hand-Drift in 0,1 s: Servo-Gelenk max {djoint.max().item():.2f}° (Median der Maxima {djoint.max(1).values.median().item():.2f}°), "
+          f"Hand-Drift in 0,1 s: Servo-Gelenk max {djoint.max().item():.2f}° (Umgebung {int(djoint.max(1).values.argmax())}, "
+          f"{SERVO[int(djoint.max(0).values.argmax())]}; Median der Maxima {djoint.max(1).values.median().item():.2f}°), "
           f"Fingerspitze max {dtip.max().item():.1f} mm", "",
           "Handkörper mit Kontakt (Anteil Umgebungen 1. Schritt / 0,1 s, Spitzenkraft):"]
 for b in range(len(BODIES)):

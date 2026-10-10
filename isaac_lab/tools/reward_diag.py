@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--task", required=True)
 parser.add_argument("--policy", required=True)
 parser.add_argument("--num_envs", type=int, default=256)
+parser.add_argument("--action_clip", type=float, default=0.0, help="Policy-Ausgabe auf ±Wert begrenzen (clip_actions)")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 app = AppLauncher(args).app
@@ -46,7 +47,10 @@ obs, _ = env.reset(seed=1000)
 alive = torch.ones(u.num_envs, dtype=torch.bool, device=u.device)
 with torch.inference_mode():
     for step in range(int(u.max_episode_length) - 1):
-        obs, _, term, trunc, _ = env.step(policy(obs["policy"]))
+        act = policy(obs["policy"])
+        if args.action_clip > 0:
+            act = act.clamp(-args.action_clip, args.action_clip)
+        obs, _, term, trunc, _ = env.step(act)
         alive &= ~(term | trunc)
         t = (step + 1) * u.step_dt
         key = "vor" if t < GRASP_TIME_S else ("halten" if t >= hold_s else None)

@@ -579,6 +579,23 @@ class PibGraspEnvCfg_HeavyMultiProgress(PibGraspEnvCfg_HeavyMulti):
     rewards: RewardsProgressCfg = RewardsProgressCfg()
 
 
+# EXP-023: 13 cm Ziehen (Befund 2026-10-10) kostet so viel wie der Gegengriff bringt (0,5/s): 0,5 / 0,13 ≈ 4
+XY_PENALTY_WEIGHT = -4.0
+
+
+@configclass
+class RewardsProgressXYCfg(RewardsProgressCfg):
+    """EXP-023: wie EXP-022, plus Strafe auf die Verschiebung des Objekts in der Tischebene (mdp.object_xy_displacement)."""
+    object_xy = RewTerm(func=mdp.object_xy_displacement, weight=XY_PENALTY_WEIGHT,
+                        params={"ref_s": START_REF_S, "max_dist": 0.2})
+
+
+@configclass
+class PibGraspEnvCfg_HeavyMultiProgressXY(PibGraspEnvCfg_HeavyMulti):
+    """EXP-023: wie EXP-022 (mit Agent PibGraspPPORunnerCfg_Clip), Objekt soll in der Tischebene bleiben."""
+    rewards: RewardsProgressXYCfg = RewardsProgressXYCfg()
+
+
 @configclass
 class PibGraspEnvCfg_HeavyMultiPriv(PibGraspEnvCfg_HeavyMulti):
     """EXP-021: wie EXP-018, Critic zusätzlich mit Objektgröße, Masse und Reibung (privilegiert, wie HORA/Dexsuite)."""

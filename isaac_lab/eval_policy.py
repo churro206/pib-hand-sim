@@ -7,10 +7,12 @@ tatsächlicher Größe und Gierdrehung, YCB in Ruhelage — env_cfg/mdp); eval-v
 Exportierter Actor (TorchScript, deterministisch) in der Greifaufgabe; nur die Abbrüche
 „Dose gefallen“ und „Physik instabil“ sind aktiv, der Kippwinkel wird gemessen. Je Episode:
 Ende, größter Kippwinkel, Unterarmdrehung, Griffkraft/Kraft > 15 N in der Haltephase,
-Stall-Anteil, Absinken, Unruhe. Ausgabe: <protokoll>.txt + <protokoll>.json (Metriken, Erfolg je
-Episode für den Bootstrap in experiments.py) — je Protokollversion eine Datei, nichts wird
+Stall-Anteil, Absinken, Unruhe, Objektweg (Verschiebung der Objektmitte in der Tischebene ggü. t = 0,1 s, seit
+2026-10-10 — Befund tools/diag_objektweg.py: die Policies ziehen das Objekt Richtung Unterarm).
+Ausgabe: <protokoll>.txt + <protokoll>.json (Metriken, Erfolg je Episode für den Bootstrap in experiments.py) — je Protokollversion eine Datei, nichts wird
 bei einer neuen Version überschrieben. Andere Bedingung (Objekt aus env_cfg.OBJECTS):
---objekt quader_7x7x20 --bedingung quader_seitlich → <protokoll>_<bedingung>.json/.txt
+--objekt quader_7x7x20 --bedingung quader_seitlich → <protokoll>_<bedingung>.json/.txt; Greifart „von oben“
+(env_cfg_oben): --greifart oben --objekt kugel_d7 --bedingung kugel_d7_oben --max_kipp_deg -1
 (Standardbedingung zylinder_seitlich bleibt <protokoll>.json).
 
   ~/IsaacLab/isaaclab.sh -p isaac_lab/eval_policy.py --policy <run>/exported/policy.pt --num_envs 16 --real_time
@@ -42,7 +44,10 @@ parser.add_argument("--num_envs", type=int, default=256)
 parser.add_argument("--episodes", type=int, default=1000, help="Zahl der gewerteten Episoden")
 parser.add_argument("--seed", type=int, default=1000, help="Bewertungs-Seed (≠ Trainings-Seeds)")
 parser.add_argument("--max_kipp_deg", type=float, default=20.0, help="Anforderung; < 0 = keine")
-parser.add_argument("--objekt", type=str, default="zylinder_d6", help="Objekt aus env_cfg.OBJECTS")
+parser.add_argument("--greifart", choices=["seitlich", "oben"], default="seitlich",
+                    help="Szene: seitlich (env_cfg) oder von oben (env_cfg_oben, Stufe 4b)")
+parser.add_argument("--objekt", type=str, default=None,
+                    help="Objekt aus env_cfg.OBJECTS bzw. env_cfg_oben.OBJECTS_OBEN (Standard zylinder_d6 / kugel_d7)")
 parser.add_argument("--bedingung", type=str, default="zylinder_seitlich", help="Name der Bedingung (Dateiname)")
 parser.add_argument("--out", type=str, default=None, help="Ausgabeordner (<protokoll>.json/.txt); "
                     "Standard: Laufordner bzw. isaac_sim/tools/")
@@ -80,14 +85,20 @@ STALL_FRACTION = 0.9
 REQ_DEG = args_cli.max_kipp_deg if args_cli.max_kipp_deg >= 0 else None
 
 # ── Umgebung: wie im Training, nur Abbrüche „gefallen“ und „instabil“ ─────────────────────
-cfg = apply_object(PibGraspEnvCfg(), args_cli.objekt)
+if args_cli.greifart == "oben":
+    from pib_grasp.env_cfg_oben import DEFAULT_OBJECT_OBEN, PibGraspEnvCfg_Oben, apply_object_oben
+    args_cli.objekt = args_cli.objekt or DEFAULT_OBJECT_OBEN
+    cfg, TASK = apply_object_oben(PibGraspEnvCfg_Oben(), args_cli.objekt), "Pib-Grasp-Hand-Left-Oben-v0"
+else:
+    args_cli.objekt = args_cli.objekt or "zylinder_d6"
+    cfg, TASK = apply_object(PibGraspEnvCfg(), args_cli.objekt), "Pib-Grasp-Hand-Left-v0"
 cfg.scene.num_envs = args_cli.num_envs
 cfg.seed = args_cli.seed
 if getattr(cfg.terminations, "object_tilted", None) is not None:   # trainingsspezifisch (EXP-001/002)
     cfg.terminations.object_tilted = None
     cfg.rewards.early_termination = None      # verweist auf object_tilted; Belohnung hier unbenutzt
 torch.manual_seed(args_cli.seed)
-env = gym.make("Pib-Grasp-Hand-Left-v0", cfg=cfg, render_mode="rgb_array" if args_cli.video else None)
+env = gym.make(TASK, cfg=cfg, render_mode="rgb_array" if args_cli.video else None)
 uenv = env.unwrapped
 
 if args_cli.checkpoint:
@@ -195,6 +206,8 @@ def zeros():
 steps, max_tilt, early_tilt, max_forearm = zeros(), zeros(), zeros(), zeros()
 hold_steps, hold_force, hold_over, stall, act_rate, sink = zeros(), zeros(), zeros(), zeros(), zeros(), zeros()
 act_rate_eff = zeros()      # Unruhe wirksam: Änderung der auf ±1 begrenzten Aktion (Überziehen jenseits zählt nicht)
+xy_path, xy_path_max = zeros(), zeros()     # Objektweg in der Tischebene ggü. t = EARLY_S (abgesetzt, Größe eingeschwungen)
+xy0 = obj.data.root_pos_w[:, :2].clone()
 hold_touch = torch.zeros(N, 5, device=dev)       # Fingernutzung: Schritte mit Objektkontakt > 1 N je Finger
 hold_fobj = torch.zeros(N, 5, device=dev)        # … und Objektkraft je Finger (Reihenfolge Daumen … klein)
 forearm0 = robot.data.joint_pos[:, forearm].clone()
@@ -229,6 +242,8 @@ def finish(i, reason):
         "absinken_mm": 1000 * sink[i].item(),
         "unruhe": act_rate[i].item() / n,
         "unruhe_wirksam": act_rate_eff[i].item() / n,
+        "objektweg_mm": 1000 * xy_path[i].item(),
+        "objektweg_max_mm": 1000 * xy_path_max[i].item(),
         "finger_kontakt": (hold_touch[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
         "finger_kraft_n": (hold_fobj[i] / hold_steps[i]).tolist() if hold_steps[i] > 0 else None,
     })
@@ -251,7 +266,7 @@ with torch.inference_mode():
                 finish(i, next((n for n in term_names if uenv.termination_manager.get_term(n)[i]), "?"))
         # neue Episoden zurücksetzen, laufende fortschreiben (Werte nach dem Schritt)
         for buf in (steps, max_tilt, early_tilt, max_forearm, hold_steps, hold_force, hold_over, stall, act_rate, act_rate_eff, sink,
-                    hold_touch, hold_fobj):
+                    hold_touch, hold_fobj, xy_path, xy_path_max):
             buf[done] = 0.0
         forearm0[done] = robot.data.joint_pos[done, forearm]
         z0[done] = obj.data.root_pos_w[done, 2]
@@ -275,6 +290,10 @@ with torch.inference_mode():
         act_rate[live] += ((am.action - am.prev_action) ** 2).sum(-1)[live]
         act_rate_eff[live] += ((am.action.clamp(-1, 1) - am.prev_action.clamp(-1, 1)) ** 2).sum(-1)[live]
         sink[live] = (z0 - obj.data.root_pos_w[:, 2]).clamp(min=0.0)[live]   # Hand fest → ggü. Startlage
+        ref = live & (steps <= early_steps)                                   # bis 0,1 s mitführen, dann fest
+        xy0[ref] = obj.data.root_pos_w[ref, :2]
+        xy_path[live] = torch.norm(obj.data.root_pos_w[:, :2] - xy0, dim=-1)[live]
+        xy_path_max[live] = torch.maximum(xy_path_max[live], xy_path[live])
         if args_cli.verlauf:
             idx = (steps - 1).long().clamp(0, T - 1)
             rows = live.nonzero().flatten()
@@ -317,6 +336,8 @@ summary = {
         "absinken_mm": mean([e["absinken_mm"] for e in held]),
         "unruhe": mean([e["unruhe"] for e in held]),
         "unruhe_wirksam": mean([e["unruhe_wirksam"] for e in held]),
+        "objektweg_mm": mean([e["objektweg_mm"] for e in held]),
+        "objektweg_max_mm": mean([e["objektweg_max_mm"] for e in held]),
     },
     # beschreibend (keine Leitplanke): Kontaktanteil/Kraft je Finger in der Haltephase, gehaltene Episoden
     "fingernutzung": {
@@ -327,7 +348,7 @@ summary = {
     },
 }
 result = {
-    "protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt,
+    "protokoll": PROTOCOL, "bedingung": args_cli.bedingung, "objekt": args_cli.objekt, "greifart": args_cli.greifart,
     "policy": args_cli.policy if args_cli.regel else str(Path(args_cli.policy).resolve()), "seed": args_cli.seed,
     "episoden": E, "umgebungen": N, "anforderung": {"max_kipp_deg": REQ_DEG},
     "dauer_s": round(time.time() - t_start, 1), "zusammenfassung": summary,
@@ -364,6 +385,7 @@ lines = [
     f"  Absinken             {num(L['absinken_mm'], ' mm')}",
     f"  Unruhe               {num(L['unruhe'], digits=3)}",
     f"  Unruhe wirksam       {num(L['unruhe_wirksam'], digits=3)}",
+    f"  Objektweg Ende/max   {num(L['objektweg_mm'], ' mm')} / {num(L['objektweg_max_mm'], ' mm')}",
     "Fingernutzung (Haltephase, Kontakt > 1 N / Kraft an der Dose), Daumen … klein:",
     "  Kontakt  " + "  ".join(pct(x) for x in summary["fingernutzung"]["kontakt_anteil"]),
     "  Kraft    " + "  ".join(num(x, " N") for x in summary["fingernutzung"]["kraft_n"]),

@@ -167,6 +167,74 @@ def place_objects_by_size(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, 
                                                              else lift + size[2] / 2)
 
 
+def tip_height_for_object(kind: str, size: tuple[float, float, float], clearance: tuple[tuple[float, float], ...],
+                          margin: float, min_tip_height: float) -> float:
+    """Höhe der Fingerspitzenebene über dem Tisch [m] für ein Objekt unter der gekippten Hand „von oben“: so tief wie
+    möglich, aber die Hand (außer den Spitzen) bleibt überall mindestens margin über der Objektoberfläche, und die Spitzen
+    stehen mindestens min_tip_height über dem Tisch (wie ein Planer die Vorgreifhöhe je Objekt setzen würde).
+    clearance: gemessener Platz unter der Hand über der Spitzenebene je Abstand r von der Greifmitte
+    (tools/probe_neigung_oben.py); jenseits der Tabelle linear mit der letzten Steigung fortgesetzt.
+    kind: kugel (Radius = size[2]/2), zylinder (Radius = size[0]/2) oder quader (halbe Diagonale des Grundrisses, weil
+    die Gierdrehung beliebig sein kann); size = Bounding Box (x, y, z)."""
+    import math
+    rs, cs = [c[0] for c in clearance], [c[1] for c in clearance]
+
+    def c_at(r: float) -> float:
+        for i in range(1, len(rs)):
+            if r <= rs[i]:
+                w = (r - rs[i - 1]) / (rs[i] - rs[i - 1])
+                return cs[i - 1] + w * (cs[i] - cs[i - 1])
+        return cs[-1] + (r - rs[-1]) * (cs[-1] - cs[-2]) / (rs[-1] - rs[-2])
+
+    if kind == "kugel":
+        R = size[2] / 2
+        surface = lambda r: R + math.sqrt(max(R * R - r * r, 0.0))  # noqa: E731
+    else:
+        R = size[0] / 2 if kind == "zylinder" else math.hypot(size[0], size[1]) / 2
+        surface = lambda r: size[2]  # noqa: E731
+    radii = sorted({*[r for r in rs if r <= R], R})
+    need = max(surface(r) + margin - c_at(r) for r in radii)
+    return max(min_tip_height, need)
+
+
+def place_objects_from_above(env: ManagerBasedRLEnv, env_ids: torch.Tensor | None, center_xy: tuple[float, float],
+                             tip_plane_z: float, clearance: tuple[tuple[float, float], ...], margin: float,
+                             min_tip_height: float, table_thickness: float, lift: float = 0.0,
+                             object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
+                             table_cfg: SceneEntityCfg = SceneEntityCfg("table")) -> None:
+    """Startup, Greifart „von oben“ (env_cfg_oben, gekippte Hand): je Umgebung aus der Bounding Box des gespawnten Objekts
+    (inkl. Zufallsgröße) und seiner Form die Höhe der Fingerspitzen über dem Tisch (tip_height_for_object), Objekt in der
+    Greifmitte center_xy auf dem Tisch, Tisch tip_height unter der Spitzenebene tip_plane_z (− lift: YCB fällt kurz auf den
+    Tisch statt im Collider zu starten). Die Hand ist fest — Objekt und Tisch werden gesetzt; lower_table und
+    reset_scene_to_default nutzen die geänderte Standardlage. Höhe je Umgebung in env.pib_tip_height (Diagnose).
+    Grundriss für reset_object_gap_aware ohne Eckkorrektur (eckig = 0): die Gierdrehung ist in der Höhe berücksichtigt."""
+    import re
+    import isaaclab.sim as sim_utils
+    from pxr import Usd, UsdGeom
+    obj: RigidObject = env.scene[object_cfg.name]
+    table: RigidObject = env.scene[table_cfg.name]
+    cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_])
+    stage = env.scene.stage
+    env.pib_object_footprint = torch.zeros(env.num_envs, 4, device=env.device)
+    env.pib_tip_height = torch.zeros(env.num_envs, device=env.device)
+    for path in sim_utils.find_matching_prim_paths(obj.cfg.prim_path):
+        idx = int(re.search(r"env_(\d+)", path).group(1))
+        prim = stage.GetPrimAtPath(path)
+        size = cache.ComputeWorldBound(prim).ComputeAlignedRange().GetSize()
+        types = {p.GetTypeName() for p in Usd.PrimRange(prim)}
+        kind = "kugel" if "Sphere" in types else ("zylinder" if "Cylinder" in types else "quader")
+        h = tip_height_for_object(kind, (size[0], size[1], size[2]), clearance, margin, min_tip_height)
+        env.pib_tip_height[idx] = h
+        env.pib_object_footprint[idx] = torch.tensor([size[0] / 2, size[1] / 2, 0.0, size[2]])
+        top = tip_plane_z - h                                         # Tischplatte
+        obj.data.default_root_state[idx, 0] = center_xy[0]
+        obj.data.default_root_state[idx, 1] = center_xy[1]
+        obj.data.default_root_state[idx, 2] = top + lift + size[2] / 2  # Ursprung = Boxmitte (auch YCB)
+        table.data.default_root_state[idx, 0] = center_xy[0]
+        table.data.default_root_state[idx, 1] = center_xy[1]
+        table.data.default_root_state[idx, 2] = top - table_thickness / 2
+
+
 def reset_object_gap_aware(env: ManagerBasedRLEnv, env_ids: torch.Tensor, pose_range: dict[str, tuple[float, float]],
                            velocity_range: dict[str, tuple[float, float]],
                            asset_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> None:
@@ -348,6 +416,21 @@ def success_start(env: ManagerBasedRLEnv, drop_start_s: float, pos_std: float, r
     active = (episode_time(env) >= drop_start_s).float()
     return (active * (1.0 - torch.tanh(object_start_distance(env, ref_s) / pos_std))
             * (1.0 - torch.tanh(object_tilt(env) / rot_std)))
+
+
+def object_xy_displacement(env: ManagerBasedRLEnv, ref_s: float, max_dist: float = 0.2,
+                           object_cfg: SceneEntityCfg = SceneEntityCfg("object")) -> torch.Tensor:
+    """Verschiebung [m] der Objektmitte in der Tischebene ggü. der Startlage (bis ref_s mitgeführt, dann
+    eingefroren), gekappt bei max_dist. Als Strafe über die ganze Episode wie Cross-Embodiment Dexterous Grasping
+    (Yuan et al. 2024: r = −0,3·‖xy − xy_Start‖); z bleibt beim Halteterm. EXP-023: die Policies zogen das Objekt
+    ~13 cm Richtung Unterarm (tools/diag_objektweg.py), nichts in der Belohnung hielt die Lage in der Tischebene."""
+    obj: RigidObject = env.scene[object_cfg.name]
+    xy = obj.data.root_pos_w[:, :2]
+    if getattr(env, "_pib_start_xy", None) is None or env._pib_start_xy.shape != xy.shape:
+        env._pib_start_xy = xy.clone()
+    before = episode_time(env) < ref_s
+    env._pib_start_xy[before] = xy[before]
+    return torch.norm(xy - env._pib_start_xy, dim=-1).clamp(max=max_dist)
 
 
 def excess_fingertip_force(env: ManagerBasedRLEnv, limit: float) -> torch.Tensor:
