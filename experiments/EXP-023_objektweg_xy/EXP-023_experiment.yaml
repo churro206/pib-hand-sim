@@ -1,0 +1,102 @@
+# EXP-NNN_experiment.yaml — Vorlage (Ablauf und Metriken: experiments/README.md)
+id: EXP-023
+titel: EXP-022 mit Strafe auf die Verschiebung in der Tischebene
+datum: '2026-10-10'
+eltern: EXP-022
+status: trainiert
+# --- 1. Planen (vor dem Start festlegen, danach nicht mehr ändern) ---
+hypothese: 'Die Policies der Linie mit 18 Formen ziehen das Objekt beim Zugreifen ~13 cm in der Tischebene
+  Richtung Unterarm (EXP-022 s42, Ø 6: Objektweg 142 mm), weil nichts in der Belohnung die Lage in xy hält.
+  Eine Strafe auf die Verschiebung wie Cross-Embodiment Dexterous Grasping (Yuan et al. 2024) senkt den Objektweg
+  deutlich (erwartet < 60 mm), ohne Leistung und Zuverlässigkeit zu verlieren (kein Unterschied ggü. EXP-022).'
+aenderung: 'Belohnungsterm object_xy = −4 · ‖xy − xy_Start‖ (Objektmitte, Start = Lage bei 0,1 s, gekappt bei 0,2 m),
+  ganze Episode (mdp.object_xy_displacement, Task HeavyMultiProgressClipXY-v0: Env HeavyMultiProgressXY, Agent
+  PibGraspPPORunnerCfg_Clip). Gewicht so, dass 13 cm Ziehen etwa den Gegengriff (0,5/s) aufwiegt; reward_diag mit
+  EXP-022 s42: object_xy −0,35/s vor dem Absenken, −0,59/s in der Haltephase, Gegengriff 0,39/0,49/s. Sonst wie EXP-022.'
+bedingungen:
+- name: zylinder_seitlich
+  objekt: Zylinder Ø 6 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d6
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: zylinder_d8_seitlich
+  objekt: Zylinder Ø 8 cm (±10 %), 15 cm, 0,05–0,2 kg (Benchmark)
+  objekt_id: zylinder_d8
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: quader_seitlich
+  objekt: Quader 7 × 7 × 20 cm (±10 %), Fläche zur Hand ±15°, 0,05–0,2 kg (Benchmark)
+  objekt_id: quader_7x7x20
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: flasche_seitlich
+  objekt: Flasche Ø 7 × 25 cm (±10 %), 0,05–0,2 kg (Testobjekt, nie trainiert — Höhe
+    außerhalb des Trainings)
+  objekt_id: flasche_d7x25
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: saftpackung_seitlich
+  objekt: Saftpackung 9 × 6 × 19 cm (±10 %), schmale Seite zur Hand ±15°, 0,05–0,2
+    kg (Testobjekt, nie trainiert)
+  objekt_id: saftpackung_9x6x19
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: ycb_cracker_seitlich
+  objekt: YCB 003 Cracker-Schachtel 16,4 × 7,2 × 21,3 cm, 411 g, schmale Seite zur
+    Hand ±15°, Ruhelage (Testobjekt, nie trainiert)
+  objekt_id: ycb_003_cracker
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: ycb_zucker_seitlich
+  objekt: YCB 004 Zuckerschachtel 9,3 × 4,5 × 17,6 cm, 514 g, schmale Seite zur Hand
+    ±15°, Ruhelage (Testobjekt, nie trainiert)
+  objekt_id: ycb_004_zucker
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+- name: ycb_senf_seitlich
+  objekt: YCB 006 Senfflasche 9,6 × 5,8 × 19,1 cm, 603 g, schmale Seite zur Hand ±15°
+    (Testobjekt, nie trainiert)
+  objekt_id: ycb_006_senf
+  startpose: seitlich, Daumen oben
+  anforderung:
+    max_kipp_deg: 45
+protokoll: eval-v2
+entscheidungsregel: standard    # README → „Statistik und Entscheidungsregel“
+
+# --- Training ---
+training:
+  task: Pib-Grasp-Hand-Left-HeavyMultiProgressClipXY-v0
+  iterationen: 300
+  umgebungen: 1024
+  seeds:
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  zusatz_args: []
+fenstertest: false              # nur ein Belohnungsterm, Szene unverändert; Prüfung: reward_diag + Kurztest (Leon abwesend)
+
+# --- automatisch (experiments.py run) ---
+commit: cf1f981+lokal
+laeufe:
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_16-52-58_EXP-023_s42
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_17-16-53_EXP-023_s43
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_17-36-47_EXP-023_s44
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_17-56-20_EXP-023_s45
+- logs/rsl_rl/pib_grasp_hand_left/2026-10-10_18-15-51_EXP-023_s46
+# --- 7. Dokumentieren & Entscheiden (nach der Auswertung, von Hand) ---
+ergebnis: 'Leistung 87 % [83–89] (ggü. EXP-022 kein Unterschied), 5/5 Seeds. Objektweg Ø 6 im Mittel 112 → 75 mm
+  (je Seed EXP-022 142/140/113/41/123, EXP-023 144/37/73/73/47 mm; Ø 8 70, Quader 68 mm): halbiert in 3/5 Seeds, s42 zieht
+  unverändert. Leitplanke Unruhe verletzt: 1,65 (EXP-022 0,36), s42/45/46 1,5–3,9, s43/44 ≈ 0,27.'
+urteil: ""                      # bestätigtes Urteil (besser | schlechter | kein Unterschied | Leitplanke verletzt)
+schluss: 'Entwurf: Die Strafe senkt das Ziehen, aber nicht zuverlässig, und macht mehrere Seeds unruhig (vermutlich
+  Nachregeln gegen die Strafe). So nicht als neue Basis; für „von oben“ zunächst ohne xy-Strafe (EXP-022-Rezept).
+  Möglich: kleineres Gewicht oder Strafe nur vor dem Absenken; Videos s43 (37 mm) vs. s42 ansehen (Leon).'

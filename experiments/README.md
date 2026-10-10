@@ -182,6 +182,8 @@ aber gekippt).
 | Stall-Anteil | Anteil der Schritte mit einem Servo (außer Handgelenk) ≥ 90 % des Maximalmoments | +5 Prozentpunkte |
 | Absinken | Absinken der Dose gegenüber der Hand bis Episodenende [mm] | +5 mm |
 | Unruhe | Mittel von ‖a_t − a_{t−1}‖² | +20 % |
+| Unruhe wirksam | wie Unruhe, Aktion auf ±1 begrenzt (seit 2026-10-09, ADR-022) | +20 % |
+| Objektweg | Verschiebung der Objektmitte in der Tischebene (xy) bei Episodenende ggü. t = 0,1 s [mm]; dazu beschreibend das Maximum (seit 2026-10-10, ADR-022 Nachtrag) | +20 mm |
 
 **Fingernutzung** (beschreibend, keine Leitplanke; seit 2026-10-07): Kontaktanteil (> 1 N an der
 Dose) und Kraft je Finger in der Haltephase, mittlere Zahl der Finger mit Kontakt. Anlass: EXP-004

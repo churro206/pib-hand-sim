@@ -35,7 +35,9 @@
     "stall_anteil": 0.9725630123313213,
     "absinken_mm": 0.0,
     "unruhe": 0.2581429438483556,
-    "unruhe_wirksam": 0.2581429438483556
+    "unruhe_wirksam": 0.2581429438483556,
+    "objektweg_mm": 141.61500206362874,
+    "objektweg_max_mm": 143.85651498166627
    },
    "fingernutzung": {
     "finger": [
@@ -79,7 +81,9 @@
     "stall_anteil": 0.9763293228974907,
     "absinken_mm": 0.0,
     "unruhe": 0.1571528428648325,
-    "unruhe_wirksam": 0.1571528428648325
+    "unruhe_wirksam": 0.1571528428648325,
+    "objektweg_mm": 140.23330964790748,
+    "objektweg_max_mm": 143.53386219094992
    },
    "fingernutzung": {
     "finger": [
@@ -123,7 +127,9 @@
     "stall_anteil": 0.9741362824345943,
     "absinken_mm": 0.014651225531564902,
     "unruhe": 0.3633019548030658,
-    "unruhe_wirksam": 0.3633019548030658
+    "unruhe_wirksam": 0.3633019548030658,
+    "objektweg_mm": 113.35290193912974,
+    "objektweg_max_mm": 114.20259399426028
    },
    "fingernutzung": {
     "finger": [
@@ -167,7 +173,9 @@
     "stall_anteil": 0.9749926366986955,
     "absinken_mm": 0.009861601241395611,
     "unruhe": 0.6299947857060585,
-    "unruhe_wirksam": 0.6299947857060585
+    "unruhe_wirksam": 0.6299947857060585,
+    "objektweg_mm": 40.73142379370759,
+    "objektweg_max_mm": 42.665249678033064
    },
    "fingernutzung": {
     "finger": [
@@ -211,7 +219,9 @@
     "stall_anteil": 0.9704028799919454,
     "absinken_mm": 0.02387832034522201,
     "unruhe": 0.3734621644161131,
-    "unruhe_wirksam": 0.3734621644161131
+    "unruhe_wirksam": 0.3734621644161131,
+    "objektweg_mm": 122.9859723984926,
+    "objektweg_max_mm": 136.3062782057521
    },
    "fingernutzung": {
     "finger": [
@@ -351,7 +361,8 @@
   "stall_anteil": 0.9736848268708094,
   "absinken_mm": 0.009678229423636504,
   "unruhe": 0.3564109383276851,
-  "unruhe_wirksam": 0.3564109383276851
+  "unruhe_wirksam": 0.3564109383276851,
+  "objektweg_mm": 111.78372196857322
  },
  "fehler": {
   "startfehler": 0.0,
@@ -726,7 +737,8 @@
     "stall_anteil": 0.977449924721032,
     "absinken_mm": 0.008990979514081354,
     "unruhe": 0.22698492071848494,
-    "unruhe_wirksam": 0.22698492071848494
+    "unruhe_wirksam": 0.22698492071848494,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1098,7 +1110,8 @@
     "stall_anteil": 0.975851508153727,
     "absinken_mm": 0.0,
     "unruhe": 0.674807987951659,
-    "unruhe_wirksam": 0.674807987951659
+    "unruhe_wirksam": 0.674807987951659,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1470,7 +1483,8 @@
     "stall_anteil": 0.9755297744484566,
     "absinken_mm": 0.0015968910057414256,
     "unruhe": 0.27709088359477657,
-    "unruhe_wirksam": 0.27709088359477657
+    "unruhe_wirksam": 0.27709088359477657,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -1842,7 +1856,8 @@
     "stall_anteil": 0.9737384122544089,
     "absinken_mm": 0.013837987459049586,
     "unruhe": 0.6439901249815221,
-    "unruhe_wirksam": 0.6439901249815221
+    "unruhe_wirksam": 0.6439901249815221,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -2214,7 +2229,8 @@
     "stall_anteil": 0.9756943478501492,
     "absinken_mm": 1.326154415523383,
     "unruhe": 0.4898818191504232,
-    "unruhe_wirksam": 0.4898818191504232
+    "unruhe_wirksam": 0.4898818191504232,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -2586,7 +2602,8 @@
     "stall_anteil": 0.9680678058085788,
     "absinken_mm": 2.1546072012976247,
     "unruhe": 0.4056371104408165,
-    "unruhe_wirksam": 0.4056371104408165
+    "unruhe_wirksam": 0.4056371104408165,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -2958,7 +2975,8 @@
     "stall_anteil": 0.9717930995372797,
     "absinken_mm": 4.912617733838308,
     "unruhe": 0.22438715981120536,
-    "unruhe_wirksam": 0.22438715981120536
+    "unruhe_wirksam": 0.22438715981120536,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -3110,7 +3128,9 @@
       "stall_anteil": 0.9725630123313213,
       "absinken_mm": 0.0,
       "unruhe": 0.2581429438483556,
-      "unruhe_wirksam": 0.2581429438483556
+      "unruhe_wirksam": 0.2581429438483556,
+      "objektweg_mm": 141.61500206362874,
+      "objektweg_max_mm": 143.85651498166627
      },
      "fingernutzung": {
       "finger": [
@@ -3154,7 +3174,9 @@
       "stall_anteil": 0.9763293228974907,
       "absinken_mm": 0.0,
       "unruhe": 0.1571528428648325,
-      "unruhe_wirksam": 0.1571528428648325
+      "unruhe_wirksam": 0.1571528428648325,
+      "objektweg_mm": 140.23330964790748,
+      "objektweg_max_mm": 143.53386219094992
      },
      "fingernutzung": {
       "finger": [
@@ -3198,7 +3220,9 @@
       "stall_anteil": 0.9741362824345943,
       "absinken_mm": 0.014651225531564902,
       "unruhe": 0.3633019548030658,
-      "unruhe_wirksam": 0.3633019548030658
+      "unruhe_wirksam": 0.3633019548030658,
+      "objektweg_mm": 113.35290193912974,
+      "objektweg_max_mm": 114.20259399426028
      },
      "fingernutzung": {
       "finger": [
@@ -3242,7 +3266,9 @@
       "stall_anteil": 0.9749926366986955,
       "absinken_mm": 0.009861601241395611,
       "unruhe": 0.6299947857060585,
-      "unruhe_wirksam": 0.6299947857060585
+      "unruhe_wirksam": 0.6299947857060585,
+      "objektweg_mm": 40.73142379370759,
+      "objektweg_max_mm": 42.665249678033064
      },
      "fingernutzung": {
       "finger": [
@@ -3286,7 +3312,9 @@
       "stall_anteil": 0.9704028799919454,
       "absinken_mm": 0.02387832034522201,
       "unruhe": 0.3734621644161131,
-      "unruhe_wirksam": 0.3734621644161131
+      "unruhe_wirksam": 0.3734621644161131,
+      "objektweg_mm": 122.9859723984926,
+      "objektweg_max_mm": 136.3062782057521
      },
      "fingernutzung": {
       "finger": [
@@ -3426,7 +3454,8 @@
     "stall_anteil": 0.9736848268708094,
     "absinken_mm": 0.009678229423636504,
     "unruhe": 0.3564109383276851,
-    "unruhe_wirksam": 0.3564109383276851
+    "unruhe_wirksam": 0.3564109383276851,
+    "objektweg_mm": 111.78372196857322
    },
    "fehler": {
     "startfehler": 0.0,
@@ -3788,7 +3817,8 @@
     "stall_anteil": 0.977449924721032,
     "absinken_mm": 0.008990979514081354,
     "unruhe": 0.22698492071848494,
-    "unruhe_wirksam": 0.22698492071848494
+    "unruhe_wirksam": 0.22698492071848494,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
@@ -4150,7 +4180,8 @@
     "stall_anteil": 0.975851508153727,
     "absinken_mm": 0.0,
     "unruhe": 0.674807987951659,
-    "unruhe_wirksam": 0.674807987951659
+    "unruhe_wirksam": 0.674807987951659,
+    "objektweg_mm": null
    },
    "fehler": {
     "startfehler": 0.0,
