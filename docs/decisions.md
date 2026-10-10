@@ -855,6 +855,14 @@ Vorbildern; die Korrekturen übernehmen jeweils das bewährte Gegenstück (DexPB
   **10/10** (gesichert zuverlässiger), aber mehr Unterarm/Kippen/Unruhe; EXP-020 (±1 allein) Unruhe wirksam höher;
   EXP-021 (Critic) kein Unterschied; **EXP-022 (Fortschritt + ±1) 5/5, 83 %, alle Leitplanken eingehalten, Unruhe 0,36**
   → Kandidat für die neue Basis (Leon prüft die Videos). Griffkraft bleibt überall maximal (Stall ~100 %).
+- **Befund Objektweg (2026-10-10, `tools/diag_objektweg.py`)**: Die Linie mit 18 Formen (EXP-013, 017, 018–022) zieht das
+  Objekt beim Zugreifen ~13 cm in der Tischebene Richtung Unterarm (Finger rollen mit Vollgas zur Faust ein, Objekt endet
+  zwischen Daumen- und Fingerspitzen vor dem Handballen; Unterarm/Handfläche tragen es nicht); nur mit dem Zylinder
+  trainiert 3–7 cm (EXP-004/006/012), Regel ohne Belohnung 4 cm. Ursache nicht der fehlerhafte Annäherungsterm
+  (EXP-006 hat ihn und zieht kaum, EXP-022 ohne zieht voll), sondern vermutlich eine formunabhängige Strategie der blinden
+  Policy, die nichts verhindert: unsere Haltebelohnung misst nur z, Dexsuite den 3D-Abstand zum Ziel; die Literatur
+  bestraft die Verschiebung ausdrücklich (Cross-Embodiment Dexterous Grasping: −0,3·‖xy − xy_Start‖; RobustDexGrasp:
+  Objektgeschwindigkeit und Verschiebung). → EXP-023 (Strafe auf die Verschiebung in der Tischebene), Leitplanke Objektweg.
 
 ---
 

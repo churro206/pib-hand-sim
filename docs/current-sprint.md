@@ -354,9 +354,19 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
        (gesichert zuverlässiger), mehr Unterarm/Kippen; EXP-020 ±1 allein unruhiger; EXP-021 Critic kein Unterschied;
        **EXP-022** (Fortschritt + ±1) **5/5, 83 %, Leitplanken eingehalten, Unruhe 0,36** (ADR-022, Ergebnis)
 5b. [ ] **Entscheidung (Leon)**: EXP-022 als neue Basis, wenn die besten Videos (`EXP-022_*/beste_videos/`) gut aussehen
-5c. [ ] **Griff von oben** (Stufe 4b, Leon 2026-10-10: als Nächstes, wenn EXP-022 passt): Apfel, Kugeln — eigene Szene
-       (Hand gedreht), Objektkatalog „von oben“ (YCB 005 Suppendose, Kugeln), `analyse_reset.py`, Regel-Baseline,
-       Spezialist mit dem EXP-022-Rezept
+5c. [ ] **Objektweg** (Befund 2026-10-10, `tools/diag_objektweg.py`): alle Policies der Linie mit 18 Formen (EXP-013,
+       017, 018–022) ziehen das Objekt beim Zugreifen ~13 cm in der Tischebene Richtung Unterarm (Faust einrollen, Objekt
+       zwischen Daumen- und Fingerspitzen vor dem Handballen); nur mit dem Zylinder trainiert 3–7 cm, Regel 4 cm. Nicht
+       der fehlerhafte Annäherungsterm; nichts in der Belohnung hält die Lage in der Tischebene (Halten misst nur z).
+       (a) Leitplanke **Objektweg** in eval_policy: Verschiebung der Objektmitte in der Tischebene (xy) ggü. t = 0,1 s
+5d. [ ] **EXP-023** (Eltern EXP-022, vor „von oben“): Strafe auf die Verschiebung in der Tischebene ggü. der Startlage
+       (0,1 s) wie Cross-Embodiment Dexterous Grasping (Yuan et al. 2024: r_xy = −0,3·‖xy − xy_Start‖, ganze Episode;
+       z bleibt beim Halte-Term); Gewicht per `reward_diag` so, dass 13 cm Ziehen etwa den Gegengriff aufwiegt.
+       Optional später: Strafe auf Objektgeschwindigkeit wie RobustDexGrasp (−15·‖v‖², dämpft auch Vollgas-Zudrücken)
+5e. [ ] **Griff von oben planen** (Stufe 4b, Leon 2026-10-10): Setup (Handpose von oben, Tisch, Objekte Apfel/Kugeln —
+       Kugeln als `SphereCfg`, YCB-Apfel fehlt in Isaac Sim 5.1; YCB 005 Suppendose; Anforderung ohne Kippwinkel,
+       Erfolg/„Griff steht“) mit der Wissenschaft abgleichen (Dexsuite, DexPBT, UniDexGrasp++, HORA; Vorgreifpose
+       von oben), dann `analyse_reset.py`, Regel-Baseline und Spezialist mit dem besten Rezept → voraussichtlich EXP-024
 6. [ ] **GPU besser nutzen** (2026-10-09, GPU im Training 83 %): (a) Bewertung in einem Isaac-Prozess je Seed statt je
        Bedingung (~35 s je Bedingung, großteils Start/Szenenaufbau ≈ ¼ der Laufzeit) — Zahlen vorher/nachher gleich prüfen;
        (b) `experiments.py bench` 2048 Umgebungen messen, bei deutlichem Gewinn eigenes Experiment „2048 statt 1024“

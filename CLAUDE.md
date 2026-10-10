@@ -128,6 +128,7 @@ isaac_lab/tools/reward_diag.py           Größenordnung der Belohnungsterme je 
 isaac_lab/tools/diag_anheben.py          Diagnose Anheben vor dem Absenken (2026-10-08)
 isaac_lab/tools/analyse_reset.py         Start ohne Überlappung/Fall prüfen (Kontakte Hand↔Objekt, Tisch, ADR-021)
 isaac_lab/tools/ruhelage_objekt.py       Ruhelage eines Objekts messen (YCB: Höhe/Neigung in OBJECTS)
+isaac_lab/tools/diag_objektweg.py        Wohin bewegen Policies das Objekt? (Weg in der Tischebene, Kontakte; Regel als Kontrolle)
 isaac_lab/backup_policies.py             Policies → privates HF-Repo churro206/pib-grasp-policies
 experiments/                             Experimente (je Ordner EXP-NNN_*-Dateien: experiment.yaml, Bericht, Diagramme, Videos), index.md, README
 ros2_ws/src/pib_description_v4/               URDF (44 DOFs + ros2_control-Tags) + Meshes
