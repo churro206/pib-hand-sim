@@ -354,19 +354,29 @@ unter dem Daumen). Seitlich greifen braucht ≥ ~15 cm Objekthöhe (Fingerspitze
        (gesichert zuverlässiger), mehr Unterarm/Kippen; EXP-020 ±1 allein unruhiger; EXP-021 Critic kein Unterschied;
        **EXP-022** (Fortschritt + ±1) **5/5, 83 %, Leitplanken eingehalten, Unruhe 0,36** (ADR-022, Ergebnis)
 5b. [ ] **Entscheidung (Leon)**: EXP-022 als neue Basis, wenn die besten Videos (`EXP-022_*/beste_videos/`) gut aussehen
-5c. [ ] **Objektweg** (Befund 2026-10-10, `tools/diag_objektweg.py`): alle Policies der Linie mit 18 Formen (EXP-013,
+5c. [x] **Objektweg** (Befund 2026-10-10, `tools/diag_objektweg.py`): alle Policies der Linie mit 18 Formen (EXP-013,
        017, 018–022) ziehen das Objekt beim Zugreifen ~13 cm in der Tischebene Richtung Unterarm (Faust einrollen, Objekt
        zwischen Daumen- und Fingerspitzen vor dem Handballen); nur mit dem Zylinder trainiert 3–7 cm, Regel 4 cm. Nicht
        der fehlerhafte Annäherungsterm; nichts in der Belohnung hält die Lage in der Tischebene (Halten misst nur z).
        (a) Leitplanke **Objektweg** in eval_policy: Verschiebung der Objektmitte in der Tischebene (xy) ggü. t = 0,1 s
-5d. [ ] **EXP-023** (Eltern EXP-022, vor „von oben“): Strafe auf die Verschiebung in der Tischebene ggü. der Startlage
+       ✓ 2026-10-10 (`objektweg_mm` Ende + `objektweg_max_mm`, Toleranz +20 mm; EXP-022 s42 Ø 6: 142 mm; EXP-022 neu bewertet)
+5d. [ ] **EXP-023** (Eltern EXP-022, vor „von oben“; trainiert 2026-10-10, Gewicht −4, `reward_diag`: −0,35/−0,59 je s
+       ggü. Gegengriff 0,39/0,49): Strafe auf die Verschiebung in der Tischebene ggü. der Startlage
        (0,1 s) wie Cross-Embodiment Dexterous Grasping (Yuan et al. 2024: r_xy = −0,3·‖xy − xy_Start‖, ganze Episode;
        z bleibt beim Halte-Term); Gewicht per `reward_diag` so, dass 13 cm Ziehen etwa den Gegengriff aufwiegt.
        Optional später: Strafe auf Objektgeschwindigkeit wie RobustDexGrasp (−15·‖v‖², dämpft auch Vollgas-Zudrücken)
-5e. [ ] **Griff von oben planen** (Stufe 4b, Leon 2026-10-10): Setup (Handpose von oben, Tisch, Objekte Apfel/Kugeln —
+       **Ergebnis (Entwurf)**: Leistung 87 % (kein Unterschied), 5/5; Objektweg Ø 6 im Mittel 112 → 75 mm (je Seed
+       144/37/73/73/47, s42 zieht weiter), aber **Leitplanke Unruhe verletzt** (1,65 statt 0,36; s42/45/46 1,5–3,9) →
+       so nicht als Basis; Urteil und Videos s43 vs. s42: Leon
+5e. [ ] **Griff von oben planen** (Stufe 4b, Leon 2026-10-10) — Plan: `docs/plan-griff-von-oben.md` (2026-10-10, offene
+       Fragen an Leon), Code: `pib_grasp/env_cfg_oben.py`, `tools/probe_oben.py`, `tools/machbarkeit_oben.py`. Setup
+       (Handpose von oben, Tisch, Objekte Apfel/Kugeln —
        Kugeln als `SphereCfg`, YCB-Apfel fehlt in Isaac Sim 5.1; YCB 005 Suppendose; Anforderung ohne Kippwinkel,
        Erfolg/„Griff steht“) mit der Wissenschaft abgleichen (Dexsuite, DexPBT, UniDexGrasp++, HORA; Vorgreifpose
        von oben), dann `analyse_reset.py`, Regel-Baseline und Spezialist mit dem besten Rezept → voraussichtlich EXP-024
+       **Stand 2026-10-10**: Szene gebaut (Tasks `Oben-v0`/`ObenMulti-v0`, `eval_policy --greifart oben`, Leaderboard je
+       Greifart), Geometrie gemessen, Raster: 3,5 cm Abstand, Mitte (−0,01, −0,33); Regel: Dose 75 %, Kugel Ø 7 64,5 %
+       (13 % Startfehler, Kugeln rollen); kleine/flache Objekte mit waagrechter Hand nicht greifbar. Offene Fragen im Plan
 6. [ ] **GPU besser nutzen** (2026-10-09, GPU im Training 83 %): (a) Bewertung in einem Isaac-Prozess je Seed statt je
        Bedingung (~35 s je Bedingung, großteils Start/Szenenaufbau ≈ ¼ der Laufzeit) — Zahlen vorher/nachher gleich prüfen;
        (b) `experiments.py bench` 2048 Umgebungen messen, bei deutlichem Gewinn eigenes Experiment „2048 statt 1024“

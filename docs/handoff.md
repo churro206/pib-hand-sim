@@ -4,33 +4,35 @@ _Wird durch `/handoff` am Session-Ende aktualisiert._
 
 ---
 
-## Stand 2026-10-10
+## Stand 2026-10-10 (abends, Leon unterwegs — nichts committet, nichts gepusht, kein HF-Backup)
 
 ### Zuletzt gearbeitet an
 
-1. **Reset ohne Überlappung → eval-v2** (ADR-021, `tools/analyse_reset.py`): Hand steckte in 34–81 % der Starts im Objekt; jetzt Startpose fast offen, Platzierung nach Größe/Gierdrehung; Protokoll je Experiment (`experiments.py umstellen`), Leaderboard je Protokoll. Vorher: Aufräumen (`EXP-NNN_`-Dateinamen, `isaac_lab/tools/`) und YCB 003/004/006 als Testobjekte.
-2. **Prüfung gegen die Vorbilder** (ADR-022): kein Signal fürs Zugreifen, Aktionen unbegrenzt (rl_games `bounds_loss` fehlt in rsl_rl), Budget 0,5 % von Dexsuite; Nachträge (`nachtrag` im YAML) in EXP-000–018.
-3. **Nachtlauf EXP-019–022** + EXP-018 auf 10 Seeds, beste Videos aufgenommen: **EXP-022** (Fortschritt je Fingerspitze wie DexPBT + `clip_actions = 1`) 5/5 Seeds, 83 %, Leitplanken eingehalten, Unruhe 0,36.
-4. **Befund Objektweg** (`tools/diag_objektweg.py`, ADR-022 Nachtrag): Linie mit 18 Formen (EXP-013/017/018–022) zieht das Objekt ~13 cm in der Tischebene Richtung Unterarm; Zylinder-Policies 3–7 cm, Regel 4 cm; Literatur bestraft das (Cross-Embodiment, RobustDexGrasp).
+1. **Leitplanke Objektweg** (`eval_policy.py`: `objektweg_mm` Ende/`objektweg_max_mm` ggü. t = 0,1 s; `experiments.py` GUARDRAILS +20 mm; README). EXP-022 nur in der Hauptbedingung neu bewertet (Objektweg Ø 6: 112 mm).
+2. **EXP-023** (xy-Strafe −4·‖xy − xy_Start‖, `mdp.object_xy_displacement`, Task `HeavyMultiProgressClipXY-v0`): 87 %, 5/5, Objektweg 112 → 75 mm (s42 unverändert 144), aber Leitplanke Unruhe verletzt (1,65 vs. 0,36). Ergebnis/Schluss als Entwurf im YAML.
+3. **Griff von oben**: Plan `docs/plan-griff-von-oben.md` (Literatur: UniDexGrasp, Dexsuite Lift, Cross-Embodiment, RobustDexGrasp) + Code: `pib_grasp/env_cfg_oben.py`, `mdp.place_objects_from_above`, Tasks `Oben-v0`/`ObenMulti-v0`/`ObenMultiXY-v0`, `eval_policy.py`/`analyse_reset.py --greifart oben`.
+4. **`experiments.py` je Greifart** (`BENCHMARK_OBEN`, `greifart` in YAML und Bedingung, Leaderboard-Tabelle je Greifart) — Ausgabe für „seitlich“ byte-gleich geprüft; Werkzeuge `tools/probe_oben.py`, `tools/machbarkeit_oben.py`.
 
 ### Offene Punkte
 
-- **Entscheidung Leon**: EXP-022 als neue Basis — nach Sichten von `experiments/EXP-022_fortschritt_begrenzt/beste_videos/` (Sprint 5b).
-- Urteile EXP-012–022 nur als Entwurf in den YAMLs (`ergebnis`/`schluss`), von Leon zu bestätigen.
-- Beste Videos von EXP-013/014/015/017 noch vom alten Reset — Neuaufnahme angeboten (~20 min), nicht entschieden.
-- Alle Policies drücken maximal zu (80–98 N, Stall ~100 %) — „Kraft dosieren“ bewusst hinten angestellt (Leon).
+- **Einsatz-Kandidat seitlich** (Gegenprüfung Bewertungs-Seed 2000, 8 Objekte, `logs/gegenpruefung_seed2000/`): EXP-023 s43 85,0 % (Seed 1000: 83,8), Objektweg Ø 25 mm, Kipp 11°, Unterarm 8°, Unruhe 0,32; EXP-022 s45 87,5 % (87,9), Weg 33 mm, Kipp 18°, Unterarm 15°, Unruhe 0,39. Keine Auswahlverzerrung; Vorschlag s43 (ruhiger), s45 als Reserve — Entscheidung Leon.
+- **Von oben, Kugel**: 14/256 Kugeln rollen beim Reset > 5 mm ohne Kontakt; in der Bewertung 13 % Startfehler (Episode endet ≤ 0,1 s). Eine Umgebung (Skala 0,91, Rotator-Start 82°): Daumen-Rotator springt 80° in 0,1 s ohne gemessenen Kontakt — ungeklärt.
+- Kleine/flache Objekte (Kugel Ø 5, Schachtel 9×6×4) mit waagrechter Hand nicht greifbar (Regel ≤ 3/24); stehen noch in `BENCHMARK_OBEN`/Training.
+- Entscheidungen Leon: Fragen 1–5 im Plan; EXP-022 als Basis (Videos), EXP-023-Urteil (Videos s43 37 mm vs. s42 144 mm).
+- Alle Läufe heute headless (Leon war weg) — Szene „von oben“ noch nie im Fenster gesehen.
 
 ### Nächste Schritte (in Reihenfolge)
 
-1. Leitplanke **Objektweg** in `eval_policy.py` (Verschiebung der Objektmitte in xy ggü. t = 0,1 s), Sprint 5c.
-2. **EXP-023** (Eltern EXP-022): Strafe auf xy-Verschiebung ggü. Startlage wie Cross-Embodiment (−0,3·‖xy − xy_Start‖, ganze Episode, z bleibt beim Halte-Term); Gewicht per `reward_diag`, sodass 13 cm Ziehen etwa den Gegengriff aufwiegt (Sprint 5d).
-3. **Griff von oben planen** und mit der Literatur abgleichen (Dexsuite, DexPBT, UniDexGrasp++, HORA): Handpose, Tisch, Kugeln (`SphereCfg`; YCB-Apfel fehlt in Isaac Sim 5.1), YCB 005, Anforderung ohne Kippwinkel → voraussichtlich EXP-024 (Sprint 5e).
-4. Danach: GPU besser nutzen (Bewertung je Seed in einem Prozess, `bench` 2048), Trainingsdauer auf der Basis neu prüfen, Unruhe, „rutschig“, M2.
+1. Leon: Plan-Fragen beantworten, Szene im Fenster zeigen: `isaaclab.sh -p isaac_lab/tools/machbarkeit_oben.py --objekt kugel_d7 --num_envs 16 --real_time`.
+2. Kugel-Rollen/Startfehler klären (Fenster, Env 124); ggf. `angular_damping` am Objekt oder Startlage; danach `analyse_reset.py --greifart oben` erneut (Ziel 0 Kontakt, nichts verschoben).
+3. Objektkatalog „von oben“ nach Leons Entscheidung bereinigen (`env_cfg_oben.OBJECTS_OBEN`/`TRAIN_*_OBEN`, `experiments.BENCHMARK_OBEN`).
+4. Regel-Baseline „von oben“ nach ADR-020 (Raster Seed 2000, `greifart: oben` im YAML), dann EXP-024 (`ObenMulti-v0`, EXP-022-Rezept), Bedingungen aus `BENCHMARK_OBEN` ins YAML kopieren.
+5. Danach Commit (Leon schaut drüber) und `experiments.py done` mit HF-Backup.
 
 ### Wichtige Kontextdetails
 
-- **Nur innerhalb eines Protokolls vergleichen**; bewertet wird nur unter eval-v2, eval-v1-Zahlen sind Historie.
-- Policies mit `clip_actions` werden mit `--action_clip` bewertet (`experiments.clip_args` liest `params/agent.yaml`); Firmware muss die Netzausgabe auf ±1 begrenzen. Kennzahl **Unruhe wirksam** nutzen.
-- Isaac Lab: nur eine Umgebung je Prozess; `env.reset` in Diagnoseskripten innerhalb `torch.inference_mode()`; Kontakte über `force_matrix_w_history`.
-- 8 GB VRAM: Fenstertests scheitern mit CUDA OOM, wenn Firefox/Bambu Studio offen sind; lange Läufe mit `nohup setsid`.
-- Leon: Vorbild als Ganzes prüfen (ADR-022), nur nachbewerten, was Entscheidungen trägt; `pkill -f` mit eigenem Befehlsmuster beendet die eigene Shell; vor Pushs fragen, außer er bittet ausdrücklich.
+- Geometrie Handfläche unten (`_probe_oben.txt`): Fingerspitzen max. 62 mm unter der Handfläche (MCP 50–60°); Daumen bei Rotator 90° zeigt offen 71 mm nach unten → näher als 3,5 cm steckt er beim Reset im Objekt. Gewählt: `PALM_GAP_OBEN` 0,035, Mitte (−0,01, −0,33).
+- Hand-Root-Frame ohne Drehung: Finger −y, Handfläche −z, Daumen −x → „von oben“ = `HAND_ROT_OBEN` (1,0,0,0); Tisch je Umgebung an die Objektunterseite (Höhe hängt von der Größe ab).
+- Neue Experimente „von oben“ brauchen `greifart: oben` im experiment.yaml **und** je Bedingung (sonst Benchmark seitlich); `max_kipp_deg: null` → `--max_kipp_deg -1`.
+- Während eines `experiments.py run` keine Dateien ändern, die neue Prozesse importieren (`env_cfg`, `mdp`, `__init__`, `eval_policy`, `experiments`) — jeder Seed/jede Bedingung startet frisch.
+- Bewertung dauert ~1,5 min je Bedingung (8 Bedingungen ≈ 12 min je Seed); Training 300 It. ≈ 11 min.
